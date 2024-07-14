@@ -1,5 +1,10 @@
-import { Broker, Strategy } from '../core/model';
+import { Strategy } from '../core/interfaces/strategy.interface';
+import { Broker } from '../core/interfaces/broker.interface';
 
+/**
+ * Abstract Strategy
+ * @author Yepeng Ding
+ */
 export abstract class StrategyAbstract implements Strategy {
   protected readonly broker: Broker;
 

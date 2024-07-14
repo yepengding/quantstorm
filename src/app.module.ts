@@ -4,10 +4,13 @@ import { AppService } from './app.service';
 import { StrategyModule } from './strategy/strategy.module';
 import { ConfigModule } from '@nestjs/config';
 import { BacktestModule } from './backtest/backtest.module';
-import { StrategyRegistryService } from './strategy/strategy.registry.service';
-import { BacktestBrokerService } from './backtest/backtest.broker.service';
+import { BacktestBrokerService } from './backtest/broker/backtest.broker.service';
 import configuration from './core/config';
 
+/**
+ * App Module
+ * @author Yepeng Ding
+ */
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
@@ -15,6 +18,6 @@ import configuration from './core/config';
     BacktestModule,
   ],
   controllers: [AppController],
-  providers: [AppService, StrategyRegistryService, BacktestBrokerService],
+  providers: [AppService, BacktestBrokerService],
 })
 export class AppModule {}

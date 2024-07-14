@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { Broker, Order } from '../core/model';
+import { Broker } from '../../core/interfaces/broker.interface';
+import { Order } from '../../core/interfaces/order.interface';
 
+/**
+ * Backtest Broker Service
+ * @author Yepeng Ding
+ */
 @Injectable()
 export class BacktestBrokerService implements Broker {
   placeMarketLong(symbol: string, size: number): Order {

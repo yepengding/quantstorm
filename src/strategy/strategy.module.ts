@@ -1,8 +1,12 @@
 import { Module } from '@nestjs/common';
-import { StrategyRegistryService } from './strategy.registry.service';
+import { registry } from './strategy.registry';
 
+/**
+ * Strategy Module
+ * @author Yepeng Ding
+ */
 @Module({
-  providers: [StrategyRegistryService],
-  exports: [StrategyRegistryService],
+  providers: [{ provide: 'STRATEGY_REGISTRY', useValue: registry }],
+  exports: [{ provide: 'STRATEGY_REGISTRY', useValue: registry }],
 })
 export class StrategyModule {}
