@@ -5,6 +5,7 @@ import { StrategyModule } from './strategy/strategy.module';
 import { ConfigModule } from '@nestjs/config';
 import { BacktestModule } from './backtest/backtest.module';
 import { BacktestBrokerService } from './backtest/broker/backtest.broker.service';
+import { BacktestDataService } from './backtest/data/backtest.data.service';
 import configuration from './core/config';
 
 /**
@@ -18,6 +19,6 @@ import configuration from './core/config';
     BacktestModule,
   ],
   controllers: [AppController],
-  providers: [AppService, BacktestBrokerService],
+  providers: [AppService, BacktestBrokerService, BacktestDataService],
 })
 export class AppModule {}

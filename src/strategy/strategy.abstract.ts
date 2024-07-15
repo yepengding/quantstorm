@@ -1,5 +1,6 @@
 import { Strategy } from '../core/interfaces/strategy.interface';
 import { Broker } from '../core/interfaces/broker.interface';
+import { KLine } from '../core/interfaces/k-line.interface';
 
 /**
  * Abstract Strategy
@@ -14,5 +15,5 @@ export abstract class StrategyAbstract implements Strategy {
 
   init(): void {}
 
-  next(): void {}
+  next(kLine: KLine): void {}
 }

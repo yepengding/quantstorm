@@ -1,4 +1,5 @@
 import { StrategyAbstract } from '../strategy.abstract';
+import { KLine } from '../../core/interfaces/k-line.interface';
 
 /**
  * Demo Strategy
@@ -9,7 +10,8 @@ export class Demo extends StrategyAbstract {
     this.broker.placeMarketLong('BTC', 1);
   }
 
-  next(): void {
+  next(kLine: KLine): void {
+    console.log(kLine);
     this.broker.placeMarketShort('BTC', 1);
   }
 }

@@ -1,5 +1,7 @@
+import { KLine } from './k-line.interface';
+
 export interface Strategy {
   init(): void;
 
-  next(): void;
+  next(kLine: KLine): void;
 }
