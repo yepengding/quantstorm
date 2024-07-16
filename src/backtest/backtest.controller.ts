@@ -25,7 +25,7 @@ export class BacktestController {
     let result = `Cannot find strategy ${strategyName}`;
     if (strategyClass) {
       const strategy = new strategyClass(this.broker);
-      await this.backtest.run(strategy);
+      await this.backtest.run(strategy, 1720913400, '30m');
       result = `Running ${strategyName}`;
     }
 

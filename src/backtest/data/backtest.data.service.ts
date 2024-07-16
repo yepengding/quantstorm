@@ -51,7 +51,7 @@ export class BacktestDataService {
       low: parseInt(record['low']),
       close: parseInt(record['close']),
       volume: parseInt(record['volume']),
-      timestamp: parseInt(record['close_time']),
+      timestamp: parseInt(record['close_time'].slice(0, -3)),
     };
   }
 }

@@ -43,6 +43,6 @@ describe('BacktestService', () => {
     expect(broker).toBeDefined();
   });
   it('should run strategy', async () => {
-    await service.run(new Demo(broker), 1720828800000);
+    await service.run(new Demo(broker), 1720913400, '30m');
   });
 });

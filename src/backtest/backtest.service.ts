@@ -8,7 +8,11 @@ export class BacktestService {
 
   constructor(private readonly data: BacktestDataService) {}
 
-  public async run(strategy: StrategyAbstract, startTimestamp: number) {
+  public async run(
+    strategy: StrategyAbstract,
+    startTimestamp: number,
+    interval,
+  ) {
     // Set clock
     this.clock = startTimestamp;
 
@@ -16,6 +20,6 @@ export class BacktestService {
     strategy.init();
 
     // Get K-lines
-    await this.data.getKLinesInBinanceCSV(this.clock, 100);
+    const kLines = await this.data.getKLinesInBinanceCSV(this.clock, 100);
   }
 }
