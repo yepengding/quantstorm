@@ -6,10 +6,7 @@ import { BacktestDataService } from './data/backtest.data.service';
 export class BacktestService {
   constructor(private readonly data: BacktestDataService) {}
 
-  private strategy: StrategyAbstract;
-
   public async run(strategy: StrategyAbstract) {
-    this.strategy = strategy;
     // Initialize strategy
     strategy.init();
 
