@@ -33,9 +33,12 @@ export class BacktestDataService {
       );
     for await (const record of parser) {
       const kLine = this.parseBinanceCSVRecord(record);
-      // TODO limit records before clock timestamp
-      if (kLine.timestamp <= clockTimestamp && kLines.length <= limit) {
-        kLines.push(kLine);
+      if (kLine.timestamp > clockTimestamp) {
+        break;
+      }
+      kLines.push(kLine);
+      if (kLines.length > limit) {
+        kLines.shift();
       }
     }
     return kLines;
