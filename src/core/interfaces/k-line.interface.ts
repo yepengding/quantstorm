@@ -4,4 +4,5 @@ export interface KLine {
   low: number;
   close: number;
   volume: number;
+  timestamp: number;
 }

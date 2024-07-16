@@ -46,7 +46,7 @@ lerna-debug.log*
 .temp
 .tmp
 
-# Runtime data
+# Runtime back_data
 pids
 *.pid
 *.seed
@@ -58,5 +58,5 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 # IDE
 .idea/
 
-# Backtesting data
+# Backtesting back_data
 backtest_data/

@@ -4,13 +4,18 @@ import { BacktestDataService } from './data/backtest.data.service';
 
 @Injectable()
 export class BacktestService {
+  private clock: number;
+
   constructor(private readonly data: BacktestDataService) {}
 
-  public async run(strategy: StrategyAbstract) {
+  public async run(strategy: StrategyAbstract, startTimestamp: number) {
+    // Set clock
+    this.clock = startTimestamp;
+
     // Initialize strategy
     strategy.init();
 
-    // Feed K-lines in Binance CSV to the strategy
-    await this.data.feedKLinesInBinanceCSVTo(strategy);
+    // Get K-lines
+    await this.data.getKLinesInBinanceCSV(this.clock, 100);
   }
 }

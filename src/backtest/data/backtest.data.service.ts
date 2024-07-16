@@ -4,7 +4,6 @@ import * as fs from 'node:fs';
 import { parse } from 'csv-parse';
 import { ConfigService } from '@nestjs/config';
 import { KLine } from '../../core/interfaces/k-line.interface';
-import { StrategyAbstract } from '../../strategy/strategy.abstract';
 
 /**
  * Backtest Data Service
@@ -16,11 +15,15 @@ export class BacktestDataService {
 
   /**
    * Load K-lines from Binance CSV
-   * @param strategy strategy to handle K-lines
+   * @param clockTimestamp current clock timestamp
+   * @param limit max number of K-lines
+   * @return K-line list starting from clockTimestamp
    */
-  public async feedKLinesInBinanceCSVTo(
-    strategy: StrategyAbstract,
-  ): Promise<void> {
+  public async getKLinesInBinanceCSV(
+    clockTimestamp: number,
+    limit: number,
+  ): Promise<KLine[]> {
+    const kLines = [];
     const parser = fs
       .createReadStream(this.configService.get<string>('backtest.dataPath'))
       .pipe(
@@ -29,17 +32,23 @@ export class BacktestDataService {
         }),
       );
     for await (const record of parser) {
-      strategy.next(this.parseBinanceCSVRecord(record));
+      const kLine = this.parseBinanceCSVRecord(record);
+      // TODO limit records before clock timestamp
+      if (kLine.timestamp <= clockTimestamp && kLines.length <= limit) {
+        kLines.push(kLine);
+      }
     }
+    return kLines;
   }
 
   private parseBinanceCSVRecord(record: any): KLine {
     return {
-      open: record['open'],
-      high: record['high'],
-      low: record['low'],
-      close: record['close'],
-      volume: record['volume'],
+      open: parseInt(record['open']),
+      high: parseInt(record['high']),
+      low: parseInt(record['low']),
+      close: parseInt(record['close']),
+      volume: parseInt(record['volume']),
+      timestamp: parseInt(record['close_time']),
     };
   }
 }
