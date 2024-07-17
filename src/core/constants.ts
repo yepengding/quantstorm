@@ -1,3 +1,5 @@
+export const DEFAULT_KLINE_LIMIT = 100;
+
 export enum OrderStatus {
   OPEN = 0,
   FILLED = 1,
@@ -5,6 +7,6 @@ export enum OrderStatus {
 }
 
 export enum TradeSide {
-  Short = -1,
-  Long = 1,
+  SHORT = -1,
+  LONG = 1,
 }

@@ -1,21 +1,47 @@
 import { Injectable } from '@nestjs/common';
 import { StrategyAbstract } from '../strategy/strategy.abstract';
 import { BacktestDataService } from './data/backtest.data.service';
+import { toTimestampInterval } from './backtest.utils';
+import { Interval } from '../core/types';
+import { DEFAULT_KLINE_LIMIT } from '../core/constants';
 
+/**
+ * Backtest Service
+ *
+ * @author Yepeng Ding
+ */
 @Injectable()
 export class BacktestService {
-  private clock: number;
-
   constructor(private readonly data: BacktestDataService) {}
 
-  public async run(strategy: StrategyAbstract, startTimestamp: number) {
-    // Set clock
-    this.clock = startTimestamp;
+  public async run(
+    strategy: StrategyAbstract,
+    symbol: string,
+    startTimestamp: number,
+    endTimestamp: number,
+    executionInterval: Interval,
+  ) {
+    // Feed K-lines at the start timestamp into the backtest broker of the strategy
+    strategy.backtestBroker.setKLines(
+      symbol,
+      await this.data.getKLinesInBinanceCSV(
+        startTimestamp,
+        DEFAULT_KLINE_LIMIT,
+      ),
+    );
 
     // Initialize strategy
-    strategy.init();
+    await strategy.init();
 
-    // Get K-lines
-    await this.data.getKLinesInBinanceCSV(this.clock, 100);
+    const interval = toTimestampInterval(executionInterval);
+    for (let clock = startTimestamp; clock < endTimestamp; clock += interval) {
+      // Feed K-lines into the backtest broker of the strategy
+      strategy.backtestBroker.setKLines(
+        symbol,
+        await this.data.getKLinesInBinanceCSV(clock, DEFAULT_KLINE_LIMIT),
+      );
+      // Execute the strategy
+      await strategy.next();
+    }
   }
 }

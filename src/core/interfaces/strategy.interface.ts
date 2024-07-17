@@ -1,7 +1,5 @@
-import { KLine } from './k-line.interface';
-
 export interface Strategy {
-  init(): void;
+  init(): Promise<void>;
 
-  next(kLine: KLine): void;
+  next(): Promise<void>;
 }

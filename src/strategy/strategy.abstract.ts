@@ -1,6 +1,6 @@
 import { Strategy } from '../core/interfaces/strategy.interface';
 import { Broker } from '../core/interfaces/broker.interface';
-import { KLine } from '../core/interfaces/k-line.interface';
+import { BacktestBrokerService } from '../backtest/broker/backtest.broker.service';
 
 /**
  * Abstract Strategy
@@ -13,7 +13,11 @@ export abstract class StrategyAbstract implements Strategy {
     this.broker = broker;
   }
 
-  init(): void {}
+  async init(): Promise<void> {}
 
-  next(kLine: KLine): void {}
+  async next(): Promise<void> {}
+
+  get backtestBroker() {
+    return this.broker instanceof BacktestBrokerService ? this.broker : null;
+  }
 }

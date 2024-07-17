@@ -3,8 +3,8 @@ import { BacktestService } from './backtest.service';
 import { Demo } from '../strategy/demo/demo';
 import { BacktestBrokerService } from './broker/backtest.broker.service';
 import { BacktestDataService } from './data/backtest.data.service';
-import { ConfigService } from '@nestjs/config';
-import * as path from 'node:path';
+import { ConfigModule } from '@nestjs/config';
+import configuration from '../core/config';
 
 describe('BacktestService', () => {
   let service: BacktestService;
@@ -12,26 +12,8 @@ describe('BacktestService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn((key: string) => {
-              // this is being super extra, in the case that you need multiple keys with the `get` method
-              if (key === 'backtest.dataPath') {
-                return path.join(
-                  __dirname,
-                  '../../data_example/BTCUSDT-30m-2024-07-13.csv',
-                );
-              }
-              return null;
-            }),
-          },
-        },
-        BacktestService,
-        BacktestBrokerService,
-        BacktestDataService,
-      ],
+      imports: [ConfigModule.forRoot({ load: [configuration] })],
+      providers: [BacktestService, BacktestBrokerService, BacktestDataService],
     }).compile();
 
     service = module.get<BacktestService>(BacktestService);
@@ -42,7 +24,7 @@ describe('BacktestService', () => {
     expect(service).toBeDefined();
     expect(broker).toBeDefined();
   });
-  it('should run strategy', async () => {
-    await service.run(new Demo(broker), 1720828800000);
+  it('should run the demo strategy', async () => {
+    await service.run(new Demo(broker), 'BTC', 1720843200, 1720913400, '15m');
   });
 });
