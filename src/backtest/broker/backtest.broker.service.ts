@@ -32,11 +32,10 @@ export class BacktestBrokerService implements BacktestBroker {
     this.currentClock = Date.now() - 86400;
     this.balances = new Map<string, number>();
     this.positions = new Map<string, Position>();
-    // this.kLines = new Map<string, KLine[]>();
   }
 
   async placeMarketLong(symbol: string, size: number): Promise<Order> {
-    return {
+    const order: Order = {
       id: this.orderId,
       symbol: symbol,
       price: await this.getMarketPrice(symbol),
@@ -45,10 +44,12 @@ export class BacktestBrokerService implements BacktestBroker {
       side: TradeSide.LONG,
       status: OrderStatus.FILLED,
     };
+    this.updatePositionByFilledOrder(order);
+    return order;
   }
 
   async placeMarketShort(symbol: string, size: number): Promise<Order> {
-    return {
+    const order: Order = {
       id: this.orderId,
       symbol: symbol,
       price: await this.getMarketPrice(symbol),
@@ -57,6 +58,8 @@ export class BacktestBrokerService implements BacktestBroker {
       side: TradeSide.SHORT,
       status: OrderStatus.FILLED,
     };
+    this.updatePositionByFilledOrder(order);
+    return order;
   }
 
   async getMarketPrice(symbol: string): Promise<number> {
@@ -110,5 +113,45 @@ export class BacktestBrokerService implements BacktestBroker {
 
   private get orderId() {
     return `${this.orderIdCounter++}`;
+  }
+
+  private updatePositionByFilledOrder(order: Order): void {
+    const position: Position = this.positions.get(order.symbol);
+    if (position) {
+      // If position is open, then update position
+      if (position.side == order.side) {
+        // If position has the same side as the order
+        this.positions.set(order.symbol, {
+          entryPrice:
+            (position.entryPrice * position.size + order.price * order.size) /
+            (position.size + order.size),
+          side: position.side,
+          size: position.size + order.size,
+        });
+      } else {
+        // If position has the different side from the order
+        if (position.size > order.size) {
+          this.positions.set(order.symbol, {
+            ...position,
+            size: position.size - order.size,
+          });
+        } else if (position.size == order.size) {
+          this.positions.set(order.symbol, null);
+        } else {
+          this.positions.set(order.symbol, {
+            ...position,
+            side: order.side,
+            size: order.size - position.size,
+          });
+        }
+      }
+    } else {
+      // If position is closed, then open position
+      this.positions.set(order.symbol, {
+        entryPrice: order.price,
+        side: order.side,
+        size: order.size,
+      });
+    }
   }
 }

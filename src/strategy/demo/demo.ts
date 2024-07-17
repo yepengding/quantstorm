@@ -1,45 +1,45 @@
 import { StrategyAbstract } from '../strategy.abstract';
+import { Interval } from '../../core/types';
 
 /**
  * Demo Strategy
  * @author Yepeng Ding
  */
 export class Demo extends StrategyAbstract {
-  private position: {
-    size: number;
-    entryPrice: number;
+  // Strategy configuration
+  private config = {
+    symbol: 'BTC/USDT',
+    size: 1,
+    interval: '30m' as Interval,
   };
 
   async init(): Promise<void> {
     const order = await this.broker
-      .placeMarketLong('BTC/USDT', 1)
+      .placeMarketLong(this.config.symbol, this.config.size)
       .catch(() => null);
     if (order) {
-      console.log(`Long 1 BTC at ${order.price}`);
+      console.log(`Long ${this.config.size} BTC at ${order.price}`);
     }
-    this.position = {
-      size: order.size,
-      entryPrice: order.price,
-    };
   }
 
   async next(): Promise<void> {
-    const kLines = await this.broker.getKLines('BTC/USDT', '30m');
+    const kLines = await this.broker.getKLines(
+      this.config.symbol,
+      this.config.interval,
+    );
     // Strategy only executes when the number of the received K-lines >= 10
     if (kLines.length < 10) {
       return;
     }
 
-    if (
-      this.position.size > 0 &&
-      kLines.at(-1).close > this.position.entryPrice
-    ) {
+    const position = await this.broker.getPosition(this.config.symbol);
+
+    if (position && kLines.at(-1).close > position.entryPrice) {
       const order = await this.broker
-        .placeMarketShort('BTC/USDT', 1)
+        .placeMarketShort(this.config.symbol, this.config.size)
         .catch(() => null);
       if (order) {
-        this.position.size = 0.0;
-        console.log(`Short 1 BTC at ${order.price}`);
+        console.log(`Short ${this.config.size} BTC at ${order.price}`);
       }
     }
   }

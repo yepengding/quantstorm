@@ -1,5 +1,6 @@
 import { KLine, Order } from './market.interface';
 import { Interval } from '../types';
+import { TradeSide } from '../constants';
 
 export interface Broker {
   placeMarketLong(symbol: string, size: number): Promise<Order>;
@@ -19,5 +20,6 @@ export interface Broker {
 
 export interface Position {
   entryPrice: number;
+  side: TradeSide;
   size: number;
 }
