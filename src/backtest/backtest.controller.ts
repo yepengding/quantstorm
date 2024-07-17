@@ -35,7 +35,7 @@ export class BacktestController {
 
     if (strategyClass) {
       const strategy = new strategyClass(this.broker);
-      await this.backtest.run(strategy, 'BTC', start, end, interval);
+      await this.backtest.run(strategy, start, end, interval);
       result = `Running ${name}`;
     }
 

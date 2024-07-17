@@ -11,7 +11,9 @@ export class Demo extends StrategyAbstract {
   };
 
   async init(): Promise<void> {
-    const order = await this.broker.placeMarketLong('BTC', 1).catch(() => null);
+    const order = await this.broker
+      .placeMarketLong('BTC/USDT', 1)
+      .catch(() => null);
     if (order) {
       console.log(`Long 1 BTC at ${order.price}`);
     }
@@ -22,7 +24,7 @@ export class Demo extends StrategyAbstract {
   }
 
   async next(): Promise<void> {
-    const kLines = await this.broker.getKLines('BTC');
+    const kLines = await this.broker.getKLines('BTC/USDT', '30m');
     // Strategy only executes when the number of the received K-lines >= 10
     if (kLines.length < 10) {
       return;
@@ -33,7 +35,7 @@ export class Demo extends StrategyAbstract {
       kLines.at(-1).close > this.position.entryPrice
     ) {
       const order = await this.broker
-        .placeMarketShort('BTC', 1)
+        .placeMarketShort('BTC/USDT', 1)
         .catch(() => null);
       if (order) {
         this.position.size = 0.0;

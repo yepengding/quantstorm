@@ -8,7 +8,9 @@ A quants-centric trading system.
 $ npm install
 ```
 
-## Running the app
+## Backtesting
+
+Run Quantstorm
 
 ```bash
 # development
@@ -20,6 +22,12 @@ $ npm run start:dev
 # production mode
 $ npm run start:prod
 ```
+
+Access the endpoint `/backtest/{strategy}` with params:
+
+- *start* The start timestamp
+- *end* The end timestamp
+- *interval* The execution interval, e.g., '1m', '15m', '1h'
 
 ## Test
 

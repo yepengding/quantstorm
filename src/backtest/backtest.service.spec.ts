@@ -25,6 +25,6 @@ describe('BacktestService', () => {
     expect(broker).toBeDefined();
   });
   it('should run the demo strategy', async () => {
-    await service.run(new Demo(broker), 'BTC', 1720843200, 1720913400, '15m');
+    await service.run(new Demo(broker), 1720843200, 1720913400, '15m');
   });
 });

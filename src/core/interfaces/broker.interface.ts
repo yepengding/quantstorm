@@ -1,5 +1,5 @@
-import { Order } from './order.interface';
-import { KLine } from './k-line.interface';
+import { KLine, Order } from './market.interface';
+import { Interval } from '../types';
 
 export interface Broker {
   placeMarketLong(symbol: string, size: number): Promise<Order>;
@@ -8,5 +8,16 @@ export interface Broker {
 
   getMarketPrice(symbol: string): Promise<number>;
 
-  getKLines(symbol: string, limit?: number): Promise<KLine[]>;
+  getPosition(symbol: string): Promise<Position>;
+
+  getKLines(
+    symbol: string,
+    interval: Interval,
+    limit?: number,
+  ): Promise<KLine[]>;
+}
+
+export interface Position {
+  entryPrice: number;
+  size: number;
 }

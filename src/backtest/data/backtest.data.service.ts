@@ -3,7 +3,9 @@ import { Injectable } from '@nestjs/common';
 import * as fs from 'node:fs';
 import { parse } from 'csv-parse';
 import { ConfigService } from '@nestjs/config';
-import { KLine } from '../../core/interfaces/k-line.interface';
+import { KLine } from '../../core/interfaces/market.interface';
+import { Interval } from '../../core/types';
+import { join } from 'node:path';
 
 /**
  * Backtest Data Service
@@ -15,24 +17,33 @@ export class BacktestDataService {
 
   /**
    * Load K-lines from Binance CSV
+   * @param symbol symbol
+   * @param interval interval
    * @param clockTimestamp current clock timestamp
    * @param limit max number of K-lines
    * @return K-line list starting from clockTimestamp
    */
   public async getKLinesInBinanceCSV(
+    symbol: string,
+    interval: Interval,
     clockTimestamp: number,
     limit: number,
   ): Promise<KLine[]> {
     const kLines = [];
     const parser = fs
-      .createReadStream(this.configService.get<string>('backtest.dataPath'))
+      .createReadStream(
+        join(
+          this.configService.get<string>('backtest.dataPath'),
+          this.getBinanceCSVFilename(symbol, interval),
+        ),
+      )
       .pipe(
         parse({
           columns: true,
         }),
       );
     for await (const record of parser) {
-      const kLine = this.parseBinanceCSVRecord(record);
+      const kLine = this.getKLineFromBinanceCSVRecord(record);
       if (kLine.timestamp > clockTimestamp) {
         break;
       }
@@ -44,13 +55,17 @@ export class BacktestDataService {
     return kLines;
   }
 
-  private parseBinanceCSVRecord(record: any): KLine {
+  private getBinanceCSVFilename(symbol: string, interval: Interval): string {
+    return `${symbol.replace(/\//g, '')}-${interval}.csv`;
+  }
+
+  private getKLineFromBinanceCSVRecord(record: any): KLine {
     return {
-      open: parseInt(record['open']),
-      high: parseInt(record['high']),
-      low: parseInt(record['low']),
-      close: parseInt(record['close']),
-      volume: parseInt(record['volume']),
+      open: parseFloat(record['open']),
+      high: parseFloat(record['high']),
+      low: parseFloat(record['low']),
+      close: parseFloat(record['close']),
+      volume: parseFloat(record['volume']),
       timestamp: parseInt(record['close_time'].slice(0, -3)),
     };
   }
