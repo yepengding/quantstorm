@@ -1,7 +1,13 @@
-import { Controller, Get, Inject } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import {
+  Controller,
+  Get,
+  Inject,
+  Param,
+  ParseIntPipe,
+  Query,
+} from '@nestjs/common';
 import { BacktestBrokerService } from './broker/backtest.broker.service';
-import { StrategyRegistryType } from '../core/types';
+import { Interval, StrategyRegistryType } from '../core/types';
 import { BacktestService } from './backtest.service';
 
 /**
@@ -11,22 +17,26 @@ import { BacktestService } from './backtest.service';
 @Controller('backtest')
 export class BacktestController {
   constructor(
-    private readonly configService: ConfigService,
     private readonly broker: BacktestBrokerService,
     private readonly backtest: BacktestService,
     @Inject('STRATEGY_REGISTRY')
     private readonly registry: StrategyRegistryType,
   ) {}
 
-  @Get()
-  async index(): Promise<string> {
-    const strategyName = this.configService.get<string>('strategy');
-    const strategyClass = this.registry.get(strategyName);
-    let result = `Cannot find strategy ${strategyName}`;
+  @Get(':name')
+  async index(
+    @Param('name') name: string,
+    @Query('start', ParseIntPipe) start: number,
+    @Query('end', ParseIntPipe) end: number,
+    @Query('interval') interval: Interval,
+  ): Promise<string> {
+    const strategyClass = this.registry.get(name.toLowerCase());
+    let result = `Cannot find strategy ${name}`;
+
     if (strategyClass) {
       const strategy = new strategyClass(this.broker);
-      await this.backtest.run(strategy, 1720913400, '30m');
-      result = `Running ${strategyName}`;
+      await this.backtest.run(strategy, 'BTC', start, end, interval);
+      result = `Running ${name}`;
     }
 
     return result;
