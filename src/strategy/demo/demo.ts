@@ -1,5 +1,6 @@
 import { StrategyAbstract } from '../strategy.abstract';
 import { Interval } from '../../core/types';
+import { Indicator } from '../../indicator/indicator';
 
 /**
  * Demo Strategy
@@ -33,8 +34,13 @@ export class Demo extends StrategyAbstract {
     }
 
     const position = await this.broker.getPosition(this.config.symbol);
+    const { lower } = Indicator.BollingerBands(kLines.close, 10, 2);
 
-    if (position && kLines.at(-1).close > position.entryPrice) {
+    if (
+      position &&
+      kLines.at(-1).close > lower.at(-1) &&
+      kLines.at(-1).close > position.entryPrice
+    ) {
       const order = await this.broker
         .placeMarketShort(this.config.symbol, this.config.size)
         .catch(() => null);

@@ -6,10 +6,11 @@ import {
 } from '../../core/constants';
 import { BacktestBroker } from './backtest.broker.interface';
 import { Position } from '../../core/interfaces/broker.interface';
-import { KLine, Order } from '../../core/interfaces/market.interface';
+import { Order } from '../../core/interfaces/market.interface';
 import { BacktestDataService } from '../data/backtest.data.service';
 import { Interval } from '../../core/types';
 import { toTimestampInterval } from '../backtest.utils';
+import { KLines } from '../../core/structures';
 
 /**
  * Backtest Broker Service
@@ -80,7 +81,7 @@ export class BacktestBrokerService implements BacktestBroker {
     symbol: string,
     interval: Interval,
     limit: number = DEFAULT_KLINE_LIMIT,
-  ): Promise<KLine[]> {
+  ): Promise<KLines> {
     const kLines = await this.data.getKLinesInBinanceCSV(
       symbol,
       interval,
@@ -88,9 +89,9 @@ export class BacktestBrokerService implements BacktestBroker {
       DEFAULT_KLINE_LIMIT,
     );
 
-    return kLines.length <= limit
-      ? kLines
-      : kLines.slice(kLines.length - limit);
+    return new KLines(
+      kLines.length <= limit ? kLines : kLines.slice(kLines.length - limit),
+    );
   }
 
   initClockAndInterval(clock: number, interval: Interval) {
