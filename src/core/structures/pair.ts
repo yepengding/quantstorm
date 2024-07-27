@@ -16,10 +16,29 @@ export class Pair {
     return `${this.base}/${this.quote}`;
   }
 
+  public roundBase(quantity: number): number {
+    return parseFloat(quantity.toFixed(decimalMap.get(this.base)));
+  }
+
+  get baseDecimal() {
+    return decimalMap.get(this.base);
+  }
+
+  get quoteDecimal() {
+    return decimalMap.get(this.quote);
+  }
+
   public static toPair(symbol: string): Pair {
     const [base, quote] = symbol.split('/');
     return new Pair(base as SupportedCurrency, quote as SupportedCurrency);
   }
 }
+
+const decimalMap = new Map<SupportedCurrency, number>([
+  ['BTC', 3],
+  ['ETH', 3],
+  ['USDT', 3],
+  ['USDC', 3],
+]);
 
 export type SupportedCurrency = 'BTC' | 'ETH' | 'USDT' | 'USDC';
