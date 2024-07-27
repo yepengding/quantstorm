@@ -6,14 +6,12 @@ import {
   ParseIntPipe,
   Query,
   Render,
-  Res,
 } from '@nestjs/common';
 import { BacktestBrokerService } from './broker/backtest.broker.service';
 import { Interval, StrategyRegistryType } from '../core/types';
 import { BacktestService } from './backtest.service';
 import { BacktestFeederService } from './feeder/backtest.feeder.service';
-import { KLine } from '../core/interfaces/market.interface';
-import { ChartKLine } from './backtest.interface';
+import { toCharKLines } from './backtest.view';
 
 /**
  * Backtest Controller
@@ -39,31 +37,21 @@ export class BacktestController {
     @Query('symbol') symbol: string,
   ) {
     const strategyClass = this.registry.get(name.toLowerCase());
-    let result = `Cannot find strategy ${name}`;
+    let result = false;
 
     if (strategyClass) {
       const strategy = new strategyClass(this.broker);
       await this.backtest.run(strategy, start, end, interval);
-      result = `Running ${name}`;
+      result = true;
     }
 
-    const kLines = this.toCharKLines(
+    const kLines = toCharKLines(
       await this.feeder.getKLinesInBinanceCSV(symbol, interval, end),
     );
     return {
+      name: name,
+      result: result,
       kLines: JSON.stringify(kLines),
     };
-  }
-
-  private toCharKLines(kLines: KLine[]): ChartKLine[] {
-    return kLines.map((k) => {
-      return {
-        x: k.timestamp * 1000,
-        o: k.open,
-        h: k.high,
-        l: k.low,
-        c: k.close,
-      };
-    });
   }
 }
