@@ -5,10 +5,13 @@ import {
   Param,
   ParseIntPipe,
   Query,
+  Render,
+  Res,
 } from '@nestjs/common';
 import { BacktestBrokerService } from './broker/backtest.broker.service';
 import { Interval, StrategyRegistryType } from '../core/types';
 import { BacktestService } from './backtest.service';
+import { Response } from 'express';
 
 /**
  * Backtest Controller
@@ -29,7 +32,8 @@ export class BacktestController {
     @Query('start', ParseIntPipe) start: number,
     @Query('end', ParseIntPipe) end: number,
     @Query('interval') interval: Interval,
-  ): Promise<string> {
+    @Res() res: Response,
+  ) {
     const strategyClass = this.registry.get(name.toLowerCase());
     let result = `Cannot find strategy ${name}`;
 
@@ -39,6 +43,6 @@ export class BacktestController {
       result = `Running ${name}`;
     }
 
-    return result;
+    return res.render('index', { message: result });
   }
 }
