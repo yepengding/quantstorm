@@ -13,7 +13,6 @@ import { toTimestampInterval } from '../backtest.utils';
 import { toPair } from '../../core/utils';
 import { KLines } from '../../core/structures/klines';
 import { History } from '../structures/History';
-import { or } from 'mathjs';
 
 /**
  * Backtest Broker Service

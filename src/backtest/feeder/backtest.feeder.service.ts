@@ -27,7 +27,7 @@ export class BacktestFeederService {
     symbol: string,
     interval: Interval,
     clockTimestamp: number,
-    limit: number,
+    limit?: number,
   ): Promise<KLine[]> {
     const kLines = [];
     const parser = fs
@@ -48,7 +48,7 @@ export class BacktestFeederService {
         break;
       }
       kLines.push(kLine);
-      if (kLines.length > limit) {
+      if (limit && kLines.length > limit) {
         kLines.shift();
       }
     }
