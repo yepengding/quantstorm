@@ -1,6 +1,7 @@
 import { KLine, Order } from '../core/interfaces/market.interface';
 import { TradeSide } from '../core/constants';
-import { ChartKLine, ChartOrders } from './backtest.view.type';
+import { ChartBalance, ChartKLine, ChartOrders } from './backtest.view.type';
+import { BalanceRecord } from './structures/history';
 
 export function toCharKLines(kLines: KLine[]): ChartKLine[] {
   return kLines.map((k) => {
@@ -32,6 +33,14 @@ export function toChartOrders(orderHistory: Order[][]): ChartOrders {
     }
   }
   return chartOrders;
+}
+
+export function toChartBalance(
+  balanceHistory: BalanceRecord[],
+): ChartBalance[] {
+  return balanceHistory.map((record) => {
+    return { x: record.timestamp * 1000, y: record.balance };
+  });
 }
 
 export function toOrderHistoryText(orderHistory: Order[][]): string {

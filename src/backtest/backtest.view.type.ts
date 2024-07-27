@@ -10,6 +10,15 @@ export type ChartOrder = {
   y: number;
 };
 
+export type ChartBalance = {
+  // Timestamp
+  x: number;
+  // Balance
+  y: number;
+};
+
+export type ChartBalances = ChartBalance[];
+
 export type ChartKLine = {
   // Timestamp
   x: number;

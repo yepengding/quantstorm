@@ -30,8 +30,13 @@ export class History {
     };
   }
 
-  getBalanceHistory(currency: string): number[] {
-    return this.records.map((record) => record.balances.get(currency));
+  getBalanceHistory(currency: string): BalanceRecord[] {
+    return this.records.map((record) => {
+      return {
+        timestamp: record.timestamp,
+        balance: record.balances.get(currency),
+      } as BalanceRecord;
+    });
   }
 
   getOrderHistory(): Order[][] {
@@ -48,5 +53,10 @@ export type HistoryRecord = {
 export type BacktestHistory = {
   orderHistory: Order[][];
 
-  balanceHistory: Map<string, number[]>;
+  balanceHistory: Map<string, BalanceRecord[]>;
+};
+
+export type BalanceRecord = {
+  timestamp: number;
+  balance: number;
 };

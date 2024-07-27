@@ -12,7 +12,7 @@ import { Interval } from '../../core/types';
 import { toTimestampInterval } from '../backtest.utils';
 import { toPair } from '../../core/utils';
 import { KLines } from '../../core/structures/klines';
-import { History } from '../structures/history';
+import { BalanceRecord, History } from '../structures/history';
 
 /**
  * Backtest Broker Service
@@ -222,8 +222,8 @@ export class BacktestBrokerService implements BacktestBroker {
     return this.history.getOrderHistory();
   }
 
-  get balanceHistory(): Map<string, number[]> {
-    const balanceHistory = new Map<string, number[]>();
+  get balanceHistory(): Map<string, BalanceRecord[]> {
+    const balanceHistory = new Map<string, BalanceRecord[]>();
     for (const currency of this.balances.keys()) {
       balanceHistory.set(currency, this.history.getBalanceHistory(currency));
     }
