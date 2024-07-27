@@ -6,6 +6,7 @@ import { ConfigService } from '@nestjs/config';
 import { KLine } from '../../core/interfaces/market.interface';
 import { Interval } from '../../core/types';
 import { join } from 'node:path';
+import { Pair } from '../../core/structures/pair';
 
 /**
  * Backtest Data Feeder Service
@@ -17,14 +18,14 @@ export class BacktestFeederService {
 
   /**
    * Load K-lines from Binance CSV
-   * @param symbol symbol
+   * @param pair pair
    * @param interval interval
    * @param clockTimestamp current clock timestamp
    * @param limit max number of K-lines
    * @return K-line list starting from clockTimestamp
    */
   public async getKLinesInBinanceCSV(
-    symbol: string,
+    pair: Pair,
     interval: Interval,
     clockTimestamp: number,
     limit?: number,
@@ -34,7 +35,7 @@ export class BacktestFeederService {
       .createReadStream(
         join(
           this.configService.get<string>('backtest.dataPath'),
-          this.getBinanceCSVFilename(symbol, interval),
+          `${pair.base}${pair.quote}-${interval}.csv`,
         ),
       )
       .pipe(
@@ -53,10 +54,6 @@ export class BacktestFeederService {
       }
     }
     return kLines;
-  }
-
-  private getBinanceCSVFilename(symbol: string, interval: Interval): string {
-    return `${symbol.replace(/\//g, '')}-${interval}.csv`;
   }
 
   private getKLineFromBinanceCSVRecord(record: any): KLine {

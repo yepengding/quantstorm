@@ -1,6 +1,7 @@
 import { Broker } from '../../core/interfaces/broker.interface';
 import { Interval } from '../../core/types';
 import { Order } from '../../core/interfaces/market.interface';
+import { SupportedCurrency } from '../../core/structures/pair';
 
 /**
  * Backtest Broker
@@ -9,11 +10,11 @@ import { Order } from '../../core/interfaces/market.interface';
  */
 export interface BacktestBroker extends Broker {
   /**
-   * Set balance of a symbol
-   * @param symbol
+   * Set balance of a currency
+   * @param currency
    * @param amount
    */
-  setBalance(symbol: string, amount: number): void;
+  setBalance(currency: SupportedCurrency, amount: number): void;
 
   // Clock in timestamp
   clock: number;

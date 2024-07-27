@@ -1,10 +1,5 @@
 import { OrderStatus, TradeSide } from '../constants';
 
-export interface Pair {
-  base: string;
-  quote: string;
-}
-
 export interface KLine {
   open: number;
   high: number;

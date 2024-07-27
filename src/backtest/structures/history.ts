@@ -1,4 +1,5 @@
 import { Order } from '../../core/interfaces/market.interface';
+import { SupportedCurrency } from '../../core/structures/pair';
 
 /**
  * Backtesting History Structure
@@ -53,7 +54,7 @@ export type HistoryRecord = {
 export type BacktestHistory = {
   orderHistory: Order[][];
 
-  balanceHistory: Map<string, BalanceRecord[]>;
+  balanceHistory: Map<SupportedCurrency, BalanceRecord[]>;
 };
 
 export type BalanceRecord = {

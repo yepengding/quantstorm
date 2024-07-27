@@ -16,6 +16,13 @@
 <div style="position: relative; height:60vh; width:80vw">
   <canvas id="kline-chart"></canvas>
 </div>
+<div>
+  <ul>
+    {{#each orderHistoryText}}
+      <li>{{this}}</li>
+    {{/each}}
+  </ul>
+</div>
 <script>
   const kLineCtx = document.getElementById("kline-chart");
   const kLineChart = new Chart(kLineCtx, {
@@ -64,11 +71,6 @@
           type: 'linear',
           display: true,
           position: 'right',
-
-          // grid line settings
-          grid: {
-            drawOnChartArea: false, // only want the grid lines for one axis to show up
-          },
         },
       },
       plugins: {

@@ -10,9 +10,9 @@ import { Order } from '../../core/interfaces/market.interface';
 import { BacktestFeederService } from '../feeder/backtest.feeder.service';
 import { Interval } from '../../core/types';
 import { toTimestampInterval } from '../backtest.utils';
-import { toPair } from '../../core/utils';
 import { KLines } from '../../core/structures/klines';
 import { BalanceRecord, History } from '../structures/history';
+import { Pair, SupportedCurrency } from '../../core/structures/pair';
 
 /**
  * Backtest Broker Service
@@ -26,7 +26,7 @@ export class BacktestBrokerService implements BacktestBroker {
   private clockInterval: number;
   private currentClock: number;
 
-  private readonly balances: Map<string, number>;
+  private readonly balances: Map<SupportedCurrency, number>;
   private readonly positions: Map<string, Position>;
 
   private readonly history: History;
@@ -35,16 +35,16 @@ export class BacktestBrokerService implements BacktestBroker {
     this.orderIdCounter = 0;
     // The initial clock is one day ago
     this.currentClock = Date.now() - 86400;
-    this.balances = new Map<string, number>();
+    this.balances = new Map<SupportedCurrency, number>();
     this.positions = new Map<string, Position>();
     this.history = new History();
   }
 
-  async placeMarketLong(symbol: string, size: number): Promise<Order> {
+  async placeMarketLong(pair: Pair, size: number): Promise<Order> {
     const order: Order = {
       id: this.orderId,
-      symbol: symbol,
-      price: await this.getMarketPrice(symbol),
+      symbol: pair.toSymbol(),
+      price: await this.getMarketPrice(pair),
       size: size,
       filledSize: 0.0,
       side: TradeSide.LONG,
@@ -56,11 +56,11 @@ export class BacktestBrokerService implements BacktestBroker {
     return order;
   }
 
-  async placeMarketShort(symbol: string, size: number): Promise<Order> {
+  async placeMarketShort(pair: Pair, size: number): Promise<Order> {
     const order: Order = {
       id: this.orderId,
-      symbol: symbol,
-      price: await this.getMarketPrice(symbol),
+      symbol: pair.toSymbol(),
+      price: await this.getMarketPrice(pair),
       size: size,
       filledSize: 0.0,
       side: TradeSide.SHORT,
@@ -72,11 +72,12 @@ export class BacktestBrokerService implements BacktestBroker {
     return order;
   }
 
-  async getBalance(currency: string): Promise<number> {
+  async getBalance(currency: SupportedCurrency): Promise<number> {
     let totalUnrealizedPnL = 0.0;
     for (const [symbol, position] of this.positions) {
-      if (toPair(symbol).quote == currency && position && position.size > 0) {
-        const marketPrice = await this.getMarketPrice(symbol);
+      const pair = Pair.toPair(symbol);
+      if (pair.quote == currency && position && position.size > 0) {
+        const marketPrice = await this.getMarketPrice(pair);
         totalUnrealizedPnL +=
           (position.side == TradeSide.LONG
             ? marketPrice - position.entryPrice
@@ -86,9 +87,9 @@ export class BacktestBrokerService implements BacktestBroker {
     return this.balances.get(currency) + totalUnrealizedPnL;
   }
 
-  async getMarketPrice(symbol: string): Promise<number> {
+  async getMarketPrice(pair: Pair): Promise<number> {
     const kLines = await this.feeder.getKLinesInBinanceCSV(
-      symbol,
+      pair,
       this.interval,
       this.clock,
       1,
@@ -96,12 +97,12 @@ export class BacktestBrokerService implements BacktestBroker {
     return kLines[0].close;
   }
 
-  async getPosition(symbol: string): Promise<Position> {
-    const position = this.positions.get(symbol);
+  async getPosition(pair: Pair): Promise<Position> {
+    const position = this.positions.get(pair.toSymbol());
     if (position) {
       // Compute unrealized PnL
-      const marketPrice = await this.getMarketPrice(symbol);
-      this.positions.set(symbol, {
+      const marketPrice = await this.getMarketPrice(pair);
+      this.positions.set(pair.toSymbol(), {
         ...position,
         unrealizedPnL:
           (position.side == TradeSide.LONG
@@ -113,12 +114,12 @@ export class BacktestBrokerService implements BacktestBroker {
   }
 
   async getKLines(
-    symbol: string,
+    pair: Pair,
     interval: Interval,
     limit: number = DEFAULT_KLINE_LIMIT,
   ): Promise<KLines> {
     const kLines = await this.feeder.getKLinesInBinanceCSV(
-      symbol,
+      pair,
       interval,
       this.clock,
       DEFAULT_KLINE_LIMIT,
@@ -189,12 +190,12 @@ export class BacktestBrokerService implements BacktestBroker {
     }
 
     // Update balance
-    const quote = toPair(order.symbol).quote;
+    const quote = Pair.toPair(order.symbol).quote;
     this.balances.set(quote, this.balances.get(quote) + realizedPnl);
   }
 
-  setBalance(symbol: string, amount: number): void {
-    this.balances.set(symbol, amount);
+  setBalance(currency: SupportedCurrency, amount: number): void {
+    this.balances.set(currency, amount);
   }
 
   initClockAndInterval(clock: number, interval: Interval) {
@@ -222,8 +223,8 @@ export class BacktestBrokerService implements BacktestBroker {
     return this.history.getOrderHistory();
   }
 
-  get balanceHistory(): Map<string, BalanceRecord[]> {
-    const balanceHistory = new Map<string, BalanceRecord[]>();
+  get balanceHistory(): Map<SupportedCurrency, BalanceRecord[]> {
+    const balanceHistory = new Map<SupportedCurrency, BalanceRecord[]>();
     for (const currency of this.balances.keys()) {
       balanceHistory.set(currency, this.history.getBalanceHistory(currency));
     }

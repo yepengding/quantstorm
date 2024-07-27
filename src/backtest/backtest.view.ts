@@ -43,16 +43,25 @@ export function toChartBalance(
   });
 }
 
-export function toOrderHistoryText(orderHistory: Order[][]): string {
+export function toOrderHistoryText(orderHistory: Order[][]): string[] {
   return orderHistory
     .filter((orders) => orders.length > 0)
-    .map((orders) =>
-      orders
-        .map(
-          (order) =>
-            `${order.side == TradeSide.LONG ? 'Long' : 'Short'} ${order.size} ${order.symbol} at ${order.price}`,
-        )
-        .join('\n'),
-    )
-    .join('\n');
+    .flatMap((orders) =>
+      orders.map(
+        (order) =>
+          `${toDateString(order.timestamp)} ${order.side == TradeSide.LONG ? 'Long' : 'Short'} ${order.size} ${order.symbol} at ${order.price}`,
+      ),
+    );
+}
+
+function toDateString(timestamp: number): string {
+  const date = new Date(timestamp * 1000);
+  const yyyy = `${date.getFullYear()}`;
+  const MM = `0${date.getMonth() + 1}`.slice(-2);
+  const dd = `0${date.getDate()}`.slice(-2);
+  const HH = `0${date.getHours()}`.slice(-2);
+  const mm = `0${date.getMinutes()}`.slice(-2);
+  const ss = `0${date.getSeconds()}`.slice(-2);
+
+  return `${yyyy}/${MM}/${dd} ${HH}:${mm}:${ss}`;
 }
