@@ -12,6 +12,8 @@ import { Interval } from '../../core/types';
 import { toTimestampInterval } from '../backtest.utils';
 import { toPair } from '../../core/utils';
 import { KLines } from '../../core/structures/klines';
+import { History } from '../structures/History';
+import { or } from 'mathjs';
 
 /**
  * Backtest Broker Service
@@ -28,12 +30,15 @@ export class BacktestBrokerService implements BacktestBroker {
   private readonly balances: Map<string, number>;
   private readonly positions: Map<string, Position>;
 
+  private readonly history: History;
+
   constructor(private readonly feeder: BacktestFeederService) {
     this.orderIdCounter = 0;
     // The initial clock is one day ago
     this.currentClock = Date.now() - 86400;
     this.balances = new Map<string, number>();
     this.positions = new Map<string, Position>();
+    this.history = new History();
   }
 
   async placeMarketLong(symbol: string, size: number): Promise<Order> {
@@ -44,9 +49,11 @@ export class BacktestBrokerService implements BacktestBroker {
       size: size,
       filledSize: 0.0,
       side: TradeSide.LONG,
+      timestamp: this.currentClock,
       status: OrderStatus.FILLED,
     };
     this.updatePositionByFilledOrder(order);
+    this.history.addOrder(order);
     return order;
   }
 
@@ -58,9 +65,11 @@ export class BacktestBrokerService implements BacktestBroker {
       size: size,
       filledSize: 0.0,
       side: TradeSide.SHORT,
+      timestamp: this.currentClock,
       status: OrderStatus.FILLED,
     };
     this.updatePositionByFilledOrder(order);
+    this.history.addOrder(order);
     return order;
   }
 
@@ -119,28 +128,6 @@ export class BacktestBrokerService implements BacktestBroker {
     return new KLines(
       kLines.length <= limit ? kLines : kLines.slice(kLines.length - limit),
     );
-  }
-
-  initClockAndInterval(clock: number, interval: Interval) {
-    this.currentClock = clock;
-    this.interval = interval;
-    this.clockInterval = toTimestampInterval(interval);
-  }
-
-  nextClock() {
-    this.currentClock += this.clockInterval;
-  }
-
-  setBalance(symbol: string, amount: number): void {
-    this.balances.set(symbol, amount);
-  }
-
-  get clock() {
-    return this.currentClock;
-  }
-
-  private get orderId() {
-    return `${this.orderIdCounter++}`;
   }
 
   private updatePositionByFilledOrder(order: Order): void {
@@ -205,5 +192,49 @@ export class BacktestBrokerService implements BacktestBroker {
     // Update balance
     const quote = toPair(order.symbol).quote;
     this.balances.set(quote, this.balances.get(quote) + realizedPnl);
+  }
+
+  setBalance(symbol: string, amount: number): void {
+    this.balances.set(symbol, amount);
+  }
+
+  initClockAndInterval(clock: number, interval: Interval) {
+    this.currentClock = clock;
+    this.interval = interval;
+    this.clockInterval = toTimestampInterval(interval);
+    this.history.start(this.currentClock, new Map(this.balances));
+  }
+
+  nextClock() {
+    this.currentClock += this.clockInterval;
+    // Update history
+    this.history.start(this.currentClock, new Map(this.balances));
+  }
+
+  get clock() {
+    return this.currentClock;
+  }
+
+  private get orderId() {
+    return `${this.orderIdCounter++}`;
+  }
+
+  getBalanceHistory(currency: string): number[] {
+    return this.history.getBalanceHistory(currency);
+  }
+
+  getOrderHistoryString(): string {
+    return this.history
+      .getOrderHistory()
+      .filter((orders) => orders.length > 0)
+      .map((orders) =>
+        orders
+          .map(
+            (order) =>
+              `${order.side == TradeSide.LONG ? 'Long' : 'Short'} ${order.size} ${order.symbol} at ${order.price}`,
+          )
+          .join('\n'),
+      )
+      .join('\n');
   }
 }

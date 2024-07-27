@@ -21,5 +21,6 @@ export interface Order {
   size: number;
   filledSize: number;
   side: TradeSide;
+  timestamp: number;
   status: OrderStatus;
 }

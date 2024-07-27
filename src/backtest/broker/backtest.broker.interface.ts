@@ -1,5 +1,7 @@
 import { Broker } from '../../core/interfaces/broker.interface';
 import { Interval } from '../../core/types';
+import { TradeSide } from '../../core/constants';
+import { Order } from "../../core/interfaces/market.interface";
 
 /**
  * Backtest Broker
@@ -28,4 +30,14 @@ export interface BacktestBroker extends Broker {
    * Update clock to next timestamp based on the interval
    */
   nextClock(): void;
+
+  /**
+   * Get order history string
+   */
+  getOrderHistoryString(): string;
+
+  /**
+   * Get balance history
+   */
+  getBalanceHistory(currency: string): number[];
 }
