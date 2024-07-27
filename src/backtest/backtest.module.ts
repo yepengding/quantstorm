@@ -3,7 +3,7 @@ import { BacktestController } from './backtest.controller';
 import { BacktestService } from './backtest.service';
 import { StrategyModule } from '../strategy/strategy.module';
 import { BacktestBrokerService } from './broker/backtest.broker.service';
-import { BacktestDataService } from './data/backtest.data.service';
+import { BacktestFeederService } from './feeder/backtest.feeder.service';
 
 /**
  * Backtest Module
@@ -12,6 +12,6 @@ import { BacktestDataService } from './data/backtest.data.service';
 @Module({
   imports: [StrategyModule],
   controllers: [BacktestController],
-  providers: [BacktestService, BacktestBrokerService, BacktestDataService],
+  providers: [BacktestService, BacktestBrokerService, BacktestFeederService],
 })
 export class BacktestModule {}

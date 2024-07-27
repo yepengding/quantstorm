@@ -8,11 +8,11 @@ import { Interval } from '../../core/types';
 import { join } from 'node:path';
 
 /**
- * Backtest Data Service
+ * Backtest Data Feeder Service
  * @author Yepeng Ding
  */
 @Injectable()
-export class BacktestDataService {
+export class BacktestFeederService {
   constructor(private readonly configService: ConfigService) {}
 
   /**

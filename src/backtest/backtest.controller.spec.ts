@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BacktestController } from './backtest.controller';
 import { BacktestService } from './backtest.service';
 import { BacktestBrokerService } from './broker/backtest.broker.service';
-import { BacktestDataService } from './data/backtest.data.service';
+import { BacktestFeederService } from './feeder/backtest.feeder.service';
 import { StrategyModule } from '../strategy/strategy.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from '../core/config';
@@ -17,7 +17,11 @@ describe('BacktestController', () => {
         ConfigModule.forRoot({ load: [configuration] }),
         StrategyModule,
       ],
-      providers: [BacktestService, BacktestBrokerService, BacktestDataService],
+      providers: [
+        BacktestService,
+        BacktestBrokerService,
+        BacktestFeederService,
+      ],
     }).compile();
 
     controller = module.get<BacktestController>(BacktestController);

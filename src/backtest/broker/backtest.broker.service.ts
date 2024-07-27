@@ -7,7 +7,7 @@ import {
 import { BacktestBroker } from './backtest.broker.interface';
 import { Position } from '../../core/interfaces/broker.interface';
 import { Order } from '../../core/interfaces/market.interface';
-import { BacktestDataService } from '../data/backtest.data.service';
+import { BacktestFeederService } from '../feeder/backtest.feeder.service';
 import { Interval } from '../../core/types';
 import { toTimestampInterval } from '../backtest.utils';
 import { toPair } from '../../core/utils';
@@ -28,7 +28,7 @@ export class BacktestBrokerService implements BacktestBroker {
   private readonly balances: Map<string, number>;
   private readonly positions: Map<string, Position>;
 
-  constructor(private readonly data: BacktestDataService) {
+  constructor(private readonly feeder: BacktestFeederService) {
     this.orderIdCounter = 0;
     // The initial clock is one day ago
     this.currentClock = Date.now() - 86400;
@@ -79,7 +79,7 @@ export class BacktestBrokerService implements BacktestBroker {
   }
 
   async getMarketPrice(symbol: string): Promise<number> {
-    const kLines = await this.data.getKLinesInBinanceCSV(
+    const kLines = await this.feeder.getKLinesInBinanceCSV(
       symbol,
       this.interval,
       this.clock,
@@ -109,7 +109,7 @@ export class BacktestBrokerService implements BacktestBroker {
     interval: Interval,
     limit: number = DEFAULT_KLINE_LIMIT,
   ): Promise<KLines> {
-    const kLines = await this.data.getKLinesInBinanceCSV(
+    const kLines = await this.feeder.getKLinesInBinanceCSV(
       symbol,
       interval,
       this.clock,
