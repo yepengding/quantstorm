@@ -11,7 +11,8 @@ import { BacktestBrokerService } from './broker/backtest.broker.service';
 import { Interval, StrategyRegistryType } from '../core/types';
 import { BacktestService } from './backtest.service';
 import { BacktestFeederService } from './feeder/backtest.feeder.service';
-import { toCharKLines } from './backtest.view';
+import { toCharKLines, toChartOrders } from './backtest.view';
+import { ChartOrders } from './backtest.view.type';
 
 /**
  * Backtest Controller
@@ -37,21 +38,27 @@ export class BacktestController {
     @Query('symbol') symbol: string,
   ) {
     const strategyClass = this.registry.get(name.toLowerCase());
-    let result = false;
+
+    let chartOrders: ChartOrders = {
+      long: [],
+      short: [],
+    };
 
     if (strategyClass) {
       const strategy = new strategyClass(this.broker);
-      await this.backtest.run(strategy, start, end, interval);
-      result = true;
+      const history = await this.backtest.run(strategy, start, end, interval);
+      chartOrders = toChartOrders(history.orderHistory);
     }
 
-    const kLines = toCharKLines(
+    const chartKLines = toCharKLines(
       await this.feeder.getKLinesInBinanceCSV(symbol, interval, end),
     );
     return {
       name: name,
-      result: result,
-      kLines: JSON.stringify(kLines),
+      symbol: symbol,
+      kLines: JSON.stringify(chartKLines),
+      longOrders: JSON.stringify(chartOrders.long),
+      shortOrders: JSON.stringify(chartOrders.short),
     };
   }
 }

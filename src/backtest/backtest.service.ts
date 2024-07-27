@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { StrategyAbstract } from '../strategy/strategy.abstract';
 import { Interval } from '../core/types';
-import { Order } from '../core/interfaces/market.interface';
-import { TradeSide } from '../core/constants';
-import { or } from 'mathjs';
+import { BacktestHistory } from './structures/history';
 
 /**
  * Backtest Service
@@ -19,7 +17,7 @@ export class BacktestService {
     startTimestamp: number,
     endTimestamp: number,
     executionInterval: Interval,
-  ) {
+  ): Promise<BacktestHistory> {
     // Initialize the balance
     strategy.backtestBroker.setBalance('USDT', 1000);
 
@@ -41,10 +39,9 @@ export class BacktestService {
       strategy.backtestBroker.nextClock();
     }
 
-    console.log(strategy.backtestBroker.getOrderHistoryString());
-
-    const balanceHistory = strategy.backtestBroker.getBalanceHistory('USDT');
-    console.log(`Max balance: ${Math.max(...balanceHistory)}`);
-    console.log(`Min balance: ${Math.min(...balanceHistory)}`);
+    return {
+      orderHistory: strategy.backtestBroker.orderHistory,
+      balanceHistory: strategy.backtestBroker.balanceHistory,
+    };
   }
 }

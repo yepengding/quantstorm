@@ -1,5 +1,6 @@
-import { KLine } from '../core/interfaces/market.interface';
-import { ChartKLine } from './backtest.interface';
+import { KLine, Order } from '../core/interfaces/market.interface';
+import { TradeSide } from '../core/constants';
+import { ChartKLine, ChartOrders } from './backtest.view.type';
 
 export function toCharKLines(kLines: KLine[]): ChartKLine[] {
   return kLines.map((k) => {
@@ -11,4 +12,38 @@ export function toCharKLines(kLines: KLine[]): ChartKLine[] {
       c: k.close,
     };
   });
+}
+
+export function toChartOrders(orderHistory: Order[][]): ChartOrders {
+  const chartOrders = { long: [], short: [] };
+  for (const orders of orderHistory) {
+    for (const order of orders) {
+      if (order.side == TradeSide.LONG) {
+        chartOrders.long.push({
+          x: order.timestamp * 1000,
+          y: order.price - 10,
+        });
+      } else if (order.side == TradeSide.SHORT) {
+        chartOrders.short.push({
+          x: order.timestamp * 1000,
+          y: order.price + 10,
+        });
+      }
+    }
+  }
+  return chartOrders;
+}
+
+export function toOrderHistoryText(orderHistory: Order[][]): string {
+  return orderHistory
+    .filter((orders) => orders.length > 0)
+    .map((orders) =>
+      orders
+        .map(
+          (order) =>
+            `${order.side == TradeSide.LONG ? 'Long' : 'Short'} ${order.size} ${order.symbol} at ${order.price}`,
+        )
+        .join('\n'),
+    )
+    .join('\n');
 }

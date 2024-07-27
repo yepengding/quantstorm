@@ -44,3 +44,9 @@ export type HistoryRecord = {
   orders: Order[];
   balances: Map<string, number>;
 };
+
+export type BacktestHistory = {
+  orderHistory: Order[][];
+
+  balanceHistory: Map<string, number[]>;
+};
