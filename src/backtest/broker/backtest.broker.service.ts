@@ -11,6 +11,7 @@ import { BacktestDataService } from '../data/backtest.data.service';
 import { Interval } from '../../core/types';
 import { toTimestampInterval } from '../backtest.utils';
 import { KLines } from '../../core/structures';
+import { toPair } from '../../core/utils';
 
 /**
  * Backtest Broker Service
@@ -63,6 +64,20 @@ export class BacktestBrokerService implements BacktestBroker {
     return order;
   }
 
+  async getBalance(currency: string): Promise<number> {
+    let totalUnrealizedPnL = 0.0;
+    for (const [symbol, position] of this.positions) {
+      if (toPair(symbol).quote == currency && position && position.size > 0) {
+        const marketPrice = await this.getMarketPrice(symbol);
+        totalUnrealizedPnL +=
+          (position.side == TradeSide.LONG
+            ? marketPrice - position.entryPrice
+            : position.entryPrice - marketPrice) * position.size;
+      }
+    }
+    return this.balances.get(currency) + totalUnrealizedPnL;
+  }
+
   async getMarketPrice(symbol: string): Promise<number> {
     const kLines = await this.data.getKLinesInBinanceCSV(
       symbol,
@@ -74,7 +89,19 @@ export class BacktestBrokerService implements BacktestBroker {
   }
 
   async getPosition(symbol: string): Promise<Position> {
-    return this.positions.get(symbol);
+    const position = this.positions.get(symbol);
+    if (position) {
+      // Compute unrealized PnL
+      const marketPrice = await this.getMarketPrice(symbol);
+      this.positions.set(symbol, {
+        ...position,
+        unrealizedPnL:
+          (position.side == TradeSide.LONG
+            ? marketPrice - position.entryPrice
+            : position.entryPrice - marketPrice) * position.size,
+      });
+    }
+    return position;
   }
 
   async getKLines(
@@ -119,9 +146,9 @@ export class BacktestBrokerService implements BacktestBroker {
   private updatePositionByFilledOrder(order: Order): void {
     const position: Position = this.positions.get(order.symbol);
     if (position) {
-      // If position is open, then update position
+      // If position is open, then update position and balance
       if (position.side == order.side) {
-        // If position has the same side as the order
+        // If position has the same side as the order, increase the position
         this.positions.set(order.symbol, {
           entryPrice:
             (position.entryPrice * position.size + order.price * order.size) /
@@ -130,7 +157,8 @@ export class BacktestBrokerService implements BacktestBroker {
           size: position.size + order.size,
         });
       } else {
-        // If position has the different side from the order
+        // If position has the different side from the order, then realize PnL and decrease the position
+        this.realizePnL(position, order);
         if (position.size > order.size) {
           this.positions.set(order.symbol, {
             ...position,
@@ -154,5 +182,28 @@ export class BacktestBrokerService implements BacktestBroker {
         size: order.size,
       });
     }
+  }
+
+  /**
+   * Realize PnL from an open position by a filled order
+   *
+   * @param position position before the filled order
+   * @param order filled order
+   * @private
+   */
+  private realizePnL(position: Position, order: Order): void {
+    // Compute realized PnL
+    let realizedPnl: number = 0.0;
+    if (position.side != order.side && position.size > 0) {
+      realizedPnl =
+        (position.side == TradeSide.LONG
+          ? order.price - position.entryPrice
+          : position.entryPrice - order.price) *
+        Math.min(order.size, position.size);
+    }
+
+    // Update balance
+    const quote = toPair(order.symbol).quote;
+    this.balances.set(quote, this.balances.get(quote) + realizedPnl);
   }
 }

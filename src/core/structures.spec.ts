@@ -12,6 +12,12 @@ describe('Structures', () => {
       expect(series.sub([1, 2])).toEqual([2, 2]);
       expect(series.sub([2])).toEqual([1, 2]);
     });
+    it('should subtract a series', () => {
+      const series = new Series([1, 2, 4]);
+      expect(series.crossingOver([2, 3])).toBeTruthy();
+      expect(series.crossingOver([2, 4])).toBeFalsy();
+      expect(series.crossingOver([2])).toBeTruthy();
+    });
     it('should compute the unbiased standard deviation', () => {
       const series = new Series([2, 4, 4, 4, 5, 5, 7, 9]);
       expect(series.std()).toEqual(2.138089935299395);

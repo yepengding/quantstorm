@@ -8,6 +8,8 @@ export interface Broker {
 
   placeMarketShort(symbol: string, size: number): Promise<Order>;
 
+  getBalance(currency: string): Promise<number>;
+
   getMarketPrice(symbol: string): Promise<number>;
 
   getPosition(symbol: string): Promise<Position>;
@@ -23,4 +25,5 @@ export interface Position {
   entryPrice: number;
   side: TradeSide;
   size: number;
+  unrealizedPnL?: number;
 }
