@@ -1,6 +1,6 @@
-import { Series } from './structures';
+import { Series } from './series';
 
-describe('Structures', () => {
+describe('Series', () => {
   describe('Series', () => {
     it('should add a series', () => {
       const series = new Series([1, 2]);

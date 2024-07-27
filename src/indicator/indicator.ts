@@ -1,4 +1,4 @@
-import { Series } from '../core/structures';
+import { Series } from '../core/structures/series';
 
 /**
  * Indicator Library

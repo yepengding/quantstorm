@@ -10,8 +10,8 @@ import { Order } from '../../core/interfaces/market.interface';
 import { BacktestDataService } from '../data/backtest.data.service';
 import { Interval } from '../../core/types';
 import { toTimestampInterval } from '../backtest.utils';
-import { KLines } from '../../core/structures';
 import { toPair } from '../../core/utils';
+import { KLines } from '../../core/structures/klines';
 
 /**
  * Backtest Broker Service
