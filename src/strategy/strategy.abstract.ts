@@ -7,9 +7,11 @@ import { BacktestBrokerService } from '../backtest/broker/backtest.broker.servic
  * @author Yepeng Ding
  */
 export abstract class StrategyAbstract implements Strategy {
+  readonly name: string;
   protected readonly broker: Broker;
 
   constructor(broker: Broker) {
+    this.name = 'StrategyAbstract';
     this.broker = broker;
   }
 

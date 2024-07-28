@@ -8,6 +8,7 @@ import { BacktestBrokerService } from './backtest/broker/backtest.broker.service
 import { BacktestFeederService } from './backtest/feeder/backtest.feeder.service';
 import { BinanceModule } from './binance/binance.module';
 import configuration from './core/config';
+import { ScheduleModule } from '@nestjs/schedule';
 
 /**
  * App Module
@@ -16,11 +17,12 @@ import configuration from './core/config';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, load: [configuration] }),
+    ScheduleModule.forRoot(),
     StrategyModule,
     BacktestModule,
     BinanceModule,
   ],
   controllers: [AppController],
-  providers: [AppService, BacktestBrokerService, BacktestFeederService],
+  providers: [AppService],
 })
 export class AppModule {}
