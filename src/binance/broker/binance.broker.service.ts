@@ -1,12 +1,12 @@
 import { BinanceBroker, BinanceConfig } from './binance.broker.interface';
 import { Injectable } from '@nestjs/common';
-import { Pair, SupportedCurrency } from '../../core/structures/pair';
+import { Pair } from '../../core/structures/pair';
 import { Interval } from '../../core/types';
 import { KLines } from '../../core/structures/klines';
 import { binance, Order as CCXTOrder } from 'ccxt';
 import { ConfigService } from '@nestjs/config';
 import { Order } from '../../core/interfaces/market.interface';
-import { OrderStatus, TradeSide } from '../../core/constants';
+import { Currency, OrderStatus, TradeSide } from '../../core/constants';
 import { Position } from '../../core/interfaces/broker.interface';
 import * as console from 'node:console';
 
@@ -83,7 +83,7 @@ export class BinanceBrokerService implements BinanceBroker {
     return order.status == 'canceled';
   }
 
-  public async getBalance(currency: SupportedCurrency): Promise<number> {
+  public async getBalance(currency: Currency): Promise<number> {
     const balances = await this.exchange
       .fetchBalance({ type: 'future' })
       .catch(() => null);

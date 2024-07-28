@@ -1,15 +1,17 @@
+import { Currency } from '../constants';
+
 /**
  * Pair Structure
  *
  * @author Yepeng Ding
  */
 export class Pair {
-  public readonly base: SupportedCurrency;
-  public readonly quote: SupportedCurrency;
+  public readonly base: Currency;
+  public readonly quote: Currency;
 
-  constructor(base: SupportedCurrency, quote: SupportedCurrency) {
-    this.base = base;
-    this.quote = quote;
+  constructor(base: string, quote: string) {
+    this.base = base as Currency;
+    this.quote = quote as Currency;
   }
 
   public toSymbol(): string {
@@ -34,15 +36,13 @@ export class Pair {
 
   public static toPair(symbol: string): Pair {
     const [base, quote] = symbol.split('/');
-    return new Pair(base as SupportedCurrency, quote as SupportedCurrency);
+    return new Pair(base as Currency, quote as Currency);
   }
 }
 
-const decimalMap = new Map<SupportedCurrency, number>([
-  ['BTC', 3],
-  ['ETH', 3],
-  ['USDT', 3],
-  ['USDC', 3],
+const decimalMap = new Map<Currency, number>([
+  [Currency.BTC, 3],
+  [Currency.ETH, 3],
+  [Currency.USDT, 3],
+  [Currency.USDC, 3],
 ]);
-
-export type SupportedCurrency = 'BTC' | 'ETH' | 'USDT' | 'USDC';

@@ -18,7 +18,7 @@ import {
   toOrderHistoryText,
 } from './backtest.view';
 import { ChartBalances, ChartOrders } from './backtest.view.type';
-import { Pair, SupportedCurrency } from '../core/structures/pair';
+import { Pair } from '../core/structures/pair';
 
 /**
  * Backtest Controller
@@ -41,9 +41,10 @@ export class BacktestController {
     @Query('start', ParseIntPipe) start: number,
     @Query('end', ParseIntPipe) end: number,
     @Query('interval') interval: Interval,
-    @Query('base') base: SupportedCurrency,
-    @Query('quote') quote: SupportedCurrency,
+    @Query('base') base: string,
+    @Query('quote') quote: string,
   ) {
+    const pair = new Pair(base, quote);
     let chartBalances: ChartBalances = [];
     let chartOrders: ChartOrders = {
       long: [],
@@ -54,12 +55,11 @@ export class BacktestController {
     if (strategyClass) {
       const strategy = new strategyClass(this.broker);
       const history = await this.backtest.run(strategy, start, end, interval);
-      chartBalances = toChartBalance(history.balanceHistory.get(quote));
+      chartBalances = toChartBalance(history.balanceHistory.get(pair.quote));
       chartOrders = toChartOrders(history.orderHistory);
       orderHistoryText = toOrderHistoryText(history.orderHistory);
     }
 
-    const pair = new Pair(base, quote);
     const chartKLines = toCharKLines(
       await this.feeder.getKLinesInBinanceCSV(pair, interval, end),
     );

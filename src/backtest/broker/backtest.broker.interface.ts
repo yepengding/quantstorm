@@ -1,7 +1,7 @@
 import { Broker } from '../../core/interfaces/broker.interface';
 import { Interval } from '../../core/types';
 import { Order } from '../../core/interfaces/market.interface';
-import { SupportedCurrency } from '../../core/structures/pair';
+import { Currency } from '../../core/constants';
 
 /**
  * Backtest Broker
@@ -14,7 +14,7 @@ export interface BacktestBroker extends Broker {
    * @param currency
    * @param amount
    */
-  setBalance(currency: SupportedCurrency, amount: number): void;
+  setBalance(currency: Currency, amount: number): void;
 
   // Clock in timestamp
   clock: number;

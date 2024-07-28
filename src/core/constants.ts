@@ -10,3 +10,10 @@ export enum TradeSide {
   SHORT = -1,
   LONG = 1,
 }
+
+export enum Currency {
+  BTC = 'BTC',
+  ETH = 'ETH',
+  USDT = 'USDT',
+  USDC = 'USDC',
+}

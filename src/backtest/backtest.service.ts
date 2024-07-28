@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { StrategyAbstract } from '../strategy/strategy.abstract';
 import { Interval } from '../core/types';
 import { BacktestHistory } from './structures/history';
+import { Currency } from '../core/constants';
 
 /**
  * Backtest Service
@@ -19,7 +20,7 @@ export class BacktestService {
     executionInterval: Interval,
   ): Promise<BacktestHistory> {
     // Initialize the balance
-    strategy.backtestBroker.setBalance('USDT', 1000);
+    strategy.backtestBroker.setBalance(Currency.USDT, 1000);
 
     // Initialize the clock to the start timestamp
     strategy.backtestBroker.initClockAndInterval(

@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { BacktestDataService } from './backtest.feeder.service';
+import { BacktestFeederService } from './backtest.feeder.service';
 import { ConfigService } from '@nestjs/config';
 import * as path from 'node:path';
 
-describe('BacktestDataService', () => {
-  let service: BacktestDataService;
+describe('BacktestFeederService', () => {
+  let service: BacktestFeederService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -24,11 +24,11 @@ describe('BacktestDataService', () => {
             }),
           },
         },
-        BacktestDataService,
+        BacktestFeederService,
       ],
     }).compile();
 
-    service = module.get<BacktestDataService>(BacktestDataService);
+    service = module.get<BacktestFeederService>(BacktestFeederService);
   });
 
   it('should be defined', () => {

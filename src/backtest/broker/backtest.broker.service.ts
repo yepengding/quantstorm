@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   DEFAULT_KLINE_LIMIT,
   OrderStatus,
+  Currency,
   TradeSide,
 } from '../../core/constants';
 import { BacktestBroker } from './backtest.broker.interface';
@@ -12,7 +13,7 @@ import { Interval } from '../../core/types';
 import { toTimestampInterval } from '../backtest.utils';
 import { KLines } from '../../core/structures/klines';
 import { BalanceRecord, History } from '../structures/history';
-import { Pair, SupportedCurrency } from '../../core/structures/pair';
+import { Pair } from '../../core/structures/pair';
 
 /**
  * Backtest Broker Service
@@ -26,7 +27,7 @@ export class BacktestBrokerService implements BacktestBroker {
   private clockInterval: number;
   private currentClock: number;
 
-  private readonly balances: Map<SupportedCurrency, number>;
+  private readonly balances: Map<Currency, number>;
   private readonly positions: Map<string, Position>;
 
   private readonly history: History;
@@ -35,7 +36,7 @@ export class BacktestBrokerService implements BacktestBroker {
     this.orderIdCounter = 0;
     // The initial clock is one day ago
     this.currentClock = Date.now() - 86400;
-    this.balances = new Map<SupportedCurrency, number>();
+    this.balances = new Map<Currency, number>();
     this.positions = new Map<string, Position>();
     this.history = new History();
   }
@@ -95,7 +96,7 @@ export class BacktestBrokerService implements BacktestBroker {
     return Promise.resolve(false);
   }
 
-  async getBalance(currency: SupportedCurrency): Promise<number> {
+  async getBalance(currency: Currency): Promise<number> {
     let totalUnrealizedPnL = 0.0;
     for (const [symbol, position] of this.positions) {
       const pair = Pair.toPair(symbol);
@@ -217,7 +218,7 @@ export class BacktestBrokerService implements BacktestBroker {
     this.balances.set(quote, this.balances.get(quote) + realizedPnl);
   }
 
-  setBalance(currency: SupportedCurrency, amount: number): void {
+  setBalance(currency: Currency, amount: number): void {
     this.balances.set(currency, amount);
   }
 
@@ -246,8 +247,8 @@ export class BacktestBrokerService implements BacktestBroker {
     return this.history.getOrderHistory();
   }
 
-  get balanceHistory(): Map<SupportedCurrency, BalanceRecord[]> {
-    const balanceHistory = new Map<SupportedCurrency, BalanceRecord[]>();
+  get balanceHistory(): Map<Currency, BalanceRecord[]> {
+    const balanceHistory = new Map<Currency, BalanceRecord[]>();
     for (const currency of this.balances.keys()) {
       balanceHistory.set(currency, this.history.getBalanceHistory(currency));
     }

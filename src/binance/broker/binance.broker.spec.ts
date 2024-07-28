@@ -3,6 +3,7 @@ import { BinanceBrokerService } from './binance.broker.service';
 import { ConfigModule } from '@nestjs/config';
 import configuration from '../../core/config';
 import { Pair } from '../../core/structures/pair';
+import { Currency } from '../../core/constants';
 
 describe('BinanceBrokerService', () => {
   let service: BinanceBrokerService;
@@ -45,7 +46,7 @@ describe('BinanceBrokerService', () => {
   });
 
   it('should get balance', async () => {
-    const balance = await service.getBalance('USDC');
+    const balance = await service.getBalance(Currency.USDC);
     console.log(balance);
   });
 });
