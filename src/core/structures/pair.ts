@@ -16,6 +16,10 @@ export class Pair {
     return `${this.base}/${this.quote}`;
   }
 
+  public toBinanceFuturesSymbol(): string {
+    return `${this.base}/${this.quote}:${this.base}`;
+  }
+
   public roundBase(quantity: number): number {
     return parseFloat(quantity.toFixed(decimalMap.get(this.base)));
   }
