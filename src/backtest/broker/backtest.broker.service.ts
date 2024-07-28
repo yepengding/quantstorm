@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import {
+  Currency,
   DEFAULT_KLINE_LIMIT,
   OrderStatus,
-  Currency,
   TradeSide,
 } from '../../core/constants';
 import { BacktestBroker } from './backtest.broker.interface';
@@ -29,7 +29,7 @@ export class BacktestBrokerService implements BacktestBroker {
 
   private readonly balances: Map<Currency, number>;
   private readonly positions: Map<string, Position>;
-
+  private readonly orders: Map<string, Order>;
   private readonly history: History;
 
   constructor(private readonly feeder: BacktestFeederService) {
@@ -38,6 +38,7 @@ export class BacktestBrokerService implements BacktestBroker {
     this.currentClock = Date.now() - 86400;
     this.balances = new Map<Currency, number>();
     this.positions = new Map<string, Position>();
+    this.orders = new Map<string, Order>();
     this.history = new History();
   }
 
@@ -47,13 +48,14 @@ export class BacktestBrokerService implements BacktestBroker {
       symbol: pair.toSymbol(),
       price: await this.getMarketPrice(pair),
       size: size,
-      filledSize: 0.0,
+      filledSize: size,
       side: TradeSide.LONG,
       timestamp: this.currentClock,
       status: OrderStatus.FILLED,
     };
+    this.orders.set(order.id, order);
     this.updatePositionByFilledOrder(order);
-    this.history.addOrder(order);
+    this.history.addTradeOrder(order);
     return order;
   }
 
@@ -63,43 +65,89 @@ export class BacktestBrokerService implements BacktestBroker {
       symbol: pair.toSymbol(),
       price: await this.getMarketPrice(pair),
       size: size,
-      filledSize: 0.0,
+      filledSize: size,
       side: TradeSide.SHORT,
       timestamp: this.currentClock,
       status: OrderStatus.FILLED,
     };
+    this.orders.set(order.id, order);
     this.updatePositionByFilledOrder(order);
-    this.history.addOrder(order);
+    this.history.addTradeOrder(order);
     return order;
   }
 
-  // TODO
   public async placeLimitLong(
     pair: Pair,
     size: number,
     price: number,
   ): Promise<Order> {
-    return Promise.resolve(undefined);
+    const order: Order = {
+      id: this.orderId,
+      symbol: pair.toSymbol(),
+      price: price,
+      size: size,
+      filledSize: 0.0,
+      side: TradeSide.LONG,
+      timestamp: this.currentClock,
+      status: OrderStatus.OPEN,
+    };
+    const marketPrice = await this.getMarketPrice(pair);
+    if (price >= marketPrice) {
+      // If price >= market price, then place market long order
+      order.price = marketPrice;
+      order.filledSize = size;
+      order.status = OrderStatus.FILLED;
+      this.updatePositionByFilledOrder(order);
+      this.history.addTradeOrder(order);
+    }
+
+    this.orders.set(order.id, order);
+    return order;
   }
 
-  // TODO
   public async placeLimitShort(
     pair: Pair,
     size: number,
     price: number,
   ): Promise<Order> {
-    return Promise.resolve(undefined);
+    const order: Order = {
+      id: this.orderId,
+      symbol: pair.toSymbol(),
+      price: price,
+      size: size,
+      filledSize: 0.0,
+      side: TradeSide.SHORT,
+      timestamp: this.currentClock,
+      status: OrderStatus.OPEN,
+    };
+    const marketPrice = await this.getMarketPrice(pair);
+    if (price <= marketPrice) {
+      // If price <= market price, then place market short order
+      order.price = marketPrice;
+      order.filledSize = size;
+      order.status = OrderStatus.FILLED;
+      this.updatePositionByFilledOrder(order);
+      this.history.addTradeOrder(order);
+    }
+
+    this.orders.set(order.id, order);
+    return order;
   }
 
-  // TODO
   public async cancelOrder(id: string, pair: Pair): Promise<boolean> {
-    return Promise.resolve(false);
+    const order = this.orders.get(id);
+    if (order) {
+      order.status = OrderStatus.CANCELLED;
+      return true;
+    } else {
+      return false;
+    }
   }
 
   async getBalance(currency: Currency): Promise<number> {
     let totalUnrealizedPnL = 0.0;
     for (const [symbol, position] of this.positions) {
-      const pair = Pair.toPair(symbol);
+      const pair = Pair.fromSymbol(symbol);
       if (pair.quote == currency && position && position.size > 0) {
         const marketPrice = await this.getMarketPrice(pair);
         totalUnrealizedPnL +=
@@ -119,6 +167,11 @@ export class BacktestBrokerService implements BacktestBroker {
       1,
     );
     return kLines[0].close;
+  }
+
+  public async getOrder(id: string, pair: Pair): Promise<Order> {
+    const order = this.orders.get(id);
+    return order ? order : null;
   }
 
   async getPosition(pair: Pair): Promise<Position> {
@@ -214,7 +267,7 @@ export class BacktestBrokerService implements BacktestBroker {
     }
 
     // Update balance
-    const quote = Pair.toPair(order.symbol).quote;
+    const quote = Pair.fromSymbol(order.symbol).quote;
     this.balances.set(quote, this.balances.get(quote) + realizedPnl);
   }
 
@@ -229,8 +282,24 @@ export class BacktestBrokerService implements BacktestBroker {
     this.history.start(this.currentClock, new Map(this.balances));
   }
 
-  nextClock() {
+  async nextClock() {
     this.currentClock += this.clockInterval;
+    // Fill open orders
+    for (const order of this.orders.values()) {
+      if (order.status == OrderStatus.OPEN) {
+        const kLine = (
+          await this.getKLines(Pair.fromSymbol(order.symbol), this.interval, 1)
+        ).at(0);
+        if (kLine.low <= order.price && order.price <= kLine.high) {
+          // If the order price is between the low and high of the next K-line, then fill the limit order (place market order)
+          order.filledSize = order.size;
+          order.status = OrderStatus.FILLED;
+          order.timestamp = this.currentClock;
+          this.updatePositionByFilledOrder(order);
+          this.history.addTradeOrder(order);
+        }
+      }
+    }
     // Update history
     this.history.start(this.currentClock, new Map(this.balances));
   }
@@ -243,8 +312,8 @@ export class BacktestBrokerService implements BacktestBroker {
     return `${this.orderIdCounter++}`;
   }
 
-  get orderHistory(): Order[][] {
-    return this.history.getOrderHistory();
+  get tradeOrderHistory(): Order[][] {
+    return this.history.getTradeOrderHistory();
   }
 
   get balanceHistory(): Map<Currency, BalanceRecord[]> {

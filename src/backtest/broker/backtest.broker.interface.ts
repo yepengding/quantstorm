@@ -29,8 +29,8 @@ export interface BacktestBroker extends Broker {
   /**
    * Update clock to next timestamp based on the interval
    */
-  nextClock(): void;
+  nextClock(): Promise<void>;
 
-  // Order history
-  orderHistory: Order[][];
+  // Trade order history
+  tradeOrderHistory: Order[][];
 }

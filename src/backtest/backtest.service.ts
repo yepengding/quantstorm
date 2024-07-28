@@ -37,11 +37,11 @@ export class BacktestService {
       await strategy.next();
 
       // Update clock
-      strategy.backtestBroker.nextClock();
+      await strategy.backtestBroker.nextClock();
     }
 
     return {
-      orderHistory: strategy.backtestBroker.orderHistory,
+      tradeOrderHistory: strategy.backtestBroker.tradeOrderHistory,
       balanceHistory: strategy.backtestBroker.balanceHistory,
     };
   }

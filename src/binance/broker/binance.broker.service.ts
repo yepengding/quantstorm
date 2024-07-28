@@ -74,11 +74,14 @@ export class BinanceBrokerService implements BinanceBroker {
   }
 
   public async cancelOrder(id: string, pair: Pair): Promise<boolean> {
-    const order = await this.exchange
+    let order = await this.exchange
       .cancelOrder(id, pair.toBinanceFuturesSymbol())
       .catch(() => null);
     if (!order) {
-      return false;
+      order = await this.exchange.fetchOrder(id, pair.toBinanceFuturesSymbol());
+      if (!order) {
+        return false;
+      }
     }
     return order.status == 'canceled';
   }
@@ -123,6 +126,13 @@ export class BinanceBrokerService implements BinanceBroker {
     return prices ? prices[symbol].price : null;
   }
 
+  public async getOrder(id: string, pair: Pair): Promise<Order> {
+    const order = await this.exchange
+      .fetchOrder(id, pair.toBinanceFuturesSymbol())
+      .catch(() => null);
+    return order ? this.toOrder(order) : null;
+  }
+
   public async getPosition(pair: Pair): Promise<Position> {
     const symbol = pair.toBinanceFuturesSymbol();
     const positions = await this.exchange
@@ -142,7 +152,7 @@ export class BinanceBrokerService implements BinanceBroker {
   private toOrder(order: CCXTOrder): Order {
     return {
       id: order.id,
-      symbol: order.symbol,
+      symbol: Pair.fromBinanceFuturesSymbol(order.symbol).toSymbol(),
       price: order.price,
       size: order.amount,
       filledSize: order.filled,

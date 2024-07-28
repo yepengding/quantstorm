@@ -16,8 +16,8 @@ export class History {
     this.currentRecord = null;
   }
 
-  addOrder(order: Order) {
-    this.currentRecord.orders.push(order);
+  addTradeOrder(order: Order) {
+    this.currentRecord.tradeOrders.push(order);
   }
 
   start(timestamp: number, balances: Map<string, number>) {
@@ -26,7 +26,7 @@ export class History {
     }
     this.currentRecord = {
       timestamp: timestamp,
-      orders: [],
+      tradeOrders: [],
       balances: balances,
     };
   }
@@ -40,19 +40,19 @@ export class History {
     });
   }
 
-  getOrderHistory(): Order[][] {
-    return this.records.map((record) => record.orders);
+  getTradeOrderHistory(): Order[][] {
+    return this.records.map((record) => record.tradeOrders);
   }
 }
 
 export type HistoryRecord = {
   timestamp: number;
-  orders: Order[];
+  tradeOrders: Order[];
   balances: Map<string, number>;
 };
 
 export type BacktestHistory = {
-  orderHistory: Order[][];
+  tradeOrderHistory: Order[][];
 
   balanceHistory: Map<Currency, BalanceRecord[]>;
 };

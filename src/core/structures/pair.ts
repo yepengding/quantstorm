@@ -14,6 +14,17 @@ export class Pair {
     this.quote = quote as Currency;
   }
 
+  public static fromSymbol(symbol: string): Pair {
+    const [base, quote] = symbol.split('/');
+    return new Pair(base as Currency, quote as Currency);
+  }
+
+  public static fromBinanceFuturesSymbol(symbol: string): Pair {
+    const pair = symbol.split(':')[0];
+    const [base, quote] = pair.split('/');
+    return new Pair(base as Currency, quote as Currency);
+  }
+
   public toSymbol(): string {
     return `${this.base}/${this.quote}`;
   }
@@ -32,11 +43,6 @@ export class Pair {
 
   get quoteDecimal() {
     return decimalMap.get(this.quote);
-  }
-
-  public static toPair(symbol: string): Pair {
-    const [base, quote] = symbol.split('/');
-    return new Pair(base as Currency, quote as Currency);
   }
 }
 

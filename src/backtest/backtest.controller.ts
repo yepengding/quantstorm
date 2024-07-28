@@ -22,6 +22,7 @@ import { Pair } from '../core/structures/pair';
 
 /**
  * Backtest Controller
+ *
  * @author Yepeng Ding
  */
 @Controller('backtest')
@@ -56,8 +57,8 @@ export class BacktestController {
       const strategy = new strategyClass(this.broker);
       const history = await this.backtest.run(strategy, start, end, interval);
       chartBalances = toChartBalance(history.balanceHistory.get(pair.quote));
-      chartOrders = toChartOrders(history.orderHistory);
-      orderHistoryText = toOrderHistoryText(history.orderHistory);
+      chartOrders = toChartOrders(history.tradeOrderHistory);
+      orderHistoryText = toOrderHistoryText(history.tradeOrderHistory);
     }
 
     const chartKLines = toCharKLines(

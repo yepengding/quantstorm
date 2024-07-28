@@ -1,6 +1,6 @@
 import { Order } from './market.interface';
 import { Interval } from '../types';
-import { TradeSide } from '../constants';
+import { Currency, TradeSide } from '../constants';
 import { KLines } from '../structures/klines';
 import { Pair } from '../structures/pair';
 
@@ -15,9 +15,11 @@ export interface Broker {
 
   cancelOrder(id: string, pair: Pair): Promise<boolean>;
 
-  getBalance(currency: string): Promise<number>;
+  getBalance(currency: Currency): Promise<number>;
 
   getMarketPrice(pair: Pair): Promise<number>;
+
+  getOrder(id: string, pair: Pair): Promise<Order>;
 
   getPosition(pair: Pair): Promise<Position>;
 
