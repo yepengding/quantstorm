@@ -9,6 +9,12 @@ export interface Broker {
 
   placeMarketShort(pair: Pair, size: number): Promise<Order>;
 
+  placeLimitLong(pair: Pair, size: number, price: number): Promise<Order>;
+
+  placeLimitShort(pair: Pair, size: number, price: number): Promise<Order>;
+
+  cancelOrder(id: string, pair: Pair): Promise<boolean>;
+
   getBalance(currency: string): Promise<number>;
 
   getMarketPrice(pair: Pair): Promise<number>;

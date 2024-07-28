@@ -72,6 +72,29 @@ export class BacktestBrokerService implements BacktestBroker {
     return order;
   }
 
+  // TODO
+  public async placeLimitLong(
+    pair: Pair,
+    size: number,
+    price: number,
+  ): Promise<Order> {
+    return Promise.resolve(undefined);
+  }
+
+  // TODO
+  public async placeLimitShort(
+    pair: Pair,
+    size: number,
+    price: number,
+  ): Promise<Order> {
+    return Promise.resolve(undefined);
+  }
+
+  // TODO
+  public async cancelOrder(id: string, pair: Pair): Promise<boolean> {
+    return Promise.resolve(false);
+  }
+
   async getBalance(currency: SupportedCurrency): Promise<number> {
     let totalUnrealizedPnL = 0.0;
     for (const [symbol, position] of this.positions) {

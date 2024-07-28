@@ -17,7 +17,7 @@ export class Pair {
   }
 
   public toBinanceFuturesSymbol(): string {
-    return `${this.base}/${this.quote}:${this.base}`;
+    return `${this.base}/${this.quote}:${this.quote}`;
   }
 
   public roundBase(quantity: number): number {

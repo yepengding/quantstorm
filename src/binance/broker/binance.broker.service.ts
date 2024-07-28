@@ -1,6 +1,6 @@
 import { BinanceBroker, BinanceConfig } from './binance.broker.interface';
 import { Injectable } from '@nestjs/common';
-import { Pair } from '../../core/structures/pair';
+import { Pair, SupportedCurrency } from '../../core/structures/pair';
 import { Interval } from '../../core/types';
 import { KLines } from '../../core/structures/klines';
 import { binance, Order as CCXTOrder } from 'ccxt';
@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { Order } from '../../core/interfaces/market.interface';
 import { OrderStatus, TradeSide } from '../../core/constants';
 import { Position } from '../../core/interfaces/broker.interface';
+import * as console from 'node:console';
 
 /**
  * Backtest Broker Service
@@ -44,7 +45,45 @@ export class BinanceBrokerService implements BinanceBroker {
     return order ? this.toOrder(order) : null;
   }
 
-  public async getBalance(currency: string): Promise<number> {
+  public async placeLimitLong(
+    pair: Pair,
+    size: number,
+    price: number,
+  ): Promise<Order> {
+    const order = await this.exchange
+      .createLimitBuyOrder(pair.toBinanceFuturesSymbol(), size, price)
+      .catch((e) => {
+        console.log(e);
+        return null;
+      });
+    return order ? this.toOrder(order) : null;
+  }
+
+  public async placeLimitShort(
+    pair: Pair,
+    size: number,
+    price: number,
+  ): Promise<Order> {
+    const order = await this.exchange
+      .createLimitSellOrder(pair.toBinanceFuturesSymbol(), size, price)
+      .catch((e) => {
+        console.log(e);
+        return null;
+      });
+    return order ? this.toOrder(order) : null;
+  }
+
+  public async cancelOrder(id: string, pair: Pair): Promise<boolean> {
+    const order = await this.exchange
+      .cancelOrder(id, pair.toBinanceFuturesSymbol())
+      .catch(() => null);
+    if (!order) {
+      return false;
+    }
+    return order.status == 'canceled';
+  }
+
+  public async getBalance(currency: SupportedCurrency): Promise<number> {
     const balances = await this.exchange
       .fetchBalance({ type: 'future' })
       .catch(() => null);
