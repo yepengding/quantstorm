@@ -17,7 +17,9 @@ export class BinanceService {
     await strategy.init();
 
     // Schedule strategy execution
-    const job = new CronJob(CronExpression.EVERY_5_SECONDS, strategy.next);
+    const job = new CronJob(CronExpression.EVERY_5_SECONDS, async () => {
+      await strategy.next();
+    });
     this.schedulerRegistry.addCronJob(strategy.name, job);
     job.start();
   }
