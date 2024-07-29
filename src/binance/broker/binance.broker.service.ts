@@ -180,11 +180,18 @@ export class BinanceBrokerService implements BinanceBroker {
       : null;
   }
 
+  public async getOrders(pair: Pair): Promise<Order[]> {
+    const orders = await this.exchange.fetchOrders(
+      pair.toBinanceFuturesSymbol(),
+    );
+    return orders.map((o) => this.toOrder(o));
+  }
+
   private toOrder(order: CCXTOrder): Order {
     let status = OrderStatus.OPEN;
     if (order.status == 'open') {
       status = OrderStatus.OPEN;
-    } else if (order.status == 'closed') {
+    } else if (order.status == 'closed' && order.amount == order.filled) {
       status = OrderStatus.FILLED;
     } else if (order.status == 'canceled') {
       status = OrderStatus.CANCELLED;

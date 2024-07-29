@@ -69,4 +69,8 @@ describe('BinanceBrokerService', () => {
     const balance = await service.getBalance(Currency.USDC);
     console.log(balance);
   });
+  it('should get orders', async () => {
+    const orders = await service.getOrders(new Pair('ETH', 'USDC'));
+    console.log(orders);
+  });
 });
