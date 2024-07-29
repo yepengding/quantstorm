@@ -181,6 +181,14 @@ export class BinanceBrokerService implements BinanceBroker {
   }
 
   private toOrder(order: CCXTOrder): Order {
+    let status = OrderStatus.OPEN;
+    if (order.status == 'open') {
+      status = OrderStatus.OPEN;
+    } else if (order.status == 'closed') {
+      status = OrderStatus.FILLED;
+    } else if (order.status == 'canceled') {
+      status = OrderStatus.CANCELLED;
+    }
     return {
       id: order.id,
       symbol: Pair.fromBinanceFuturesSymbol(order.symbol).toSymbol(),
@@ -189,7 +197,7 @@ export class BinanceBrokerService implements BinanceBroker {
       filledSize: order.filled,
       side: order.side == 'buy' ? TradeSide.LONG : TradeSide.SHORT,
       timestamp: order.timestamp,
-      status: OrderStatus.FILLED,
+      status: status,
     };
   }
 }
