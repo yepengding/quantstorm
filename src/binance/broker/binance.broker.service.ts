@@ -8,7 +8,6 @@ import { ConfigService } from '@nestjs/config';
 import { Order } from '../../core/interfaces/market.interface';
 import { Currency, OrderStatus, TradeSide } from '../../core/constants';
 import { Position } from '../../core/interfaces/broker.interface';
-import * as console from 'node:console';
 
 /**
  * Backtest Broker Service
@@ -66,6 +65,38 @@ export class BinanceBrokerService implements BinanceBroker {
   ): Promise<Order> {
     const order = await this.exchange
       .createLimitSellOrder(pair.toBinanceFuturesSymbol(), size, price)
+      .catch((e) => {
+        console.log(e);
+        return null;
+      });
+    return order ? this.toOrder(order) : null;
+  }
+
+  public async placeGTXLong(
+    pair: Pair,
+    size: number,
+    price: number,
+  ): Promise<Order> {
+    const order = await this.exchange
+      .createLimitBuyOrder(pair.toBinanceFuturesSymbol(), size, price, {
+        timeInForce: 'PO',
+      })
+      .catch((e) => {
+        console.log(e);
+        return null;
+      });
+    return order ? this.toOrder(order) : null;
+  }
+
+  public async placeGTXShort(
+    pair: Pair,
+    size: number,
+    price: number,
+  ): Promise<Order> {
+    const order = await this.exchange
+      .createLimitSellOrder(pair.toBinanceFuturesSymbol(), size, price, {
+        timeInForce: 'PO',
+      })
       .catch((e) => {
         console.log(e);
         return null;

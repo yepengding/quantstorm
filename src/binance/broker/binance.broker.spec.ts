@@ -20,6 +20,22 @@ describe('BinanceBrokerService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
+  it('should place a limit (post-only) long order', async () => {
+    const order = await service.placeGTXLong(
+      new Pair('ETH', 'USDC'),
+      0.01,
+      3000,
+    );
+    console.log(order);
+  });
+  it('should place a limit (post-only) short order', async () => {
+    const order = await service.placeGTXShort(
+      new Pair('ETH', 'USDC'),
+      0.01,
+      3500,
+    );
+    console.log(order);
+  });
   it('should place a limit long order', async () => {
     const order = await service.placeLimitLong(
       new Pair('ETH', 'USDC'),

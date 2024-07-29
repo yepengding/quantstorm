@@ -134,6 +134,22 @@ export class BacktestBrokerService implements BacktestBroker {
     return order;
   }
 
+  public async placeGTXLong(
+    pair: Pair,
+    size: number,
+    price: number,
+  ): Promise<Order> {
+    return await this.placeLimitLong(pair, size, price);
+  }
+
+  public async placeGTXShort(
+    pair: Pair,
+    size: number,
+    price: number,
+  ): Promise<Order> {
+    return await this.placeLimitShort(pair, size, price);
+  }
+
   public async cancelOrder(id: string, pair: Pair): Promise<boolean> {
     const order = this.orders.get(id);
     if (order) {

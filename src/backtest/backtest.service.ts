@@ -3,6 +3,7 @@ import { StrategyAbstract } from '../strategy/strategy.abstract';
 import { Interval } from '../core/types';
 import { BacktestHistory } from './structures/history';
 import { Currency } from '../core/constants';
+import { BacktestBroker } from './broker/backtest.broker.interface';
 
 /**
  * Backtest Service
@@ -20,7 +21,7 @@ export class BacktestService {
     executionInterval: Interval,
   ): Promise<BacktestHistory> {
     // Initialize the balance
-    strategy.backtestBroker.setBalance(Currency.USDT, 1000);
+    this.initBalance(strategy.backtestBroker);
 
     // Initialize the clock to the start timestamp
     strategy.backtestBroker.initClockAndInterval(
@@ -44,5 +45,11 @@ export class BacktestService {
       tradeOrderHistory: strategy.backtestBroker.tradeOrderHistory,
       balanceHistory: strategy.backtestBroker.balanceHistory,
     };
+  }
+
+  private initBalance(backtestBroker: BacktestBroker) {
+    for (const currency of Object.keys(Currency)) {
+      backtestBroker.setBalance(currency as Currency, 1000);
+    }
   }
 }
