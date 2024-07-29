@@ -36,6 +36,10 @@ describe('BinanceBrokerService', () => {
     );
     console.log(order);
   });
+  it('should get an order', async () => {
+    const order = await service.getOrder('', new Pair('ETH', 'USDC'));
+    console.log(order);
+  });
   it('should cancel an order', async () => {
     const isCancelled = await service.cancelOrder('', new Pair('ETH', 'USDC'));
     console.log(isCancelled);

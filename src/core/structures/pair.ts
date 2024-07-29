@@ -1,4 +1,5 @@
 import { Currency } from '../constants';
+import { NumUtil } from '../num.util';
 
 /**
  * Pair Structure
@@ -34,21 +35,6 @@ export class Pair {
   }
 
   public roundBase(quantity: number): number {
-    return parseFloat(quantity.toFixed(decimalMap.get(this.base)));
-  }
-
-  get baseDecimal() {
-    return decimalMap.get(this.base);
-  }
-
-  get quoteDecimal() {
-    return decimalMap.get(this.quote);
+    return NumUtil.roundCurrency(quantity, this.base);
   }
 }
-
-const decimalMap = new Map<Currency, number>([
-  [Currency.BTC, 3],
-  [Currency.ETH, 3],
-  [Currency.USDT, 3],
-  [Currency.USDC, 3],
-]);
