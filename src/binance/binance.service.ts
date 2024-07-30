@@ -17,10 +17,39 @@ export class BinanceService {
     await strategy.init();
 
     // Schedule strategy execution
-    const job = new CronJob(CronExpression.EVERY_10_SECONDS, async () => {
+    const job = new CronJob(CronExpression.EVERY_5_SECONDS, async () => {
       await strategy.next();
     });
     this.schedulerRegistry.addCronJob(strategy.name, job);
     job.start();
+  }
+
+  stop(strategyName: string) {
+    let runningJob: CronJob;
+    try {
+      runningJob = this.schedulerRegistry.getCronJob(strategyName);
+    } catch (e) {
+      runningJob = null;
+    }
+    if (!runningJob) {
+      return false;
+    } else if (runningJob.running) {
+      runningJob.stop();
+      this.schedulerRegistry.deleteCronJob(strategyName);
+      return true;
+    } else {
+      this.schedulerRegistry.deleteCronJob(strategyName);
+      return true;
+    }
+  }
+
+  isRunning(strategyName: string): boolean {
+    let runningJob: CronJob;
+    try {
+      runningJob = this.schedulerRegistry.getCronJob(strategyName);
+    } catch (e) {
+      runningJob = null;
+    }
+    return runningJob ? runningJob.running : false;
   }
 }

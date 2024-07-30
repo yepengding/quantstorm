@@ -2,12 +2,16 @@ import { StrategyAbstract } from '../strategy.abstract';
 import { Interval } from '../../core/types';
 import { Indicator } from '../../indicator/indicator';
 import { Pair } from '../../core/structures/pair';
+import { Logger } from '@nestjs/common';
 
 /**
  * Demo Strategy
  * @author Yepeng Ding
  */
 export class Demo extends StrategyAbstract {
+  public name: string = Demo.name;
+  private readonly logger = new Logger(Demo.name);
+
   // Strategy configuration
   private config = {
     pair: new Pair('BTC', 'USDT'),
@@ -20,7 +24,7 @@ export class Demo extends StrategyAbstract {
       .placeMarketLong(this.config.pair, this.config.size)
       .catch(() => null);
     if (order) {
-      console.log(`Long ${this.config.size} BTC at ${order.price}`);
+      this.logger.log(`Long ${this.config.size} BTC at ${order.price}`);
     }
   }
 
@@ -46,7 +50,7 @@ export class Demo extends StrategyAbstract {
         .placeMarketShort(this.config.pair, this.config.size)
         .catch(() => null);
       if (order) {
-        console.log(`Short ${this.config.size} BTC at ${order.price}`);
+        this.logger.log(`Short ${this.config.size} BTC at ${order.price}`);
       }
     }
   }
