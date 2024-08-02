@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { Order } from '../../core/interfaces/market.interface';
 import { Currency, OrderStatus, TradeSide } from '../../core/constants';
 import { Position } from '../../core/interfaces/broker.interface';
+import * as console from 'node:console';
 
 /**
  * Backtest Broker Service
@@ -101,6 +102,92 @@ export class BinanceBrokerService implements BinanceBroker {
         console.log(e);
         return null;
       });
+    return order ? this.toOrder(order) : null;
+  }
+
+  async placeStopMarketLong(
+    pair: Pair,
+    size: number,
+    price: number,
+  ): Promise<Order> {
+    const marketPrice = await this.getMarketPrice(pair);
+    let order;
+    if (price > marketPrice) {
+      order = await this.exchange
+        .createOrder(
+          pair.toBinanceFuturesSymbol(),
+          'STOP_MARKET',
+          'buy',
+          size,
+          undefined,
+          {
+            stopPrice: price,
+          },
+        )
+        .catch((e) => {
+          console.log(e);
+          return null;
+        });
+    } else if (price < marketPrice) {
+      order = await this.exchange
+        .createOrder(
+          pair.toBinanceFuturesSymbol(),
+          'TAKE_PROFIT_MARKET',
+          'buy',
+          size,
+          undefined,
+          {
+            stopPrice: price,
+          },
+        )
+        .catch((e) => {
+          console.log(e);
+          return null;
+        });
+    }
+    return order ? this.toOrder(order) : null;
+  }
+
+  async placeStopMarketShort(
+    pair: Pair,
+    size: number,
+    price: number,
+  ): Promise<Order> {
+    const marketPrice = await this.getMarketPrice(pair);
+    let order;
+    if (price > marketPrice) {
+      order = await this.exchange
+        .createOrder(
+          pair.toBinanceFuturesSymbol(),
+          'TAKE_PROFIT_MARKET',
+          'sell',
+          size,
+          undefined,
+          {
+            stopPrice: price,
+          },
+        )
+        .catch((e) => {
+          console.log(e);
+          return null;
+        });
+    } else if (price < marketPrice) {
+      order = await this.exchange
+        .createOrder(
+          pair.toBinanceFuturesSymbol(),
+          'STOP_MARKET',
+          'sell',
+          size,
+          undefined,
+          {
+            stopPrice: price,
+          },
+        )
+        .catch((e) => {
+          console.log(e);
+          return null;
+        });
+    }
     return order ? this.toOrder(order) : null;
   }
 

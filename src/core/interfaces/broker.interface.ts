@@ -17,6 +17,10 @@ export interface Broker {
 
   placeGTXShort(pair: Pair, size: number, price: number): Promise<Order>;
 
+  placeStopMarketLong(pair: Pair, size: number, price: number): Promise<Order>;
+
+  placeStopMarketShort(pair: Pair, size: number, price: number): Promise<Order>;
+
   cancelOrder(id: string, pair: Pair): Promise<boolean>;
 
   getBalance(currency: Currency): Promise<number>;

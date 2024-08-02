@@ -52,6 +52,22 @@ describe('BinanceBrokerService', () => {
     );
     console.log(order);
   });
+  it('should place a stop market long order', async () => {
+    const order = await service.placeStopMarketLong(
+      new Pair('ETH', 'USDC'),
+      0.01,
+      3500,
+    );
+    console.log(order);
+  });
+  it('should place a stop market short order', async () => {
+    const order = await service.placeStopMarketShort(
+      new Pair('ETH', 'USDC'),
+      0.01,
+      3300,
+    );
+    console.log(order);
+  });
   it('should get an order', async () => {
     const order = await service.getOrder('', new Pair('ETH', 'USDC'));
     console.log(order);

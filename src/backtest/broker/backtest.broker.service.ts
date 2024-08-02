@@ -76,7 +76,7 @@ export class BacktestBrokerService implements BacktestBroker {
     return order;
   }
 
-  public async placeLimitLong(
+  async placeLimitLong(
     pair: Pair,
     size: number,
     price: number,
@@ -105,7 +105,7 @@ export class BacktestBrokerService implements BacktestBroker {
     return order;
   }
 
-  public async placeLimitShort(
+  async placeLimitShort(
     pair: Pair,
     size: number,
     price: number,
@@ -134,20 +134,52 @@ export class BacktestBrokerService implements BacktestBroker {
     return order;
   }
 
-  public async placeGTXLong(
-    pair: Pair,
-    size: number,
-    price: number,
-  ): Promise<Order> {
+  async placeGTXLong(pair: Pair, size: number, price: number): Promise<Order> {
     return await this.placeLimitLong(pair, size, price);
   }
 
-  public async placeGTXShort(
+  async placeGTXShort(pair: Pair, size: number, price: number): Promise<Order> {
+    return await this.placeLimitShort(pair, size, price);
+  }
+
+  async placeStopMarketLong(
     pair: Pair,
     size: number,
     price: number,
   ): Promise<Order> {
-    return await this.placeLimitShort(pair, size, price);
+    const order: Order = {
+      id: this.orderId,
+      symbol: pair.toSymbol(),
+      price: price,
+      size: size,
+      filledSize: 0.0,
+      side: TradeSide.LONG,
+      timestamp: this.currentClock,
+      status: OrderStatus.OPEN,
+    };
+
+    this.orders.set(order.id, order);
+    return order;
+  }
+
+  async placeStopMarketShort(
+    pair: Pair,
+    size: number,
+    price: number,
+  ): Promise<Order> {
+    const order: Order = {
+      id: this.orderId,
+      symbol: pair.toSymbol(),
+      price: price,
+      size: size,
+      filledSize: 0.0,
+      side: TradeSide.SHORT,
+      timestamp: this.currentClock,
+      status: OrderStatus.OPEN,
+    };
+
+    this.orders.set(order.id, order);
+    return order;
   }
 
   public async cancelOrder(id: string, pair: Pair): Promise<boolean> {
@@ -182,6 +214,9 @@ export class BacktestBrokerService implements BacktestBroker {
       this.clock,
       1,
     );
+    if (kLines.length == 0) {
+      throw new Error('Failed to get the market price.');
+    }
     return kLines[0].close;
   }
 
