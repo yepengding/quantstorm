@@ -36,7 +36,7 @@ export class BacktestController {
   ) {}
 
   @Get(':name')
-  @Render('index')
+  @Render('index.hbs')
   async index(
     @Param('name') name: string,
     @Query('start', ParseIntPipe) start: number,

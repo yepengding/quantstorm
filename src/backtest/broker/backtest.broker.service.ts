@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Scope } from '@nestjs/common';
 import {
   Currency,
   DEFAULT_KLINE_LIMIT,
@@ -20,7 +20,7 @@ import { Pair } from '../../core/structures/pair';
  *
  * @author Yepeng Ding
  */
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class BacktestBrokerService implements BacktestBroker {
   private orderIdCounter: number;
   private interval: Interval;
