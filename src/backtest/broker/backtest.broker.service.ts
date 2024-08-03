@@ -208,7 +208,7 @@ export class BacktestBrokerService implements BacktestBroker {
   }
 
   async getMarketPrice(pair: Pair): Promise<number> {
-    const kLines = await this.feeder.getKLinesInBinanceCSV(
+    const kLines = await this.feeder.getBinanceKLines(
       pair,
       this.interval,
       this.clock,
@@ -246,7 +246,7 @@ export class BacktestBrokerService implements BacktestBroker {
     interval: Interval,
     limit: number = DEFAULT_KLINE_LIMIT,
   ): Promise<KLines> {
-    const kLines = await this.feeder.getKLinesInBinanceCSV(
+    const kLines = await this.feeder.getBinanceKLines(
       pair,
       interval,
       this.clock,

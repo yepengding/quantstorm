@@ -14,7 +14,45 @@ import { Pair } from '../../core/structures/pair';
  */
 @Injectable()
 export class BacktestFeederService {
-  constructor(private readonly configService: ConfigService) {}
+  private readonly dataCache: Map<string, KLine[]>;
+
+  private readonly dataCacheSize: number;
+
+  constructor(private readonly configService: ConfigService) {
+    this.dataCache = new Map<string, KLine[]>();
+    this.dataCacheSize = this.configService.get<number>(
+      'backtest.dataCacheSize',
+    );
+  }
+
+  public async getBinanceKLines(
+    pair: Pair,
+    interval: Interval,
+    clockTimestamp: number,
+    limit?: number,
+  ): Promise<KLine[]> {
+    const data = this.dataCache.get(this.getBinanceCSVName(pair, interval));
+    if (data && data.length > 1 && data.at(-1).timestamp > clockTimestamp) {
+      const kLines = [];
+      for (const kLine of data) {
+        if (kLine.timestamp > clockTimestamp) {
+          break;
+        }
+        kLines.push(kLine);
+        if (limit && kLines.length > limit) {
+          kLines.shift();
+        }
+      }
+      return kLines;
+    } else {
+      return await this.getKLinesInBinanceCSV(
+        pair,
+        interval,
+        clockTimestamp,
+        limit,
+      );
+    }
+  }
 
   /**
    * Load K-lines from Binance CSV
@@ -22,20 +60,21 @@ export class BacktestFeederService {
    * @param interval interval
    * @param clockTimestamp current clock timestamp
    * @param limit max number of K-lines
-   * @return K-line list starting from clockTimestamp
+   * @return K-line list observable at the clockTimestamp
    */
-  public async getKLinesInBinanceCSV(
+  private async getKLinesInBinanceCSV(
     pair: Pair,
     interval: Interval,
     clockTimestamp: number,
     limit?: number,
   ): Promise<KLine[]> {
+    const kLinesForCache = [];
     const kLines = [];
     const parser = fs
       .createReadStream(
         join(
           this.configService.get<string>('backtest.dataPath'),
-          `${pair.base}${pair.quote}-${interval}.csv`,
+          this.getBinanceCSVName(pair, interval),
         ),
       )
       .pipe(
@@ -44,16 +83,28 @@ export class BacktestFeederService {
         }),
       );
     for await (const record of parser) {
-      const kLine = this.getKLineFromBinanceCSVRecord(record);
-      if (kLine.timestamp > clockTimestamp) {
+      if (kLinesForCache.length > this.dataCacheSize) {
         break;
+      }
+      const kLine = this.getKLineFromBinanceCSVRecord(record);
+      kLinesForCache.push(kLine);
+      if (kLine.timestamp > clockTimestamp) {
+        // Continue loading into cache
+        continue;
       }
       kLines.push(kLine);
       if (limit && kLines.length > limit) {
+        kLinesForCache.shift();
         kLines.shift();
       }
     }
+
+    this.dataCache.set(this.getBinanceCSVName(pair, interval), kLinesForCache);
     return kLines;
+  }
+
+  private getBinanceCSVName(pair: Pair, interval: string): string {
+    return `${pair.base}${pair.quote}-${interval}.csv`;
   }
 
   private getKLineFromBinanceCSVRecord(record: any): KLine {

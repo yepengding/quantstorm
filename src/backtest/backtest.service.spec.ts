@@ -21,7 +21,7 @@ describe('BacktestService', () => {
     }).compile();
 
     service = module.get<BacktestService>(BacktestService);
-    broker = module.get<BacktestBrokerService>(BacktestBrokerService);
+    broker = await module.resolve<BacktestBrokerService>(BacktestBrokerService);
   });
 
   it('should be defined', () => {
