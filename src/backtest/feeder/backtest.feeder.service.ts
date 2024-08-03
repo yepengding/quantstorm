@@ -55,7 +55,7 @@ export class BacktestFeederService {
   }
 
   /**
-   * Load K-lines from Binance CSV
+   * Load K-lines from Binance CSV to memory cache
    * @param pair pair
    * @param interval interval
    * @param clockTimestamp current clock timestamp

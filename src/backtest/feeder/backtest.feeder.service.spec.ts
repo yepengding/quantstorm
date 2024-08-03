@@ -31,7 +31,7 @@ describe('BacktestFeederService', () => {
     service = module.get<BacktestFeederService>(BacktestFeederService);
   });
 
-  it('should get Binance K-lines', async () => {
+  it('should get Binance K-lines from local data', async () => {
     const kLines = await service.getBinanceKLines(
       new Pair('BTC', 'USDT'),
       '15m',

@@ -62,7 +62,12 @@ export class BacktestController {
     }
 
     const chartKLines = toCharKLines(
-      await this.feeder.getBinanceKLines(pair, interval, end),
+      await this.feeder.getBinanceKLines(
+        pair,
+        interval,
+        end,
+        chartBalances.length,
+      ),
     );
     return {
       name: name,

@@ -352,11 +352,13 @@ export class BacktestBrokerService implements BacktestBroker {
       }
     }
     // Update balances
+    const balances = new Map<Currency, number>();
     for (const currency of this.balances.keys()) {
-      this.balances.set(currency, await this.getBalance(currency));
+      balances.set(currency, await this.getBalance(Currency.USDC));
     }
+
     // Update history
-    this.history.start(this.currentClock, new Map(this.balances));
+    this.history.start(this.currentClock, balances);
   }
 
   get clock() {
