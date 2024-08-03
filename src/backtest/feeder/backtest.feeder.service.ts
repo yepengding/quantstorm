@@ -29,7 +29,7 @@ export class BacktestFeederService {
     pair: Pair,
     interval: Interval,
     clockTimestamp: number,
-    limit?: number,
+    limit: number = 10,
   ): Promise<KLine[]> {
     const data = this.dataCache.get(this.getBinanceCSVName(pair, interval));
     if (data && data.length > 1 && data.at(-1).timestamp > clockTimestamp) {
@@ -39,7 +39,7 @@ export class BacktestFeederService {
           break;
         }
         kLines.push(kLine);
-        if (limit && kLines.length > limit) {
+        if (kLines.length > limit) {
           kLines.shift();
         }
       }
@@ -66,7 +66,7 @@ export class BacktestFeederService {
     pair: Pair,
     interval: Interval,
     clockTimestamp: number,
-    limit?: number,
+    limit: number = 10,
   ): Promise<KLine[]> {
     const kLinesForCache = [];
     const kLines = [];
@@ -93,7 +93,7 @@ export class BacktestFeederService {
         continue;
       }
       kLines.push(kLine);
-      if (limit && kLines.length > limit) {
+      if (kLines.length > limit) {
         kLinesForCache.shift();
         kLines.shift();
       }

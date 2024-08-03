@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BacktestFeederService } from './backtest.feeder.service';
 import { ConfigService } from '@nestjs/config';
 import * as path from 'node:path';
+import { Pair } from '../../core/structures/pair';
 
 describe('BacktestFeederService', () => {
   let service: BacktestFeederService;
@@ -15,10 +16,9 @@ describe('BacktestFeederService', () => {
             get: jest.fn((key: string) => {
               // this is being super extra, in the case that you need multiple keys with the `get` method
               if (key === 'backtest.dataPath') {
-                return path.join(
-                  __dirname,
-                  '../../../data_example/BTCUSDT-30m-2024-07-13.csv',
-                );
+                return path.join(__dirname, '../../../data_example');
+              } else if (key === 'backtest.dataCacheSize') {
+                return 32768;
               }
               return null;
             }),
@@ -31,7 +31,12 @@ describe('BacktestFeederService', () => {
     service = module.get<BacktestFeederService>(BacktestFeederService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  it('should get Binance K-lines', async () => {
+    const kLines = await service.getBinanceKLines(
+      new Pair('BTC', 'USDT'),
+      '15m',
+      1720836000,
+    );
+    expect(kLines.length).toEqual(8);
   });
 });
