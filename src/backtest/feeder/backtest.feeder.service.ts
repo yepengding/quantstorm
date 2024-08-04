@@ -1,7 +1,4 @@
 import { Injectable } from '@nestjs/common';
-
-import * as stream from 'stream';
-import { promisify } from 'util';
 import * as fs from 'node:fs';
 import { parse } from 'csv-parse';
 import { ConfigService } from '@nestjs/config';
@@ -11,7 +8,8 @@ import { join } from 'node:path';
 import { Pair } from '../../core/structures/pair';
 import { HttpService } from '@nestjs/axios';
 import * as moment from 'moment/moment';
-import { Moment } from "moment/moment";
+import { EOL } from 'node:os';
+import * as AdmZip from 'adm-zip';
 
 /**
  * Backtest Data Feeder Service
@@ -119,24 +117,61 @@ export class BacktestFeederService {
   }
 
   /**
+   * Build Binance K-line data set
+   *
+   * @param pair
+   * @param interval
+   * @param startDate yyyy-mm-dd
+   * @param endDate yyyy-mm-dd
+   */
+  public async buildBinanceKLineData(
+    pair: Pair,
+    interval: Interval,
+    startDate: string,
+    endDate: string,
+  ): Promise<string> {
+    // Compute dates
+    const currentMoment = moment(startDate);
+    const endMoment = moment(endDate);
+    const dates = [];
+    while (currentMoment.isSameOrBefore(endMoment)) {
+      dates.push(currentMoment.format('YYYY-MM-DD'));
+      currentMoment.add(1, 'day');
+    }
+
+    // Download data
+    await this.downloadBinanceKLines(pair, interval, dates);
+
+    // Create dataset file
+    const pathToDataFile = join(
+      this.dataPath,
+      `${this.getBinanceCSVName(pair, interval)}`,
+    );
+    fs.writeFileSync(
+      pathToDataFile,
+      `open_time,open,high,low,close,volume,close_time,quote_volume,count,taker_buy_volume,taker_buy_quote_volume,ignore${EOL}`,
+    );
+    // Append the data to file
+    for (const date of dates) {
+      fs.appendFileSync(
+        pathToDataFile,
+        this.getContentInBinanceKLineZip(pair, interval, date, true),
+      );
+    }
+
+    return pathToDataFile;
+  }
+
+  /**
    * Download K-line data from Binance
    *
    * @param pair
    * @param interval
-   * @param startDay yyyy-mm-dd
-   * @param endDay yyyy-mm-dd
+   * @param dates set of dates in format 'YYYY-MM-DD'
    */
-  async downloadBinanceKLines(
-    pair: Pair,
-    interval: Interval,
-    startDay: string,
-    endDay: string,
-  ) {
-    let currentMoment = moment(startDay);
-    const endMoment = moment(endDay);
-
-    while (currentMoment.isSameOrBefore(endMoment)) {
-      const zipFilename = this.getBinanceZipName(pair, interval, currentMoment);
+  async downloadBinanceKLines(pair: Pair, interval: Interval, dates: string[]) {
+    for (const date of dates) {
+      const zipFilename = this.getBinanceZipName(pair, interval, date);
       const writer = fs.createWriteStream(join(this.dataPath, zipFilename));
       await this.httpService
         .axiosRef({
@@ -145,19 +180,61 @@ export class BacktestFeederService {
           responseType: 'stream',
         })
         .then((res) => {
-          res.data.pipe(writer);
-          return promisify(stream.finished);
+          return new Promise((resolve, reject) => {
+            res.data.pipe(writer);
+            let error = null;
+            writer.on('error', (err) => {
+              error = err;
+              writer.close();
+              reject(err);
+            });
+            writer.on('close', () => {
+              if (!error) {
+                resolve(true);
+              }
+            });
+          });
         });
-      currentMoment = currentMoment.add(1, 'day');
     }
   }
 
-  private getBinanceZipName(pair: Pair, interval: Interval, moment: Moment) {
-    return `${pair.base}${pair.quote}-${interval}-${moment.format('YYYY-MM-DD')}.zip`;
+  /**
+   * Get content of the CSV file in a Binance K-line data zip file
+   *
+   * @param pair
+   * @param interval
+   * @param date
+   * @param removeHeader if true, then remove CSV header
+   * @private
+   */
+  private getContentInBinanceKLineZip(
+    pair: Pair,
+    interval: Interval,
+    date: string,
+    removeHeader: boolean = false,
+  ): string {
+    const zipFile = new AdmZip(
+      join(this.dataPath, this.getBinanceZipName(pair, interval, date)),
+    );
+    const content = zipFile
+      .getEntry(`${this.getBinanceCSVName(pair, interval, date)}`)
+      .getData()
+      .toString();
+    return removeHeader ? content.substring(content.indexOf(EOL) + 1) : content;
   }
 
-  private getBinanceCSVName(pair: Pair, interval: string): string {
-    return `${pair.base}${pair.quote}-${interval}.csv`;
+  private getBinanceZipName(pair: Pair, interval: Interval, date: string) {
+    return `${pair.base}${pair.quote}-${interval}-${date}.zip`;
+  }
+
+  private getBinanceCSVName(
+    pair: Pair,
+    interval: string,
+    date?: string,
+  ): string {
+    return date
+      ? `${pair.base}${pair.quote}-${interval}-${date}.csv`
+      : `${pair.base}${pair.quote}-${interval}.csv`;
   }
 
   private getKLineFromBinanceCSVRecord(record: any): KLine {
