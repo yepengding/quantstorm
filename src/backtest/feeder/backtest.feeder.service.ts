@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 
+import * as stream from 'stream';
+import { promisify } from 'util';
 import * as fs from 'node:fs';
 import { parse } from 'csv-parse';
 import { ConfigService } from '@nestjs/config';
@@ -7,6 +9,9 @@ import { KLine } from '../../core/interfaces/market.interface';
 import { Interval } from '../../core/types';
 import { join } from 'node:path';
 import { Pair } from '../../core/structures/pair';
+import { HttpService } from '@nestjs/axios';
+import * as moment from 'moment/moment';
+import { Moment } from "moment/moment";
 
 /**
  * Backtest Data Feeder Service
@@ -14,17 +19,30 @@ import { Pair } from '../../core/structures/pair';
  */
 @Injectable()
 export class BacktestFeederService {
+  private readonly dataCacheSize: number;
+  private readonly dataPath: string;
+
   private readonly dataCache: Map<string, KLine[]>;
 
-  private readonly dataCacheSize: number;
-
-  constructor(private readonly configService: ConfigService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly httpService: HttpService,
+  ) {
     this.dataCache = new Map<string, KLine[]>();
     this.dataCacheSize = this.configService.get<number>(
       'backtest.dataCacheSize',
     );
+    this.dataPath = this.configService.get<string>('backtest.dataPath');
   }
 
+  /**
+   * Get Binance K-lines
+   *
+   * @param pair
+   * @param interval
+   * @param clockTimestamp
+   * @param limit
+   */
   public async getBinanceKLines(
     pair: Pair,
     interval: Interval,
@@ -72,10 +90,7 @@ export class BacktestFeederService {
     const kLines = [];
     const parser = fs
       .createReadStream(
-        join(
-          this.configService.get<string>('backtest.dataPath'),
-          this.getBinanceCSVName(pair, interval),
-        ),
+        join(this.dataPath, this.getBinanceCSVName(pair, interval)),
       )
       .pipe(
         parse({
@@ -101,6 +116,44 @@ export class BacktestFeederService {
 
     this.dataCache.set(this.getBinanceCSVName(pair, interval), kLinesForCache);
     return kLines;
+  }
+
+  /**
+   * Download K-line data from Binance
+   *
+   * @param pair
+   * @param interval
+   * @param startDay yyyy-mm-dd
+   * @param endDay yyyy-mm-dd
+   */
+  async downloadBinanceKLines(
+    pair: Pair,
+    interval: Interval,
+    startDay: string,
+    endDay: string,
+  ) {
+    let currentMoment = moment(startDay);
+    const endMoment = moment(endDay);
+
+    while (currentMoment.isSameOrBefore(endMoment)) {
+      const zipFilename = this.getBinanceZipName(pair, interval, currentMoment);
+      const writer = fs.createWriteStream(join(this.dataPath, zipFilename));
+      await this.httpService
+        .axiosRef({
+          url: `https://data.binance.vision/data/futures/um/daily/klines/${pair.base}${pair.quote}/${interval}/${zipFilename}`,
+          method: 'GET',
+          responseType: 'stream',
+        })
+        .then((res) => {
+          res.data.pipe(writer);
+          return promisify(stream.finished);
+        });
+      currentMoment = currentMoment.add(1, 'day');
+    }
+  }
+
+  private getBinanceZipName(pair: Pair, interval: Interval, moment: Moment) {
+    return `${pair.base}${pair.quote}-${interval}-${moment.format('YYYY-MM-DD')}.zip`;
   }
 
   private getBinanceCSVName(pair: Pair, interval: string): string {

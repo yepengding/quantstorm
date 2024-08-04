@@ -3,12 +3,14 @@ import { BacktestFeederService } from './backtest.feeder.service';
 import { ConfigService } from '@nestjs/config';
 import * as path from 'node:path';
 import { Pair } from '../../core/structures/pair';
+import { HttpModule } from '@nestjs/axios';
 
 describe('BacktestFeederService', () => {
   let service: BacktestFeederService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [HttpModule],
       providers: [
         {
           provide: ConfigService,
@@ -38,5 +40,14 @@ describe('BacktestFeederService', () => {
       1720836000,
     );
     expect(kLines.length).toEqual(8);
+  });
+
+  it('should download K-lines from Binance', async () => {
+    await service.downloadBinanceKLines(
+      new Pair('BTC', 'USDT'),
+      '15m',
+      '2024-07-30',
+      '2024-08-02',
+    );
   });
 });
