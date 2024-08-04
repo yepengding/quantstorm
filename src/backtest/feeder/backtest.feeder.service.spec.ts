@@ -30,7 +30,7 @@ describe('BacktestFeederService', () => {
       ],
     }).compile();
 
-    service = module.get<BacktestFeederService>(BacktestFeederService);
+    service = await module.resolve<BacktestFeederService>(BacktestFeederService);
   });
 
   it('should build Binance K-line data set', async () => {
@@ -46,9 +46,9 @@ describe('BacktestFeederService', () => {
     const kLines = await service.getBinanceKLines(
       new Pair('BTC', 'USDT'),
       '15m',
-      1720836000,
+      1722389400,
     );
-    expect(kLines.length).toEqual(8);
+    expect(kLines.length).toEqual(6);
   });
 
   it('should download K-lines from Binance', async () => {

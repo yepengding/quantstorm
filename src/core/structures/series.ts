@@ -54,6 +54,27 @@ export class Series {
   }
 
   /**
+   * Check whether crossing under the given series
+   *
+   * @param series
+   */
+  public crossingUnder(series: number[]): boolean {
+    if (this.series.length < 2 || series.length == 0) {
+      return false;
+    }
+    if (
+      series.length == 1 &&
+      this.series.at(-2) >= series[0] &&
+      this.series.at(-1) < series[0]
+    ) {
+      return true;
+    }
+    return (
+      this.series.at(-2) >= series.at(-2) && this.series.at(-1) < series.at(-1)
+    );
+  }
+
+  /**
    * Unbiased standard deviation
    */
   public std(): number {

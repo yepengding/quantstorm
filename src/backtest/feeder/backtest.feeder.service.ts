@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Scope } from "@nestjs/common";
 import * as fs from 'node:fs';
 import { parse } from 'csv-parse';
 import { ConfigService } from '@nestjs/config';
@@ -15,7 +15,7 @@ import * as AdmZip from 'adm-zip';
  * Backtest Data Feeder Service
  * @author Yepeng Ding
  */
-@Injectable()
+@Injectable({ scope: Scope.REQUEST })
 export class BacktestFeederService {
   private readonly dataCacheSize: number;
   private readonly dataPath: string;
