@@ -7,6 +7,29 @@ import { Series } from '../core/structures/series';
  */
 export class Indicator {
   /**
+   * Simple Moving Average
+   *
+   * @param series
+   * @param length
+   * @constructor
+   */
+  public static SMA(series: number[], length: number): number[] {
+    if (series.length <= length) {
+      return series;
+    }
+    let result = [];
+    for (let i = length - 1; i < series.length; i++) {
+      let sum = 0;
+      for (let j = 0; j < length; j++) {
+        sum += series[i - j];
+      }
+      result.push(sum / length);
+    }
+
+    return result;
+  }
+
+  /**
    * Bollinger bands
    *
    * @param series
