@@ -33,6 +33,15 @@ describe('BacktestFeederService', () => {
     service = module.get<BacktestFeederService>(BacktestFeederService);
   });
 
+  it('should build Binance K-line data set', async () => {
+    await service.buildBinanceKLineData(
+      new Pair('BTC', 'USDT'),
+      '15m',
+      '2024-07-31',
+      '2024-08-01',
+    );
+  });
+
   it('should get Binance K-lines from local data', async () => {
     const kLines = await service.getBinanceKLines(
       new Pair('BTC', 'USDT'),
@@ -43,11 +52,9 @@ describe('BacktestFeederService', () => {
   });
 
   it('should download K-lines from Binance', async () => {
-    await service.downloadBinanceKLines(
-      new Pair('BTC', 'USDT'),
-      '15m',
+    await service.downloadBinanceKLines(new Pair('BTC', 'USDT'), '15m', [
       '2024-07-30',
-      '2024-08-02',
-    );
+      '2024-08-01',
+    ]);
   });
 });

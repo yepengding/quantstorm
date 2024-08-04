@@ -5,6 +5,7 @@ import { BacktestBrokerService } from './broker/backtest.broker.service';
 import { BacktestFeederService } from './feeder/backtest.feeder.service';
 import { ConfigModule } from '@nestjs/config';
 import configuration from '../core/config';
+import { HttpModule } from "@nestjs/axios";
 
 describe('BacktestService', () => {
   let service: BacktestService;
@@ -12,7 +13,7 @@ describe('BacktestService', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [ConfigModule.forRoot({ load: [configuration] })],
+      imports: [ConfigModule.forRoot({ load: [configuration] }), HttpModule],
       providers: [
         BacktestService,
         BacktestBrokerService,
@@ -29,6 +30,6 @@ describe('BacktestService', () => {
     expect(broker).toBeDefined();
   });
   it('should run the demo strategy', async () => {
-    await service.run(new Demo(broker), 1720843200, 1720913400, '15m');
+    await service.run(new Demo(broker), 1722384900, 1722393900, '15m');
   });
 });

@@ -35,9 +35,9 @@ export class BacktestController {
     private readonly registry: StrategyRegistryType,
   ) {}
 
-  @Get(':name')
+  @Get('/strategy/:name')
   @Render('index.hbs')
-  async index(
+  async backtestStrategy(
     @Param('name') name: string,
     @Query('start', ParseIntPipe) start: number,
     @Query('end', ParseIntPipe) end: number,
@@ -60,7 +60,6 @@ export class BacktestController {
       chartOrders = toChartOrders(history.tradeOrderHistory);
       orderHistoryText = toOrderHistoryText(history.tradeOrderHistory);
     }
-
     const chartKLines = toCharKLines(
       await this.feeder.getBinanceKLines(
         pair,
@@ -78,5 +77,22 @@ export class BacktestController {
       shortOrders: JSON.stringify(chartOrders.short),
       orderHistoryText: orderHistoryText,
     };
+  }
+
+  @Get('/build/kline')
+  async buildData(
+    @Query('base') base: string,
+    @Query('quote') quote: string,
+    @Query('interval') interval: Interval,
+    @Query('start') start: string,
+    @Query('end') end: string,
+  ) {
+    const pathToDataFile = await this.feeder.buildBinanceKLineData(
+      new Pair(base, quote),
+      interval,
+      start,
+      end,
+    );
+    return `Build ${pathToDataFile}`;
   }
 }
