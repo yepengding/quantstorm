@@ -19,7 +19,7 @@ export class BinanceController {
 
   @Get('/execute/:name')
   async execute(@Param('name') name: string) {
-    const strategyClass = this.strategyRegistry.get(name.toLowerCase());
+    const strategyClass = this.strategyRegistry.get(name);
     if (strategyClass) {
       if (this.binanceService.isRunning(name)) {
         return `Strategy ${name} has been running`;

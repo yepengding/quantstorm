@@ -19,6 +19,7 @@ import {
 } from './backtest.view';
 import { ChartBalances, ChartOrders } from './backtest.view.type';
 import { Pair } from '../core/structures/pair';
+import { ZoneRecoveryBB } from "../strategy/zone_recovery_bb/zone_recovery_bb";
 
 /**
  * Backtest Controller
@@ -52,7 +53,7 @@ export class BacktestController {
       short: [],
     };
     let orderHistoryText: string[] = [];
-    const strategyClass = this.registry.get(name.toLowerCase());
+    const strategyClass = this.registry.get(name);
     if (strategyClass) {
       const strategy = new strategyClass(this.broker);
       const history = await this.backtest.run(strategy, start, end, interval);
