@@ -1,4 +1,4 @@
-import { OrderStatus, TradeSide } from '../constants';
+import { OrderStatus, OrderType, TradeSide } from '../constants';
 
 export interface KLine {
   open: number;
@@ -11,6 +11,7 @@ export interface KLine {
 
 export interface Order {
   id: string;
+  type: OrderType;
   symbol: string;
   price: number;
   size: number;

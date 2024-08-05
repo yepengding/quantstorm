@@ -3,6 +3,7 @@ import {
   Currency,
   DEFAULT_KLINE_LIMIT,
   OrderStatus,
+  OrderType,
   TradeSide,
 } from '../../core/constants';
 import { BacktestBroker } from './backtest.broker.interface';
@@ -14,6 +15,7 @@ import { toTimestampInterval } from '../backtest.utils';
 import { KLines } from '../../core/structures/klines';
 import { BalanceRecord, History } from '../structures/history';
 import { Pair } from '../../core/structures/pair';
+import { ConfigService } from '@nestjs/config';
 
 /**
  * Backtest Broker Service
@@ -22,7 +24,11 @@ import { Pair } from '../../core/structures/pair';
  */
 @Injectable({ scope: Scope.REQUEST })
 export class BacktestBrokerService implements BacktestBroker {
-  private tickBips: number = 1;
+  private readonly tick: number;
+  private readonly commission: {
+    taker: number;
+    maker: number;
+  };
 
   private orderIdCounter: number;
   private interval: Interval;
@@ -34,7 +40,17 @@ export class BacktestBrokerService implements BacktestBroker {
   private readonly orders: Map<string, Order>;
   private readonly history: History;
 
-  constructor(private readonly feeder: BacktestFeederService) {
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly feeder: BacktestFeederService,
+  ) {
+    this.tick = this.configService.get<number>('backtest.tick') / 10000;
+    this.commission = {
+      taker:
+        this.configService.get<number>('backtest.commission.taker') / 10000,
+      maker:
+        this.configService.get<number>('backtest.commission.maker') / 10000,
+    };
     this.orderIdCounter = 0;
     // The initial clock is one day ago
     this.currentClock = Date.now() - 86400;
@@ -47,6 +63,7 @@ export class BacktestBrokerService implements BacktestBroker {
   async placeMarketLong(pair: Pair, size: number): Promise<Order> {
     const order: Order = {
       id: this.orderId,
+      type: OrderType.MARKET,
       symbol: pair.toSymbol(),
       price: await this.getMarketPrice(pair),
       size: size,
@@ -56,7 +73,7 @@ export class BacktestBrokerService implements BacktestBroker {
       status: OrderStatus.FILLED,
     };
     this.orders.set(order.id, order);
-    this.updatePositionByFilledOrder(order);
+    this.updatePositionAndBalanceByFilledOrder(order);
     this.history.addTradeOrder(order);
     return order;
   }
@@ -64,6 +81,7 @@ export class BacktestBrokerService implements BacktestBroker {
   async placeMarketShort(pair: Pair, size: number): Promise<Order> {
     const order: Order = {
       id: this.orderId,
+      type: OrderType.MARKET,
       symbol: pair.toSymbol(),
       price: await this.getMarketPrice(pair),
       size: size,
@@ -73,7 +91,7 @@ export class BacktestBrokerService implements BacktestBroker {
       status: OrderStatus.FILLED,
     };
     this.orders.set(order.id, order);
-    this.updatePositionByFilledOrder(order);
+    this.updatePositionAndBalanceByFilledOrder(order);
     this.history.addTradeOrder(order);
     return order;
   }
@@ -85,6 +103,7 @@ export class BacktestBrokerService implements BacktestBroker {
   ): Promise<Order> {
     const order: Order = {
       id: this.orderId,
+      type: OrderType.LIMIT,
       symbol: pair.toSymbol(),
       price: price,
       size: size,
@@ -99,7 +118,7 @@ export class BacktestBrokerService implements BacktestBroker {
       order.price = marketPrice;
       order.filledSize = size;
       order.status = OrderStatus.FILLED;
-      this.updatePositionByFilledOrder(order);
+      this.updatePositionAndBalanceByFilledOrder(order);
       this.history.addTradeOrder(order);
     }
 
@@ -114,6 +133,7 @@ export class BacktestBrokerService implements BacktestBroker {
   ): Promise<Order> {
     const order: Order = {
       id: this.orderId,
+      type: OrderType.LIMIT,
       symbol: pair.toSymbol(),
       price: price,
       size: size,
@@ -128,7 +148,7 @@ export class BacktestBrokerService implements BacktestBroker {
       order.price = marketPrice;
       order.filledSize = size;
       order.status = OrderStatus.FILLED;
-      this.updatePositionByFilledOrder(order);
+      this.updatePositionAndBalanceByFilledOrder(order);
       this.history.addTradeOrder(order);
     }
 
@@ -151,6 +171,7 @@ export class BacktestBrokerService implements BacktestBroker {
   ): Promise<Order> {
     const order: Order = {
       id: this.orderId,
+      type: OrderType.MARKET,
       symbol: pair.toSymbol(),
       price: price,
       size: size,
@@ -171,6 +192,7 @@ export class BacktestBrokerService implements BacktestBroker {
   ): Promise<Order> {
     const order: Order = {
       id: this.orderId,
+      type: OrderType.MARKET,
       symbol: pair.toSymbol(),
       price: price,
       size: size,
@@ -223,11 +245,11 @@ export class BacktestBrokerService implements BacktestBroker {
   }
 
   async getBestBid(pair: Pair): Promise<number> {
-    return (await this.getMarketPrice(pair)) * (1 - this.tickBips / 10000);
+    return (await this.getMarketPrice(pair)) * (1 - this.tick);
   }
 
   async getBestAsk(pair: Pair): Promise<number> {
-    return (await this.getMarketPrice(pair)) * (1 + this.tickBips / 10000);
+    return (await this.getMarketPrice(pair)) * (1 + this.tick);
   }
 
   async getOrder(id: string, pair: Pair): Promise<Order> {
@@ -268,7 +290,7 @@ export class BacktestBrokerService implements BacktestBroker {
     );
   }
 
-  private updatePositionByFilledOrder(order: Order): void {
+  private updatePositionAndBalanceByFilledOrder(order: Order): void {
     const position: Position = this.positions.get(order.symbol);
     if (position) {
       // If position is open, then update position and balance
@@ -307,6 +329,7 @@ export class BacktestBrokerService implements BacktestBroker {
         size: order.size,
       });
     }
+    this.deductCommission(order);
   }
 
   /**
@@ -330,6 +353,23 @@ export class BacktestBrokerService implements BacktestBroker {
     // Update balance
     const quote = Pair.fromSymbol(order.symbol).quote;
     this.balances.set(quote, this.balances.get(quote) + realizedPnl);
+  }
+
+  /**
+   * Deduct commission fee by the given filled order
+   *
+   * @param order filled order
+   * @private
+   */
+  private deductCommission(order: Order) {
+    const fee =
+      (order.type == OrderType.LIMIT
+        ? this.commission.maker
+        : this.commission.taker) *
+      order.price *
+      order.size;
+    const quote = Pair.fromSymbol(order.symbol).quote;
+    this.balances.set(quote, this.balances.get(quote) - fee);
   }
 
   setBalance(currency: Currency, amount: number): void {
@@ -356,7 +396,7 @@ export class BacktestBrokerService implements BacktestBroker {
           order.filledSize = order.size;
           order.status = OrderStatus.FILLED;
           order.timestamp = this.currentClock;
-          this.updatePositionByFilledOrder(order);
+          this.updatePositionAndBalanceByFilledOrder(order);
           this.history.addTradeOrder(order);
         }
       }

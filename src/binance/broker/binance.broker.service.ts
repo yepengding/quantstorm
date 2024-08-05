@@ -6,7 +6,12 @@ import { KLines } from '../../core/structures/klines';
 import { binance, Order as CCXTOrder } from 'ccxt';
 import { ConfigService } from '@nestjs/config';
 import { Order } from '../../core/interfaces/market.interface';
-import { Currency, OrderStatus, TradeSide } from '../../core/constants';
+import {
+  Currency,
+  OrderStatus,
+  OrderType,
+  TradeSide,
+} from '../../core/constants';
 import { Position } from '../../core/interfaces/broker.interface';
 
 /**
@@ -290,6 +295,7 @@ export class BinanceBrokerService implements BinanceBroker {
     }
     return {
       id: order.id,
+      type: order.type == 'limit' ? OrderType.LIMIT : OrderType.MARKET,
       symbol: Pair.fromBinanceFuturesSymbol(order.symbol).toSymbol(),
       price: order.price,
       size: order.amount,

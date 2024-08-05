@@ -4,10 +4,12 @@ import { BinanceConfig } from '../binance/broker/binance.broker.interface';
 export default () => ({
   backtest: {
     dataPath: process.env.BACKTEST_DATA_PATH || '',
-    dataCacheSize: 32768,
-    startTimestamp: parseInt(process.env.BACKTEST_START_TIMESTAMP, 10) || 0,
-    endTimestamp: parseInt(process.env.BACKTEST_END_TIMESTAMP, 10) || 0,
-    executionInterval: process.env.BACKTEST_EXECUTION_INTERVAL || '15m',
+    tick: parseInt(process.env.BACKTEST_TICK) || 1,
+    commission: {
+      taker: parseInt(process.env.BACKTEST_COMMISSION_TAKER) || 0,
+      maker: parseInt(process.env.BACKTEST_COMMISSION_MAKER) || 0,
+    },
+    dataCacheSize: parseInt(process.env.BACKTEST_DATA_CACHE_SIZE) || 32768,
   },
   binance: {
     apiKey: process.env.BINANCE_API_KEY || '',

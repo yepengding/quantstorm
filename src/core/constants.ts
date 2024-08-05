@@ -1,5 +1,10 @@
 export const DEFAULT_KLINE_LIMIT = 100;
 
+export enum OrderType {
+  LIMIT = 0,
+  MARKET = 1,
+}
+
 export enum OrderStatus {
   OPEN = 0,
   FILLED = 1,
