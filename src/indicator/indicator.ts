@@ -40,10 +40,10 @@ export class Indicator {
     if (series.length <= length) {
       return series;
     }
-    const alpha = 2 / (length + 1)
+    const alpha = 2 / (length + 1);
     const result = [series[0]];
     for (let i = 1; i < series.length; i++) {
-      result.push(series[i] * alpha + result[i-1] * (1 - alpha));
+      result.push(series[i] * alpha + result[i - 1] * (1 - alpha));
     }
 
     return result;

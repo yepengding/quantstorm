@@ -80,7 +80,11 @@ describe('BinanceBrokerService', () => {
     const position = await service.getPosition(new Pair('ETH', 'USDC'));
     console.log(position);
   });
-
+  it('should get best bid and ask', async () => {
+    const bestBid = await service.getBestBid(new Pair('ETH', 'USDC'));
+    const bestAsk = await service.getBestAsk(new Pair('ETH', 'USDC'));
+    console.log(bestBid, bestAsk);
+  });
   it('should get balance', async () => {
     const balance = await service.getBalance(Currency.USDC);
     console.log(balance);

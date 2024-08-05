@@ -10,4 +10,4 @@ import { StrategyAbstract } from './strategy.abstract';
 export const registry: StrategyRegistryType = new Map<
   string,
   { new (broker: Broker): StrategyAbstract }
->([['demo', Demo]]);
+>([[Demo.name, Demo]]);

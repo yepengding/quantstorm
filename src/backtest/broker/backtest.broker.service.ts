@@ -22,6 +22,8 @@ import { Pair } from '../../core/structures/pair';
  */
 @Injectable({ scope: Scope.REQUEST })
 export class BacktestBrokerService implements BacktestBroker {
+  private tickBips: number = 1;
+
   private orderIdCounter: number;
   private interval: Interval;
   private clockInterval: number;
@@ -220,7 +222,15 @@ export class BacktestBrokerService implements BacktestBroker {
     return kLines[0].close;
   }
 
-  public async getOrder(id: string, pair: Pair): Promise<Order> {
+  async getBestBid(pair: Pair): Promise<number> {
+    return (await this.getMarketPrice(pair)) * (1 - this.tickBips / 10000);
+  }
+
+  async getBestAsk(pair: Pair): Promise<number> {
+    return (await this.getMarketPrice(pair)) * (1 + this.tickBips / 10000);
+  }
+
+  async getOrder(id: string, pair: Pair): Promise<Order> {
     const order = this.orders.get(id);
     return order ? order : null;
   }

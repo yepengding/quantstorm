@@ -59,6 +59,8 @@ export class BacktestController {
       chartBalances = toChartBalance(history.balanceHistory.get(pair.quote));
       chartOrders = toChartOrders(history.tradeOrderHistory);
       orderHistoryText = toOrderHistoryText(history.tradeOrderHistory);
+    } else {
+      name = `${name} (Unknown)`;
     }
     const chartKLines = toCharKLines(
       await this.feeder.getBinanceKLines(

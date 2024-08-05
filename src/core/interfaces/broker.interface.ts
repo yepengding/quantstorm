@@ -27,6 +27,10 @@ export interface Broker {
 
   getMarketPrice(pair: Pair): Promise<number>;
 
+  getBestBid(pair: Pair): Promise<number>;
+
+  getBestAsk(pair: Pair): Promise<number>;
+
   getOrder(id: string, pair: Pair): Promise<Order>;
 
   getPosition(pair: Pair): Promise<Position>;
