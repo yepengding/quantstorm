@@ -9,6 +9,7 @@ export class NumUtil {
 const decimalMap = new Map<Currency, number>([
   [Currency.BTC, 3],
   [Currency.ETH, 3],
+  [Currency.BNB, 2],
   [Currency.USDT, 3],
   [Currency.USDC, 3],
 ]);

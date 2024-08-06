@@ -19,6 +19,7 @@ export enum TradeSide {
 export enum Currency {
   BTC = 'BTC',
   ETH = 'ETH',
+  BNB = 'BNB',
   USDT = 'USDT',
   USDC = 'USDC',
 }
