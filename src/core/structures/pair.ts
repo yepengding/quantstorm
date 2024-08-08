@@ -34,7 +34,11 @@ export class Pair {
     return `${this.base}/${this.quote}:${this.quote}`;
   }
 
-  public roundBase(quantity: number): number {
-    return NumUtil.roundCurrency(quantity, this.base);
+  public roundBasePrice(quantity: number): number {
+    return NumUtil.roundCurrencyPrice(quantity, this.base);
+  }
+
+  public roundBaseSize(quantity: number): number {
+    return NumUtil.roundCurrencySize(quantity, this.base);
   }
 }
