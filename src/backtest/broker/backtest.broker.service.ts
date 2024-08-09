@@ -315,7 +315,7 @@ export class BacktestBrokerService implements BacktestBroker {
           this.positions.set(order.symbol, null);
         } else {
           this.positions.set(order.symbol, {
-            ...position,
+            entryPrice: order.price,
             side: order.side,
             size: order.size - position.size,
           });
