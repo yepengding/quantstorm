@@ -14,7 +14,7 @@ import { Interval } from '../../core/types';
 import { toTimestampInterval } from '../backtest.utils';
 import { KLines } from '../../core/structures/klines';
 import { BalanceRecord, History } from '../structures/history';
-import { Pair } from '../../core/structures/pair';
+import { BasePair, Pair } from '../../core/structures/pair';
 import { ConfigService } from '@nestjs/config';
 
 /**
@@ -219,7 +219,7 @@ export class BacktestBrokerService implements BacktestBroker {
   async getBalance(currency: Currency): Promise<number> {
     let totalUnrealizedPnL = 0.0;
     for (const [symbol, position] of this.positions) {
-      const pair = Pair.fromSymbol(symbol);
+      const pair = BasePair.fromSymbol(symbol);
       if (pair.quote == currency && position && position.size > 0) {
         const marketPrice = await this.getMarketPrice(pair);
         totalUnrealizedPnL +=
@@ -351,7 +351,7 @@ export class BacktestBrokerService implements BacktestBroker {
     }
 
     // Update balance
-    const quote = Pair.fromSymbol(order.symbol).quote;
+    const quote = BasePair.fromSymbol(order.symbol).quote;
     this.balances.set(quote, this.balances.get(quote) + realizedPnl);
   }
 
@@ -368,7 +368,7 @@ export class BacktestBrokerService implements BacktestBroker {
         : this.commission.taker) *
       order.price *
       order.size;
-    const quote = Pair.fromSymbol(order.symbol).quote;
+    const quote = BasePair.fromSymbol(order.symbol).quote;
     this.balances.set(quote, this.balances.get(quote) - fee);
   }
 
@@ -389,7 +389,11 @@ export class BacktestBrokerService implements BacktestBroker {
     for (const order of this.orders.values()) {
       if (order.status == OrderStatus.OPEN) {
         const kLine = (
-          await this.getKLines(Pair.fromSymbol(order.symbol), this.interval, 1)
+          await this.getKLines(
+            BasePair.fromSymbol(order.symbol),
+            this.interval,
+            1,
+          )
         ).at(0);
         if (kLine.low <= order.price && order.price <= kLine.high) {
           // If the order price is between the low and high of the next K-line, then fill the limit order (place market order)

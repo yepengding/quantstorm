@@ -31,7 +31,7 @@ describe('BacktestController', () => {
     expect(controller).toBeDefined();
   });
   it('should backtest the demo strategy', async () => {
-    await controller.index(
+    await controller.backtesting(
       'Demo',
       1720843200,
       1720913400,

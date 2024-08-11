@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BacktestFeederService } from './backtest.feeder.service';
 import { ConfigService } from '@nestjs/config';
 import * as path from 'node:path';
-import { Pair } from '../../core/structures/pair';
+import { BasePair } from '../../core/structures/pair';
 import { HttpModule } from '@nestjs/axios';
 
 describe('BacktestFeederService', () => {
@@ -30,12 +30,14 @@ describe('BacktestFeederService', () => {
       ],
     }).compile();
 
-    service = await module.resolve<BacktestFeederService>(BacktestFeederService);
+    service = await module.resolve<BacktestFeederService>(
+      BacktestFeederService,
+    );
   });
 
   it('should build Binance K-line data set', async () => {
     await service.buildBinanceKLineData(
-      new Pair('BTC', 'USDT'),
+      new BasePair('BTC', 'USDT'),
       '15m',
       '2024-07-31',
       '2024-08-01',
@@ -44,7 +46,7 @@ describe('BacktestFeederService', () => {
 
   it('should get Binance K-lines from local data', async () => {
     const kLines = await service.getBinanceKLines(
-      new Pair('BTC', 'USDT'),
+      new BasePair('BTC', 'USDT'),
       '15m',
       1722389400,
     );
@@ -52,7 +54,7 @@ describe('BacktestFeederService', () => {
   });
 
   it('should download K-lines from Binance', async () => {
-    await service.downloadBinanceKLines(new Pair('BTC', 'USDT'), '15m', [
+    await service.downloadBinanceKLines(new BasePair('BTC', 'USDT'), '15m', [
       '2024-07-30',
       '2024-08-01',
     ]);

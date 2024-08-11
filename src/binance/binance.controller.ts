@@ -1,41 +1,38 @@
 import { Controller, Get, Inject, Param } from '@nestjs/common';
-import { BinanceService } from './binance.service';
-import { StrategyRegistryType } from '../core/types';
-import { BinanceBrokerService } from './broker/binance.broker.service';
+import { BinancePerpService } from './perp/binance.perp.service';
+import { StrategyRegistryType } from '../strategy/strategy.types';
 
 /**
- * Binance Trading Controller
+ * Binance Strategy Execution Controller
  *
  * @author Yepeng Ding
  */
 @Controller('binance')
 export class BinanceController {
   constructor(
-    private readonly binanceService: BinanceService,
-    private readonly broker: BinanceBrokerService,
+    private readonly binancePerpService: BinancePerpService,
     @Inject('STRATEGY_REGISTRY')
     private readonly strategyRegistry: StrategyRegistryType,
   ) {}
 
-  @Get('/execute/:name')
-  async execute(@Param('name') name: string) {
+  @Get('/perp/execute/:name')
+  async executePerp(@Param('name') name: string) {
     const strategyClass = this.strategyRegistry.get(name);
     if (strategyClass) {
-      if (this.binanceService.isRunning(name)) {
+      if (this.binancePerpService.isRunning(name)) {
         return `Strategy ${name} has been running`;
       }
 
-      const strategy = new strategyClass(this.broker);
-      await this.binanceService.run(strategy);
+      await this.binancePerpService.run(strategyClass);
       return `Start executing ${name}`;
     } else {
       return `Strategy ${name} not found`;
     }
   }
 
-  @Get('/stop/:name')
+  @Get('/perp/stop/:name')
   async stop(@Param('name') name: string) {
-    if (this.binanceService.stop(name)) {
+    if (this.binancePerpService.stop(name)) {
       return `Strategy ${name} has stopped`;
     } else {
       return `Failed to stop ${name}. ${name} may not exist`;

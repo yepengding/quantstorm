@@ -1,4 +1,4 @@
-import { Strategy } from '../core/interfaces/strategy.interface';
+import { Strategy } from './strategy.interface';
 import { Broker } from '../core/interfaces/broker.interface';
 import { BacktestBrokerService } from '../backtest/broker/backtest.broker.service';
 

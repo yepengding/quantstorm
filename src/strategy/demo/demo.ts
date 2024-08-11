@@ -1,7 +1,7 @@
 import { StrategyAbstract } from '../strategy.abstract';
 import { Interval } from '../../core/types';
 import { Indicator } from '../../indicator/indicator';
-import { Pair } from '../../core/structures/pair';
+import { PerpetualPair } from '../../core/structures/pair';
 import { Logger } from '@nestjs/common';
 
 /**
@@ -14,7 +14,7 @@ export class Demo extends StrategyAbstract {
 
   // Strategy configuration
   private config = {
-    pair: new Pair('BTC', 'USDT'),
+    pair: new PerpetualPair('BTC', 'USDT'),
     size: 1,
     interval: '30m' as Interval,
   };

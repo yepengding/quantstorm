@@ -1,27 +1,28 @@
-import { BinanceBroker, BinanceConfig } from './binance.broker.interface';
+import { BinancePerpBroker } from './binance.perp.broker.interface';
 import { Injectable, Logger } from '@nestjs/common';
-import { Pair } from '../../core/structures/pair';
-import { Interval } from '../../core/types';
-import { KLines } from '../../core/structures/klines';
+import { PerpetualPair } from '../../../core/structures/pair';
+import { Interval } from '../../../core/types';
+import { KLines } from '../../../core/structures/klines';
 import { binance, Order as CCXTOrder } from 'ccxt';
 import { ConfigService } from '@nestjs/config';
-import { Order } from '../../core/interfaces/market.interface';
+import { Order } from '../../../core/interfaces/market.interface';
 import {
   Currency,
   OrderStatus,
   OrderType,
   TradeSide,
-} from '../../core/constants';
-import { Position } from '../../core/interfaces/broker.interface';
+} from '../../../core/constants';
+import { Position } from '../../../core/interfaces/broker.interface';
+import { BinanceConfig } from '../../binance.interface';
 
 /**
- * Backtest Broker Service
+ * Backtest Perpetual Broker Service
  *
  * @author Yepeng Ding
  */
 @Injectable()
-export class BinanceBrokerService implements BinanceBroker {
-  private readonly logger = new Logger(BinanceBrokerService.name);
+export class BinancePerpBrokerService implements BinancePerpBroker {
+  private readonly logger = new Logger(BinancePerpBrokerService.name);
 
   private readonly exchange: binance;
 
@@ -31,9 +32,9 @@ export class BinanceBrokerService implements BinanceBroker {
     );
   }
 
-  async placeMarketLong(pair: Pair, size: number): Promise<Order> {
+  async placeMarketLong(pair: PerpetualPair, size: number): Promise<Order> {
     const order = await this.exchange
-      .createMarketBuyOrder(pair.toBinanceFuturesSymbol(), size)
+      .createMarketBuyOrder(pair.toSymbol(), size)
       .catch((e) => {
         this.logger.error(e);
         return null;
@@ -41,9 +42,9 @@ export class BinanceBrokerService implements BinanceBroker {
     return order ? this.toOrder(order) : null;
   }
 
-  async placeMarketShort(pair: Pair, size: number): Promise<Order> {
+  async placeMarketShort(pair: PerpetualPair, size: number): Promise<Order> {
     const order = await this.exchange
-      .createMarketSellOrder(pair.toBinanceFuturesSymbol(), size)
+      .createMarketSellOrder(pair.toSymbol(), size)
       .catch((e) => {
         this.logger.error(e);
         return null;
@@ -52,12 +53,12 @@ export class BinanceBrokerService implements BinanceBroker {
   }
 
   async placeLimitLong(
-    pair: Pair,
+    pair: PerpetualPair,
     size: number,
     price: number,
   ): Promise<Order> {
     const order = await this.exchange
-      .createLimitBuyOrder(pair.toBinanceFuturesSymbol(), size, price)
+      .createLimitBuyOrder(pair.toSymbol(), size, price)
       .catch((e) => {
         this.logger.error(e);
         return null;
@@ -66,12 +67,12 @@ export class BinanceBrokerService implements BinanceBroker {
   }
 
   async placeLimitShort(
-    pair: Pair,
+    pair: PerpetualPair,
     size: number,
     price: number,
   ): Promise<Order> {
     const order = await this.exchange
-      .createLimitSellOrder(pair.toBinanceFuturesSymbol(), size, price)
+      .createLimitSellOrder(pair.toSymbol(), size, price)
       .catch((e) => {
         this.logger.error(e);
         return null;
@@ -79,9 +80,13 @@ export class BinanceBrokerService implements BinanceBroker {
     return order ? this.toOrder(order) : null;
   }
 
-  async placeGTXLong(pair: Pair, size: number, price: number): Promise<Order> {
+  async placeGTXLong(
+    pair: PerpetualPair,
+    size: number,
+    price: number,
+  ): Promise<Order> {
     const order = await this.exchange
-      .createLimitBuyOrder(pair.toBinanceFuturesSymbol(), size, price, {
+      .createLimitBuyOrder(pair.toSymbol(), size, price, {
         timeInForce: 'PO',
       })
       .catch((e) => {
@@ -91,9 +96,13 @@ export class BinanceBrokerService implements BinanceBroker {
     return order ? this.toOrder(order) : null;
   }
 
-  async placeGTXShort(pair: Pair, size: number, price: number): Promise<Order> {
+  async placeGTXShort(
+    pair: PerpetualPair,
+    size: number,
+    price: number,
+  ): Promise<Order> {
     const order = await this.exchange
-      .createLimitSellOrder(pair.toBinanceFuturesSymbol(), size, price, {
+      .createLimitSellOrder(pair.toSymbol(), size, price, {
         timeInForce: 'PO',
       })
       .catch((e) => {
@@ -104,7 +113,7 @@ export class BinanceBrokerService implements BinanceBroker {
   }
 
   async placeStopMarketLong(
-    pair: Pair,
+    pair: PerpetualPair,
     size: number,
     price: number,
   ): Promise<Order> {
@@ -112,16 +121,9 @@ export class BinanceBrokerService implements BinanceBroker {
     let order;
     if (price > marketPrice) {
       order = await this.exchange
-        .createOrder(
-          pair.toBinanceFuturesSymbol(),
-          'STOP_MARKET',
-          'buy',
-          size,
-          undefined,
-          {
-            stopPrice: price,
-          },
-        )
+        .createOrder(pair.toSymbol(), 'STOP_MARKET', 'buy', size, undefined, {
+          stopPrice: price,
+        })
         .catch((e) => {
           this.logger.error(e);
           return null;
@@ -129,7 +131,7 @@ export class BinanceBrokerService implements BinanceBroker {
     } else if (price < marketPrice) {
       order = await this.exchange
         .createOrder(
-          pair.toBinanceFuturesSymbol(),
+          pair.toSymbol(),
           'TAKE_PROFIT_MARKET',
           'buy',
           size,
@@ -147,7 +149,7 @@ export class BinanceBrokerService implements BinanceBroker {
   }
 
   async placeStopMarketShort(
-    pair: Pair,
+    pair: PerpetualPair,
     size: number,
     price: number,
   ): Promise<Order> {
@@ -156,7 +158,7 @@ export class BinanceBrokerService implements BinanceBroker {
     if (price > marketPrice) {
       order = await this.exchange
         .createOrder(
-          pair.toBinanceFuturesSymbol(),
+          pair.toSymbol(),
           'TAKE_PROFIT_MARKET',
           'sell',
           size,
@@ -171,16 +173,9 @@ export class BinanceBrokerService implements BinanceBroker {
         });
     } else if (price < marketPrice) {
       order = await this.exchange
-        .createOrder(
-          pair.toBinanceFuturesSymbol(),
-          'STOP_MARKET',
-          'sell',
-          size,
-          undefined,
-          {
-            stopPrice: price,
-          },
-        )
+        .createOrder(pair.toSymbol(), 'STOP_MARKET', 'sell', size, undefined, {
+          stopPrice: price,
+        })
         .catch((e) => {
           this.logger.error(e);
           return null;
@@ -189,12 +184,12 @@ export class BinanceBrokerService implements BinanceBroker {
     return order ? this.toOrder(order) : null;
   }
 
-  async cancelOrder(id: string, pair: Pair): Promise<boolean> {
+  async cancelOrder(id: string, pair: PerpetualPair): Promise<boolean> {
     let order = await this.exchange
-      .cancelOrder(id, pair.toBinanceFuturesSymbol())
+      .cancelOrder(id, pair.toSymbol())
       .catch(() => null);
     if (!order) {
-      order = await this.exchange.fetchOrder(id, pair.toBinanceFuturesSymbol());
+      order = await this.exchange.fetchOrder(id, pair.toSymbol());
       if (!order) {
         return false;
       }
@@ -210,12 +205,12 @@ export class BinanceBrokerService implements BinanceBroker {
   }
 
   async getKLines(
-    pair: Pair,
+    pair: PerpetualPair,
     interval: Interval,
     limit?: number,
   ): Promise<KLines> {
     const kLines = await this.exchange.fetchOHLCV(
-      pair.toBinanceFuturesSymbol(),
+      pair.toSymbol(),
       interval,
       undefined,
       limit,
@@ -234,35 +229,35 @@ export class BinanceBrokerService implements BinanceBroker {
     );
   }
 
-  async getMarketPrice(pair: Pair): Promise<number> {
-    const symbol = pair.toBinanceFuturesSymbol();
+  async getMarketPrice(pair: PerpetualPair): Promise<number> {
+    const symbol = pair.toSymbol();
     const prices = await this.exchange
       .fetchLastPrices([symbol])
       .catch(() => null);
     return prices ? prices[symbol].price : null;
   }
 
-  async getBestBid(pair: Pair): Promise<number> {
-    const symbol = pair.toBinanceFuturesSymbol();
+  async getBestBid(pair: PerpetualPair): Promise<number> {
+    const symbol = pair.toSymbol();
     const ba = await this.exchange.fetchBidsAsks([symbol]).catch(() => null);
     return !!ba ? ba[symbol].bid : null;
   }
 
-  async getBestAsk(pair: Pair): Promise<number> {
-    const symbol = pair.toBinanceFuturesSymbol();
+  async getBestAsk(pair: PerpetualPair): Promise<number> {
+    const symbol = pair.toSymbol();
     const ba = await this.exchange.fetchBidsAsks([symbol]).catch(() => null);
     return !!ba ? ba[symbol].ask : null;
   }
 
-  async getOrder(id: string, pair: Pair): Promise<Order> {
+  async getOrder(id: string, pair: PerpetualPair): Promise<Order> {
     const order = await this.exchange
-      .fetchOrder(id, pair.toBinanceFuturesSymbol())
+      .fetchOrder(id, pair.toSymbol())
       .catch(() => null);
     return order ? this.toOrder(order) : null;
   }
 
-  async getPosition(pair: Pair): Promise<Position> {
-    const symbol = pair.toBinanceFuturesSymbol();
+  async getPosition(pair: PerpetualPair): Promise<Position> {
+    const symbol = pair.toSymbol();
     const positions = await this.exchange
       .fetchPositions([symbol])
       .catch(() => null);
@@ -277,10 +272,8 @@ export class BinanceBrokerService implements BinanceBroker {
       : null;
   }
 
-  async getOrders(pair: Pair): Promise<Order[]> {
-    const orders = await this.exchange.fetchOrders(
-      pair.toBinanceFuturesSymbol(),
-    );
+  async getOrders(pair: PerpetualPair): Promise<Order[]> {
+    const orders = await this.exchange.fetchOrders(pair.toSymbol());
     return orders.map((o) => this.toOrder(o));
   }
 
@@ -296,7 +289,7 @@ export class BinanceBrokerService implements BinanceBroker {
     return {
       id: order.id,
       type: order.type == 'limit' ? OrderType.LIMIT : OrderType.MARKET,
-      symbol: Pair.fromBinanceFuturesSymbol(order.symbol).toSymbol(),
+      symbol: PerpetualPair.fromSymbol(order.symbol).toSymbol(),
       price: order.price,
       size: order.amount,
       filledSize: order.filled,

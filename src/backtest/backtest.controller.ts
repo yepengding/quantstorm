@@ -8,7 +8,7 @@ import {
   Render,
 } from '@nestjs/common';
 import { BacktestBrokerService } from './broker/backtest.broker.service';
-import { Interval, StrategyRegistryType } from '../core/types';
+import { Interval } from '../core/types';
 import { BacktestService } from './backtest.service';
 import { BacktestFeederService } from './feeder/backtest.feeder.service';
 import {
@@ -18,8 +18,8 @@ import {
   toOrderHistoryText,
 } from './backtest.view';
 import { ChartBalances, ChartOrders } from './backtest.view.type';
-import { Pair } from '../core/structures/pair';
-import { ZoneRecoveryBB } from "../strategy/zone_recovery_bb/zone_recovery_bb";
+import { BasePair } from '../core/structures/pair';
+import { StrategyRegistryType } from '../strategy/strategy.types';
 
 /**
  * Backtest Controller
@@ -46,7 +46,7 @@ export class BacktestController {
     @Query('base') base: string,
     @Query('quote') quote: string,
   ) {
-    const pair = new Pair(base, quote);
+    const pair = new BasePair(base, quote);
     let chartBalances: ChartBalances = [];
     let chartOrders: ChartOrders = {
       long: [],
@@ -91,7 +91,7 @@ export class BacktestController {
     @Query('end') end: string,
   ) {
     const pathToDataFile = await this.feeder.buildBinanceKLineData(
-      new Pair(base, quote),
+      new BasePair(base, quote),
       interval,
       start,
       end,

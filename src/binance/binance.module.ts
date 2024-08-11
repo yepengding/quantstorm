@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { BinanceBrokerService } from './broker/binance.broker.service';
-import { BinanceService } from './binance.service';
+
+import { BinancePerpService } from './perp/binance.perp.service';
 import { BinanceController } from './binance.controller';
 import { StrategyModule } from '../strategy/strategy.module';
+import { BinancePerpBrokerService } from './perp/broker/binance.perp.broker.service';
 
 /**
  * Binance Module
@@ -12,6 +13,6 @@ import { StrategyModule } from '../strategy/strategy.module';
 @Module({
   imports: [StrategyModule],
   controllers: [BinanceController],
-  providers: [BinanceService, BinanceBrokerService],
+  providers: [BinancePerpService, BinancePerpBrokerService],
 })
 export class BinanceModule {}

@@ -1,5 +1,5 @@
 import * as process from 'node:process';
-import { BinanceConfig } from '../binance/broker/binance.broker.interface';
+import { BinanceConfig } from '../binance/binance.interface';
 
 export default () => ({
   backtest: {
