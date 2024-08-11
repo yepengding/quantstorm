@@ -11,6 +11,7 @@ export class NumUtil {
 }
 
 const priceDecimalMap = new Map<Currency, number>([
+  [Currency.USD, 3],
   [Currency.BTC, 3],
   [Currency.ETH, 3],
   [Currency.XRP, 4],
@@ -20,6 +21,7 @@ const priceDecimalMap = new Map<Currency, number>([
 ]);
 
 const sizeDecimalMap = new Map<Currency, number>([
+  [Currency.USD, 3],
   [Currency.BTC, 3],
   [Currency.ETH, 3],
   [Currency.XRP, 2],

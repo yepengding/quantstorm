@@ -34,7 +34,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
 
   async placeMarketLong(pair: PerpetualPair, size: number): Promise<Order> {
     const order = await this.exchange
-      .createMarketBuyOrder(pair.toSymbol(), size)
+      .createMarketBuyOrder(pair.toPerpetualSymbol(), size)
       .catch((e) => {
         this.logger.error(e);
         return null;
@@ -44,7 +44,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
 
   async placeMarketShort(pair: PerpetualPair, size: number): Promise<Order> {
     const order = await this.exchange
-      .createMarketSellOrder(pair.toSymbol(), size)
+      .createMarketSellOrder(pair.toPerpetualSymbol(), size)
       .catch((e) => {
         this.logger.error(e);
         return null;
@@ -58,7 +58,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     price: number,
   ): Promise<Order> {
     const order = await this.exchange
-      .createLimitBuyOrder(pair.toSymbol(), size, price)
+      .createLimitBuyOrder(pair.toPerpetualSymbol(), size, price)
       .catch((e) => {
         this.logger.error(e);
         return null;
@@ -72,7 +72,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     price: number,
   ): Promise<Order> {
     const order = await this.exchange
-      .createLimitSellOrder(pair.toSymbol(), size, price)
+      .createLimitSellOrder(pair.toPerpetualSymbol(), size, price)
       .catch((e) => {
         this.logger.error(e);
         return null;
@@ -86,7 +86,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     price: number,
   ): Promise<Order> {
     const order = await this.exchange
-      .createLimitBuyOrder(pair.toSymbol(), size, price, {
+      .createLimitBuyOrder(pair.toPerpetualSymbol(), size, price, {
         timeInForce: 'PO',
       })
       .catch((e) => {
@@ -102,7 +102,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     price: number,
   ): Promise<Order> {
     const order = await this.exchange
-      .createLimitSellOrder(pair.toSymbol(), size, price, {
+      .createLimitSellOrder(pair.toPerpetualSymbol(), size, price, {
         timeInForce: 'PO',
       })
       .catch((e) => {
@@ -121,9 +121,16 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     let order;
     if (price > marketPrice) {
       order = await this.exchange
-        .createOrder(pair.toSymbol(), 'STOP_MARKET', 'buy', size, undefined, {
-          stopPrice: price,
-        })
+        .createOrder(
+          pair.toPerpetualSymbol(),
+          'STOP_MARKET',
+          'buy',
+          size,
+          undefined,
+          {
+            stopPrice: price,
+          },
+        )
         .catch((e) => {
           this.logger.error(e);
           return null;
@@ -131,7 +138,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     } else if (price < marketPrice) {
       order = await this.exchange
         .createOrder(
-          pair.toSymbol(),
+          pair.toPerpetualSymbol(),
           'TAKE_PROFIT_MARKET',
           'buy',
           size,
@@ -158,7 +165,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     if (price > marketPrice) {
       order = await this.exchange
         .createOrder(
-          pair.toSymbol(),
+          pair.toPerpetualSymbol(),
           'TAKE_PROFIT_MARKET',
           'sell',
           size,
@@ -173,9 +180,16 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
         });
     } else if (price < marketPrice) {
       order = await this.exchange
-        .createOrder(pair.toSymbol(), 'STOP_MARKET', 'sell', size, undefined, {
-          stopPrice: price,
-        })
+        .createOrder(
+          pair.toPerpetualSymbol(),
+          'STOP_MARKET',
+          'sell',
+          size,
+          undefined,
+          {
+            stopPrice: price,
+          },
+        )
         .catch((e) => {
           this.logger.error(e);
           return null;
@@ -186,10 +200,10 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
 
   async cancelOrder(id: string, pair: PerpetualPair): Promise<boolean> {
     let order = await this.exchange
-      .cancelOrder(id, pair.toSymbol())
+      .cancelOrder(id, pair.toPerpetualSymbol())
       .catch(() => null);
     if (!order) {
-      order = await this.exchange.fetchOrder(id, pair.toSymbol());
+      order = await this.exchange.fetchOrder(id, pair.toPerpetualSymbol());
       if (!order) {
         return false;
       }
@@ -210,7 +224,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     limit?: number,
   ): Promise<KLines> {
     const kLines = await this.exchange.fetchOHLCV(
-      pair.toSymbol(),
+      pair.toPerpetualSymbol(),
       interval,
       undefined,
       limit,
@@ -230,7 +244,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
   }
 
   async getMarketPrice(pair: PerpetualPair): Promise<number> {
-    const symbol = pair.toSymbol();
+    const symbol = pair.toPerpetualSymbol();
     const prices = await this.exchange
       .fetchLastPrices([symbol])
       .catch(() => null);
@@ -238,26 +252,26 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
   }
 
   async getBestBid(pair: PerpetualPair): Promise<number> {
-    const symbol = pair.toSymbol();
+    const symbol = pair.toPerpetualSymbol();
     const ba = await this.exchange.fetchBidsAsks([symbol]).catch(() => null);
     return !!ba ? ba[symbol].bid : null;
   }
 
   async getBestAsk(pair: PerpetualPair): Promise<number> {
-    const symbol = pair.toSymbol();
+    const symbol = pair.toPerpetualSymbol();
     const ba = await this.exchange.fetchBidsAsks([symbol]).catch(() => null);
     return !!ba ? ba[symbol].ask : null;
   }
 
   async getOrder(id: string, pair: PerpetualPair): Promise<Order> {
     const order = await this.exchange
-      .fetchOrder(id, pair.toSymbol())
+      .fetchOrder(id, pair.toPerpetualSymbol())
       .catch(() => null);
     return order ? this.toOrder(order) : null;
   }
 
   async getPosition(pair: PerpetualPair): Promise<Position> {
-    const symbol = pair.toSymbol();
+    const symbol = pair.toPerpetualSymbol();
     const positions = await this.exchange
       .fetchPositions([symbol])
       .catch(() => null);
@@ -273,7 +287,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
   }
 
   async getOrders(pair: PerpetualPair): Promise<Order[]> {
-    const orders = await this.exchange.fetchOrders(pair.toSymbol());
+    const orders = await this.exchange.fetchOrders(pair.toPerpetualSymbol());
     return orders.map((o) => this.toOrder(o));
   }
 
