@@ -94,6 +94,10 @@ describe('BinancePerpBrokerService', () => {
     const balance = await service.getBalance(Currency.USDC);
     console.log(balance);
   });
+  it('should get an order by id', async () => {
+    const order = await service.getOrder('', new PerpetualPair('ETH', 'USDC'));
+    console.log(order);
+  });
   it('should get orders', async () => {
     const orders = await service.getOrders(new PerpetualPair('ETH', 'USDC'));
     console.log(orders);
