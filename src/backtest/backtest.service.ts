@@ -16,6 +16,7 @@ export class BacktestService {
 
   public async run(
     strategy: StrategyAbstract,
+    strategyArgs: string,
     startTimestamp: number,
     endTimestamp: number,
     executionInterval: Interval,
@@ -30,7 +31,7 @@ export class BacktestService {
     );
 
     // Initialize strategy
-    await strategy.init();
+    await strategy.init(strategyArgs);
 
     // Continue executing strategy until reaching the end time
     while (strategy.backtestBroker.clock < endTimestamp) {

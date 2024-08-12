@@ -45,6 +45,7 @@ export class BacktestController {
     @Query('interval') interval: Interval,
     @Query('base') base: string,
     @Query('quote') quote: string,
+    @Query('args') args: string,
   ) {
     const pair = new BasePair(base, quote);
     let chartBalances: ChartBalances = [];
@@ -56,7 +57,13 @@ export class BacktestController {
     const strategyClass = this.registry.get(name);
     if (strategyClass) {
       const strategy = new strategyClass(this.broker);
-      const history = await this.backtest.run(strategy, start, end, interval);
+      const history = await this.backtest.run(
+        strategy,
+        args,
+        start,
+        end,
+        interval,
+      );
       chartBalances = toChartBalance(history.balanceHistory.get(pair.quote));
       chartOrders = toChartOrders(history.tradeOrderHistory);
       orderHistoryText = toOrderHistoryText(history.tradeOrderHistory);

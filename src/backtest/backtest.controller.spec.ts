@@ -6,6 +6,7 @@ import { BacktestFeederService } from './feeder/backtest.feeder.service';
 import { StrategyModule } from '../strategy/strategy.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from '../core/config';
+import { HttpModule } from '@nestjs/axios';
 
 describe('BacktestController', () => {
   let controller: BacktestController;
@@ -15,6 +16,7 @@ describe('BacktestController', () => {
       controllers: [BacktestController],
       imports: [
         ConfigModule.forRoot({ load: [configuration] }),
+        HttpModule,
         StrategyModule,
       ],
       providers: [
@@ -24,20 +26,26 @@ describe('BacktestController', () => {
       ],
     }).compile();
 
-    controller = module.get<BacktestController>(BacktestController);
+    controller = await module.resolve<BacktestController>(BacktestController);
   });
 
   it('should be defined', () => {
     expect(controller).toBeDefined();
   });
   it('should backtest the demo strategy', async () => {
-    await controller.backtesting(
+    await controller.backtestStrategy(
       'Demo',
-      1720843200,
-      1720913400,
+      1722427200,
+      1722454200,
       '15m',
       'BTC',
       'USDT',
+      JSON.stringify({
+        base: 'BTC',
+        quote: 'USDT',
+        size: 1,
+        interval: '30m',
+      }),
     );
   });
 });

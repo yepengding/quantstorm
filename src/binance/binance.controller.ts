@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Param } from '@nestjs/common';
+import { Controller, Get, Inject, Param, Query } from '@nestjs/common';
 import { BinancePerpService } from './perp/binance.perp.service';
 import { StrategyRegistryType } from '../strategy/strategy.types';
 
@@ -16,14 +16,14 @@ export class BinanceController {
   ) {}
 
   @Get('/perp/execute/:name')
-  async executePerp(@Param('name') name: string) {
+  async executePerp(@Param('name') name: string, @Query('args') args: string) {
     const strategyClass = this.strategyRegistry.get(name);
     if (strategyClass) {
       if (this.binancePerpService.isRunning(name)) {
         return `Strategy ${name} has been running`;
       }
 
-      await this.binancePerpService.run(strategyClass);
+      await this.binancePerpService.run(strategyClass, args);
       return `Start executing ${name}`;
     } else {
       return `Strategy ${name} not found`;

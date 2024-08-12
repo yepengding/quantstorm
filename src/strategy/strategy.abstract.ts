@@ -15,9 +15,9 @@ export abstract class StrategyAbstract implements Strategy {
     this.broker = broker;
   }
 
-  async init(): Promise<void> {}
+  abstract init(args: string): Promise<void>;
 
-  async next(): Promise<void> {}
+  abstract next(): Promise<void>;
 
   get backtestBroker() {
     return this.broker instanceof BacktestBrokerService ? this.broker : null;

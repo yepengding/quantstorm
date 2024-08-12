@@ -16,12 +16,12 @@ export class BinancePerpService {
     private readonly broker: BinancePerpBrokerService,
   ) {}
 
-  async run(strategyClass: StrategyClass) {
+  async run(strategyClass: StrategyClass, strategyArgs: string) {
     // Instantiate strategy
     const strategy = new strategyClass(this.broker);
 
     // Initialize strategy
-    await strategy.init();
+    await strategy.init(strategyArgs);
 
     // Schedule strategy execution
     const job = new CronJob(CronExpression.EVERY_5_SECONDS, async () => {

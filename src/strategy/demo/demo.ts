@@ -12,14 +12,20 @@ export class Demo extends StrategyAbstract {
   public name: string = Demo.name;
   private readonly logger = new Logger(Demo.name);
 
-  // Strategy configuration
-  private config = {
-    pair: new PerpetualPair('BTC', 'USDT'),
-    size: 1,
-    interval: '30m' as Interval,
+  // Strategy configuration initialized by parsing arguments of `init`
+  private config: {
+    pair: PerpetualPair;
+    size: number;
+    interval: Interval;
   };
 
-  async init(): Promise<void> {
+  async init(args: string): Promise<void> {
+    const config: Config = JSON.parse(args);
+    this.config = {
+      pair: new PerpetualPair(config.base, config.quote),
+      size: config.size,
+      interval: config.interval as Interval,
+    };
     const order = await this.broker
       .placeMarketLong(this.config.pair, this.config.size)
       .catch(() => null);
@@ -54,4 +60,11 @@ export class Demo extends StrategyAbstract {
       }
     }
   }
+}
+
+interface Config {
+  base: string;
+  quote: string;
+  size: number;
+  interval: string;
 }
