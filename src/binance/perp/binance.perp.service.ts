@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { CronJob } from 'cron';
 import { CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { BinancePerpBrokerService } from './broker/binance.perp.broker.service';
@@ -11,6 +11,8 @@ import { StrategyClass } from '../../strategy/strategy.types';
  */
 @Injectable()
 export class BinancePerpService {
+  private readonly logger = new Logger(BinancePerpService.name);
+
   constructor(
     private schedulerRegistry: SchedulerRegistry,
     private readonly broker: BinancePerpBrokerService,
@@ -25,7 +27,12 @@ export class BinancePerpService {
 
     // Schedule strategy execution
     const job = new CronJob(CronExpression.EVERY_5_SECONDS, async () => {
-      await strategy.next();
+      try {
+        await strategy.next();
+      } catch {
+        this.logger.error(`${this.getJobName(strategy.name)} crashed`);
+        return;
+      }
     });
     this.schedulerRegistry.addCronJob(this.getJobName(strategy.name), job);
     job.start();

@@ -22,8 +22,11 @@ export class BinanceController {
       if (this.binancePerpService.isRunning(name)) {
         return `Strategy ${name} has been running`;
       }
-
-      await this.binancePerpService.run(strategyClass, args);
+      try {
+        await this.binancePerpService.run(strategyClass, args);
+      } catch {
+        return `Failed to execute ${name}`;
+      }
       return `Start executing ${name}`;
     } else {
       return `Strategy ${name} not found`;
