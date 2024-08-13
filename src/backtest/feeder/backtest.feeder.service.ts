@@ -10,6 +10,7 @@ import { HttpService } from '@nestjs/axios';
 import * as moment from 'moment/moment';
 import { EOL } from 'node:os';
 import * as AdmZip from 'adm-zip';
+import { toTimestampInterval } from '../backtest.utils';
 
 /**
  * Backtest Data Feeder Service
@@ -48,45 +49,44 @@ export class BacktestFeederService {
     clockTimestamp: number,
     limit: number = 10,
   ): Promise<KLine[]> {
-    const data = this.dataCache.get(this.getBinanceCSVName(pair, interval));
-    if (data && data.length > 1 && data.at(-1).timestamp > clockTimestamp) {
-      const kLines = [];
-      for (const kLine of data) {
-        if (kLine.timestamp > clockTimestamp) {
-          break;
-        }
+    const startTimestamp =
+      clockTimestamp - toTimestampInterval(interval) * limit;
+    let data = this.dataCache.get(this.getBinanceCSVName(pair, interval));
+    if (
+      !data ||
+      data.at(0).timestamp > clockTimestamp ||
+      data.at(-1).timestamp < clockTimestamp
+    ) {
+      await this.loadKLinesFromBinanceCSV(pair, interval, startTimestamp);
+      data = this.dataCache.get(this.getBinanceCSVName(pair, interval));
+    }
+    const kLines = [];
+    for (const kLine of data) {
+      if (kLine.timestamp > clockTimestamp) {
+        break;
+      } else if (kLine.timestamp > startTimestamp) {
         kLines.push(kLine);
         if (kLines.length > limit) {
           kLines.shift();
         }
       }
-      return kLines;
-    } else {
-      return await this.getKLinesInBinanceCSV(
-        pair,
-        interval,
-        clockTimestamp,
-        limit,
-      );
     }
+    return kLines;
   }
 
   /**
    * Load K-lines from Binance CSV to memory cache
    * @param pair pair
    * @param interval interval
-   * @param clockTimestamp current clock timestamp
-   * @param limit max number of K-lines
+   * @param startTimestamp start timestamp
    * @return K-line list observable at the clockTimestamp
    */
-  private async getKLinesInBinanceCSV(
+  private async loadKLinesFromBinanceCSV(
     pair: Pair,
     interval: Interval,
-    clockTimestamp: number,
-    limit: number = 10,
-  ): Promise<KLine[]> {
+    startTimestamp: number,
+  ): Promise<void> {
     const kLinesForCache = [];
-    const kLines = [];
     const parser = fs
       .createReadStream(
         join(this.dataPath, this.getBinanceCSVName(pair, interval)),
@@ -97,23 +97,15 @@ export class BacktestFeederService {
         }),
       );
     for await (const record of parser) {
-      const kLine = this.getKLineFromBinanceCSVRecord(record);
       if (kLinesForCache.length > this.dataCacheSize) {
         break;
       }
-      kLinesForCache.push(kLine);
-      if (kLine.timestamp > clockTimestamp) {
-        // Continue loading into cache
-        continue;
-      }
-      kLines.push(kLine);
-      if (kLines.length > limit) {
-        kLinesForCache.shift();
-        kLines.shift();
+      const kLine = this.getKLineFromBinanceCSVRecord(record);
+      if (kLine.timestamp > startTimestamp) {
+        kLinesForCache.push(kLine);
       }
     }
     this.dataCache.set(this.getBinanceCSVName(pair, interval), kLinesForCache);
-    return kLines;
   }
 
   /**
