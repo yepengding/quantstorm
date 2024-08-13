@@ -13,9 +13,10 @@ import { BacktestFeederService } from '../feeder/backtest.feeder.service';
 import { Interval } from '../../core/types';
 import { toTimestampInterval } from '../backtest.utils';
 import { KLines } from '../../core/structures/klines';
-import { BalanceRecord, History } from '../structures/history';
+import { History } from '../structures/history';
 import { BasePair, Pair } from '../../core/structures/pair';
 import { ConfigService } from '@nestjs/config';
+import { BacktestResult } from '../structures/result';
 
 /**
  * Backtest Broker Service
@@ -423,15 +424,7 @@ export class BacktestBrokerService implements BacktestBroker {
     return `${this.orderIdCounter++}`;
   }
 
-  get tradeOrderHistory(): Order[][] {
-    return this.history.getTradeOrderHistory();
-  }
-
-  get balanceHistory(): Map<Currency, BalanceRecord[]> {
-    const balanceHistory = new Map<Currency, BalanceRecord[]>();
-    for (const currency of this.balances.keys()) {
-      balanceHistory.set(currency, this.history.getBalanceHistory(currency));
-    }
-    return balanceHistory;
+  get backtestResult() {
+    return new BacktestResult(this.history);
   }
 }

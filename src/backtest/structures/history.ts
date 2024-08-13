@@ -1,5 +1,4 @@
 import { Order } from '../../core/interfaces/market.interface';
-import { Currency } from '../../core/constants';
 
 /**
  * Backtesting History Structure
@@ -49,12 +48,6 @@ export type HistoryRecord = {
   timestamp: number;
   tradeOrders: Order[];
   balances: Map<string, number>;
-};
-
-export type BacktestHistory = {
-  tradeOrderHistory: Order[][];
-
-  balanceHistory: Map<Currency, BalanceRecord[]>;
 };
 
 export type BalanceRecord = {

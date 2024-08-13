@@ -1,7 +1,7 @@
 import { Broker } from '../../core/interfaces/broker.interface';
 import { Interval } from '../../core/types';
-import { Order } from '../../core/interfaces/market.interface';
 import { Currency } from '../../core/constants';
+import { BacktestResult } from '../structures/result';
 
 /**
  * Backtest Broker
@@ -31,6 +31,6 @@ export interface BacktestBroker extends Broker {
    */
   nextClock(): Promise<void>;
 
-  // Trade order history
-  tradeOrderHistory: Order[][];
+  // Backtesting result
+  backtestResult: BacktestResult;
 }

@@ -57,16 +57,16 @@ export class BacktestController {
     const strategyClass = this.registry.get(name);
     if (strategyClass) {
       const strategy = new strategyClass(this.broker);
-      const history = await this.backtest.run(
+      const result = await this.backtest.run(
         strategy,
         args,
         start,
         end,
         interval,
       );
-      chartBalances = toChartBalance(history.balanceHistory.get(pair.quote));
-      chartOrders = toChartOrders(history.tradeOrderHistory);
-      orderHistoryText = toOrderHistoryText(history.tradeOrderHistory);
+      chartBalances = toChartBalance(result.getBalanceHistory(pair.quote));
+      chartOrders = toChartOrders(result.tradeOrderHistory);
+      orderHistoryText = toOrderHistoryText(result.tradeOrderHistory);
     } else {
       name = `${name} (Unknown)`;
     }
