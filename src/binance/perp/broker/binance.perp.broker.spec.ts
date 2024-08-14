@@ -102,4 +102,12 @@ describe('BinancePerpBrokerService', () => {
     const orders = await service.getOrders(new PerpetualPair('ETH', 'USDC'));
     console.log(orders);
   });
+  it('should get K-lines', async () => {
+    const kLines = await service.getKLines(
+      new PerpetualPair('ETH', 'USDC'),
+      '30m',
+      100,
+    );
+    expect(kLines.length).toBe(100);
+  });
 });

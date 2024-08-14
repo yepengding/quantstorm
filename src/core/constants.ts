@@ -16,6 +16,11 @@ export enum TradeSide {
   LONG = 1,
 }
 
+export enum TradeType {
+  MAKER = 0,
+  TAKER = 1,
+}
+
 export enum Currency {
   USD = 'USD',
   BTC = 'BTC',

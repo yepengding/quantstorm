@@ -5,10 +5,11 @@ import {
   OrderStatus,
   OrderType,
   TradeSide,
+  TradeType,
 } from '../../core/constants';
 import { BacktestBroker } from './backtest.broker.interface';
 import { Position } from '../../core/interfaces/broker.interface';
-import { Order } from '../../core/interfaces/market.interface';
+import { Order, Trade } from '../../core/interfaces/market.interface';
 import { BacktestFeederService } from '../feeder/backtest.feeder.service';
 import { Interval } from '../../core/types';
 import { toTimestampInterval } from '../backtest.utils';
@@ -32,6 +33,7 @@ export class BacktestBrokerService implements BacktestBroker {
   };
 
   private orderIdCounter: number;
+  private tradeIdCounter: number;
   private interval: Interval;
   private clockInterval: number;
   private currentClock: number;
@@ -75,7 +77,6 @@ export class BacktestBrokerService implements BacktestBroker {
     };
     this.orders.set(order.id, order);
     this.updatePositionAndBalanceByFilledOrder(order);
-    this.history.addTradeOrder(order);
     return order;
   }
 
@@ -93,7 +94,6 @@ export class BacktestBrokerService implements BacktestBroker {
     };
     this.orders.set(order.id, order);
     this.updatePositionAndBalanceByFilledOrder(order);
-    this.history.addTradeOrder(order);
     return order;
   }
 
@@ -120,7 +120,6 @@ export class BacktestBrokerService implements BacktestBroker {
       order.filledSize = size;
       order.status = OrderStatus.FILLED;
       this.updatePositionAndBalanceByFilledOrder(order);
-      this.history.addTradeOrder(order);
     }
 
     this.orders.set(order.id, order);
@@ -150,7 +149,6 @@ export class BacktestBrokerService implements BacktestBroker {
       order.filledSize = size;
       order.status = OrderStatus.FILLED;
       this.updatePositionAndBalanceByFilledOrder(order);
-      this.history.addTradeOrder(order);
     }
 
     this.orders.set(order.id, order);
@@ -292,6 +290,8 @@ export class BacktestBrokerService implements BacktestBroker {
   }
 
   private updatePositionAndBalanceByFilledOrder(order: Order): void {
+    let pnl: number = 0,
+      fee: number;
     const position: Position = this.positions.get(order.symbol);
     if (position) {
       // If position is open, then update position and balance
@@ -306,7 +306,7 @@ export class BacktestBrokerService implements BacktestBroker {
         });
       } else {
         // If position has the different side from the order, then realize PnL and decrease the position
-        this.realizePnL(position, order);
+        pnl = this.realizePnL(position, order);
         if (position.size > order.size) {
           this.positions.set(order.symbol, {
             ...position,
@@ -330,7 +330,8 @@ export class BacktestBrokerService implements BacktestBroker {
         size: order.size,
       });
     }
-    this.deductCommission(order);
+    fee = this.deductCommission(order);
+    this.history.addTrade(this.toTrade(order, pnl, fee));
   }
 
   /**
@@ -339,8 +340,9 @@ export class BacktestBrokerService implements BacktestBroker {
    * @param position position before the filled order
    * @param order filled order
    * @private
+   * @return realized Pnl
    */
-  private realizePnL(position: Position, order: Order): void {
+  private realizePnL(position: Position, order: Order): number {
     // Compute realized PnL
     let realizedPnl: number = 0.0;
     if (position.side != order.side && position.size > 0) {
@@ -354,6 +356,7 @@ export class BacktestBrokerService implements BacktestBroker {
     // Update balance
     const quote = BasePair.fromSymbol(order.symbol).quote;
     this.balances.set(quote, this.balances.get(quote) + realizedPnl);
+    return realizedPnl;
   }
 
   /**
@@ -361,8 +364,9 @@ export class BacktestBrokerService implements BacktestBroker {
    *
    * @param order filled order
    * @private
+   * @return commission fee
    */
-  private deductCommission(order: Order) {
+  private deductCommission(order: Order): number {
     const fee =
       (order.type == OrderType.LIMIT
         ? this.commission.maker
@@ -371,6 +375,7 @@ export class BacktestBrokerService implements BacktestBroker {
       order.size;
     const quote = BasePair.fromSymbol(order.symbol).quote;
     this.balances.set(quote, this.balances.get(quote) - fee);
+    return fee;
   }
 
   setBalance(currency: Currency, amount: number): void {
@@ -400,9 +405,7 @@ export class BacktestBrokerService implements BacktestBroker {
           // If the order price is between the low and high of the next K-line, then fill the limit order (place market order)
           order.filledSize = order.size;
           order.status = OrderStatus.FILLED;
-          order.timestamp = this.currentClock;
           this.updatePositionAndBalanceByFilledOrder(order);
-          this.history.addTradeOrder(order);
         }
       }
     }
@@ -424,7 +427,25 @@ export class BacktestBrokerService implements BacktestBroker {
     return `${this.orderIdCounter++}`;
   }
 
+  private get tradeId() {
+    return `${this.tradeIdCounter++}`;
+  }
+
   get backtestResult() {
-    return new BacktestResult(this.history);
+    return new BacktestResult(this.history.allRecords);
+  }
+
+  private toTrade(order: Order, pnl: number, fee: number): Trade {
+    return {
+      id: this.tradeId,
+      type: order.type == OrderType.LIMIT ? TradeType.MAKER : TradeType.TAKER,
+      symbol: order.symbol,
+      price: order.price,
+      size: order.filledSize,
+      side: order.side,
+      timestamp: this.currentClock,
+      pnl: pnl,
+      fee: fee,
+    };
   }
 }

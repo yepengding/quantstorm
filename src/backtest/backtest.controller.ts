@@ -65,8 +65,8 @@ export class BacktestController {
         interval,
       );
       chartBalances = toChartBalance(result.getBalanceRecords(pair.quote));
-      chartOrders = toChartOrders(result.orderRecords);
-      orderHistoryText = toOrderHistoryText(result.orderRecords);
+      chartOrders = toChartOrders(result.filledOrderRecords);
+      orderHistoryText = toOrderHistoryText(result.filledOrderRecords);
     } else {
       name = `${name} (Unknown)`;
     }

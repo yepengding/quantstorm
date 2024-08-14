@@ -1,9 +1,10 @@
 import { Currency } from '../../core/constants';
 import {
+  BalanceRecord,
   BalanceRecords,
-  History,
   HistoryRecords,
-  OrderRecords,
+  TradeRecord,
+  TradeRecords,
 } from './history';
 
 /**
@@ -12,22 +13,32 @@ import {
  * @author Yepeng Ding
  */
 export class BacktestResult {
-  private readonly history: History;
+  private readonly records: HistoryRecords;
 
-  constructor(history: History) {
-    this.history = history;
+  constructor(records: HistoryRecords) {
+    this.records = records;
   }
 
   getBalanceRecords(currency: Currency): BalanceRecords {
-    return this.history.getBalanceHistory(currency);
+    return this.records.map((record) => {
+      return {
+        timestamp: record.timestamp,
+        balance: record.balances.get(currency),
+      } as BalanceRecord;
+    });
   }
 
-  get orderRecords(): OrderRecords {
-    return this.history.getTradeOrderHistory();
+  get filledOrderRecords(): TradeRecords {
+    return this.records.map((record) => {
+      return {
+        timestamp: record.timestamp,
+        trades: record.trades,
+      } as TradeRecord;
+    });
   }
 
   get historyRecords(): HistoryRecords {
-    return this.history.allRecords;
+    return this.records;
   }
 
   getBalanceRange(currency: Currency): [number, number] {

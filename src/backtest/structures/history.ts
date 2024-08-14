@@ -1,4 +1,4 @@
-import { Order } from '../../core/interfaces/market.interface';
+import { Trade } from '../../core/interfaces/market.interface';
 
 /**
  * Backtesting History Structure
@@ -15,8 +15,8 @@ export class History {
     this.currentRecord = null;
   }
 
-  addTradeOrder(order: Order) {
-    this.currentRecord.orders.push(order);
+  addTrade(trade: Trade) {
+    this.currentRecord.trades.push(trade);
   }
 
   start(timestamp: number, balances: Map<string, number>) {
@@ -25,27 +25,9 @@ export class History {
     }
     this.currentRecord = {
       timestamp: timestamp,
-      orders: [],
+      trades: [],
       balances: balances,
     };
-  }
-
-  getBalanceHistory(currency: string): BalanceRecords {
-    return this.records.map((record) => {
-      return {
-        timestamp: record.timestamp,
-        balance: record.balances.get(currency),
-      } as BalanceRecord;
-    });
-  }
-
-  getTradeOrderHistory(): OrderRecords {
-    return this.records.map((record) => {
-      return {
-        timestamp: record.timestamp,
-        orders: record.orders,
-      } as OrderRecord;
-    });
   }
 
   get allRecords(): HistoryRecords {
@@ -55,19 +37,19 @@ export class History {
 
 type MutableHistoryRecord = {
   timestamp: number;
-  orders: Order[];
+  trades: Trade[];
   balances: Map<string, number>;
 };
 
 export type HistoryRecord = {
   timestamp: number;
-  orders: ReadonlyArray<Readonly<Order>>;
+  trades: ReadonlyArray<Readonly<Trade>>;
   balances: Map<string, number>;
 };
 
-export type OrderRecord = {
+export type TradeRecord = {
   timestamp: number;
-  orders: ReadonlyArray<Readonly<Order>>;
+  trades: ReadonlyArray<Readonly<Trade>>;
 };
 
 export type BalanceRecord = {
@@ -77,6 +59,6 @@ export type BalanceRecord = {
 
 export type HistoryRecords = ReadonlyArray<HistoryRecord>;
 
-export type OrderRecords = ReadonlyArray<OrderRecord>;
+export type TradeRecords = ReadonlyArray<TradeRecord>;
 
 export type BalanceRecords = ReadonlyArray<BalanceRecord>;

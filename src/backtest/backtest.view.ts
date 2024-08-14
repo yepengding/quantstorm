@@ -1,7 +1,7 @@
 import { KLine } from '../core/interfaces/market.interface';
 import { TradeSide } from '../core/constants';
 import { ChartBalance, ChartKLine, ChartOrders } from './backtest.view.type';
-import { BalanceRecords, OrderRecords } from './structures/history';
+import { BalanceRecords, TradeRecords } from './structures/history';
 
 export function toCharKLines(kLines: KLine[]): ChartKLine[] {
   return kLines.map((k) => {
@@ -15,19 +15,19 @@ export function toCharKLines(kLines: KLine[]): ChartKLine[] {
   });
 }
 
-export function toChartOrders(orderRecords: OrderRecords): ChartOrders {
+export function toChartOrders(tradeRecords: TradeRecords): ChartOrders {
   const chartOrders = { long: [], short: [] };
-  for (const record of orderRecords) {
-    for (const order of record.orders) {
-      if (order.side == TradeSide.LONG) {
+  for (const record of tradeRecords) {
+    for (const trade of record.trades) {
+      if (trade.side == TradeSide.LONG) {
         chartOrders.long.push({
-          x: order.timestamp * 1000,
-          y: order.price - 10,
+          x: trade.timestamp * 1000,
+          y: trade.price - 10,
         });
-      } else if (order.side == TradeSide.SHORT) {
+      } else if (trade.side == TradeSide.SHORT) {
         chartOrders.short.push({
-          x: order.timestamp * 1000,
-          y: order.price + 10,
+          x: trade.timestamp * 1000,
+          y: trade.price + 10,
         });
       }
     }
@@ -41,14 +41,14 @@ export function toChartBalance(balanceHistory: BalanceRecords): ChartBalance[] {
   });
 }
 
-export function toOrderHistoryText(orderRecords: OrderRecords): string[] {
+export function toOrderHistoryText(orderRecords: TradeRecords): string[] {
   return orderRecords
-    .map((record) => record.orders)
-    .filter((orders) => orders.length > 0)
-    .flatMap((orders) =>
-      orders.map(
-        (order) =>
-          `${toDateString(order.timestamp)} ${order.side == TradeSide.LONG ? 'Long' : 'Short'} ${order.size} ${order.symbol} at ${order.price}`,
+    .map((record) => record.trades)
+    .filter((trades) => trades.length > 0)
+    .flatMap((trades) =>
+      trades.map(
+        (trade) =>
+          `${toDateString(trade.timestamp)} ${trade.side == TradeSide.LONG ? 'Long' : 'Short'} ${trade.size} ${trade.symbol} at ${trade.price}`,
       ),
     );
 }
