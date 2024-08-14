@@ -1,6 +1,6 @@
 import { KLine } from '../core/interfaces/market.interface';
 import { TradeSide } from '../core/constants';
-import { ChartBalance, ChartKLine, ChartOrders } from './backtest.view.type';
+import { ChartBalance, ChartKLine, ChartTrades } from './backtest.view.type';
 import { BalanceRecords, TradeRecords } from './structures/history';
 
 export function toCharKLines(kLines: KLine[]): ChartKLine[] {
@@ -15,24 +15,24 @@ export function toCharKLines(kLines: KLine[]): ChartKLine[] {
   });
 }
 
-export function toChartOrders(tradeRecords: TradeRecords): ChartOrders {
-  const chartOrders = { long: [], short: [] };
+export function toChartTrades(tradeRecords: TradeRecords): ChartTrades {
+  const chartTrades = { long: [], short: [] };
   for (const record of tradeRecords) {
     for (const trade of record.trades) {
       if (trade.side == TradeSide.LONG) {
-        chartOrders.long.push({
+        chartTrades.long.push({
           x: trade.timestamp * 1000,
           y: trade.price - 10,
         });
       } else if (trade.side == TradeSide.SHORT) {
-        chartOrders.short.push({
+        chartTrades.short.push({
           x: trade.timestamp * 1000,
           y: trade.price + 10,
         });
       }
     }
   }
-  return chartOrders;
+  return chartTrades;
 }
 
 export function toChartBalance(balanceHistory: BalanceRecords): ChartBalance[] {

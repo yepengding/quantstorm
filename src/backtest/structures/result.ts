@@ -6,6 +6,7 @@ import {
   TradeRecord,
   TradeRecords,
 } from './history';
+import { BasePair } from '../../core/structures/pair';
 
 /**
  * Backtesting Result Structure
@@ -28,7 +29,7 @@ export class BacktestResult {
     });
   }
 
-  get filledOrderRecords(): TradeRecords {
+  get tradeRecords(): TradeRecords {
     return this.records.map((record) => {
       return {
         timestamp: record.timestamp,
@@ -44,5 +45,22 @@ export class BacktestResult {
   getBalanceRange(currency: Currency): [number, number] {
     const balances = this.getBalanceRecords(currency).map((r) => r.balance);
     return [Math.min(...balances), Math.max(...balances)];
+  }
+
+  getMaxDrawdown(currency: Currency): number {
+    let maxDrawdown: number = 0;
+    let drawdown: number = 0;
+    this.records.forEach((record) => {
+      const pnl = record.trades
+        .filter((trade) => BasePair.fromSymbol(trade.symbol).quote == currency)
+        .reduce((acc, pre) => acc + pre.pnl, 0);
+      if (pnl < 0) {
+        drawdown += pnl;
+      } else {
+        maxDrawdown = Math.min(maxDrawdown, drawdown);
+        drawdown = 0;
+      }
+    });
+    return Math.min(maxDrawdown, drawdown);
   }
 }

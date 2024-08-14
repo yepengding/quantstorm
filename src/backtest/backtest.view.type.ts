@@ -1,9 +1,9 @@
-export type ChartOrders = {
-  long: ChartOrder[];
-  short: ChartOrder[];
+export type ChartTrades = {
+  long: ChartTrade[];
+  short: ChartTrade[];
 };
 
-export type ChartOrder = {
+export type ChartTrade = {
   // Timestamp
   x: number;
   // Price

@@ -14,10 +14,10 @@ import { BacktestFeederService } from './feeder/backtest.feeder.service';
 import {
   toCharKLines,
   toChartBalance,
-  toChartOrders,
+  toChartTrades,
   toOrderHistoryText,
 } from './backtest.view';
-import { ChartBalances, ChartOrders } from './backtest.view.type';
+import { ChartBalances, ChartTrades } from './backtest.view.type';
 import { BasePair } from '../core/structures/pair';
 import { StrategyRegistryType } from '../strategy/strategy.types';
 
@@ -49,7 +49,7 @@ export class BacktestController {
   ) {
     const pair = new BasePair(base, quote);
     let chartBalances: ChartBalances = [];
-    let chartOrders: ChartOrders = {
+    let chartTrades: ChartTrades = {
       long: [],
       short: [],
     };
@@ -65,8 +65,8 @@ export class BacktestController {
         interval,
       );
       chartBalances = toChartBalance(result.getBalanceRecords(pair.quote));
-      chartOrders = toChartOrders(result.filledOrderRecords);
-      orderHistoryText = toOrderHistoryText(result.filledOrderRecords);
+      chartTrades = toChartTrades(result.tradeRecords);
+      orderHistoryText = toOrderHistoryText(result.tradeRecords);
     } else {
       name = `${name} (Unknown)`;
     }
@@ -83,8 +83,8 @@ export class BacktestController {
       symbol: pair.toSymbol(),
       kLines: JSON.stringify(chartKLines),
       balances: JSON.stringify(chartBalances),
-      longOrders: JSON.stringify(chartOrders.long),
-      shortOrders: JSON.stringify(chartOrders.short),
+      longOrders: JSON.stringify(chartTrades.long),
+      shortOrders: JSON.stringify(chartTrades.short),
       orderHistoryText: orderHistoryText,
     };
   }

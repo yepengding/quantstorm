@@ -290,8 +290,7 @@ export class BacktestBrokerService implements BacktestBroker {
   }
 
   private updatePositionAndBalanceByFilledOrder(order: Order): void {
-    let pnl: number = 0,
-      fee: number;
+    let pnl: number = 0;
     const position: Position = this.positions.get(order.symbol);
     if (position) {
       // If position is open, then update position and balance
@@ -330,7 +329,7 @@ export class BacktestBrokerService implements BacktestBroker {
         size: order.size,
       });
     }
-    fee = this.deductCommission(order);
+    const fee = this.deductCommission(order);
     this.history.addTrade(this.toTrade(order, pnl, fee));
   }
 
