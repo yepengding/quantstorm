@@ -55,6 +55,7 @@ export class BacktestBrokerService implements BacktestBroker {
         this.configService.get<number>('backtest.commission.maker') / 10000,
     };
     this.orderIdCounter = 0;
+    this.tradeIdCounter = 0;
     // The initial clock is one day ago
     this.currentClock = Date.now() - 86400;
     this.balances = new Map<Currency, number>();
