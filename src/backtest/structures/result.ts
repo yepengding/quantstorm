@@ -1,5 +1,10 @@
 import { Currency } from '../../core/constants';
-import { BalanceRecord, History } from './history';
+import {
+  BalanceRecords,
+  History,
+  HistoryRecords,
+  OrderRecords,
+} from './history';
 
 /**
  * Backtesting Result Structure
@@ -13,16 +18,20 @@ export class BacktestResult {
     this.history = history;
   }
 
-  getBalanceHistory(currency: Currency): BalanceRecord[] {
+  getBalanceRecords(currency: Currency): BalanceRecords {
     return this.history.getBalanceHistory(currency);
   }
 
-  getBalanceRange(currency: Currency): [number, number] {
-    const balances = this.getBalanceHistory(currency).map((r) => r.balance);
-    return [Math.min(...balances), Math.max(...balances)];
+  get orderRecords(): OrderRecords {
+    return this.history.getTradeOrderHistory();
   }
 
-  get tradeOrderHistory() {
-    return this.history.getTradeOrderHistory();
+  get historyRecords(): HistoryRecords {
+    return this.history.allRecords;
+  }
+
+  getBalanceRange(currency: Currency): [number, number] {
+    const balances = this.getBalanceRecords(currency).map((r) => r.balance);
+    return [Math.min(...balances), Math.max(...balances)];
   }
 }

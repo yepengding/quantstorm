@@ -1,7 +1,7 @@
-import { KLine, Order } from '../core/interfaces/market.interface';
+import { KLine } from '../core/interfaces/market.interface';
 import { TradeSide } from '../core/constants';
 import { ChartBalance, ChartKLine, ChartOrders } from './backtest.view.type';
-import { BalanceRecord } from './structures/history';
+import { BalanceRecords, OrderRecords } from './structures/history';
 
 export function toCharKLines(kLines: KLine[]): ChartKLine[] {
   return kLines.map((k) => {
@@ -15,10 +15,10 @@ export function toCharKLines(kLines: KLine[]): ChartKLine[] {
   });
 }
 
-export function toChartOrders(orderHistory: Order[][]): ChartOrders {
+export function toChartOrders(orderRecords: OrderRecords): ChartOrders {
   const chartOrders = { long: [], short: [] };
-  for (const orders of orderHistory) {
-    for (const order of orders) {
+  for (const record of orderRecords) {
+    for (const order of record.orders) {
       if (order.side == TradeSide.LONG) {
         chartOrders.long.push({
           x: order.timestamp * 1000,
@@ -35,16 +35,15 @@ export function toChartOrders(orderHistory: Order[][]): ChartOrders {
   return chartOrders;
 }
 
-export function toChartBalance(
-  balanceHistory: BalanceRecord[],
-): ChartBalance[] {
+export function toChartBalance(balanceHistory: BalanceRecords): ChartBalance[] {
   return balanceHistory.map((record) => {
     return { x: record.timestamp * 1000, y: record.balance };
   });
 }
 
-export function toOrderHistoryText(orderHistory: Order[][]): string[] {
-  return orderHistory
+export function toOrderHistoryText(orderRecords: OrderRecords): string[] {
+  return orderRecords
+    .map((record) => record.orders)
     .filter((orders) => orders.length > 0)
     .flatMap((orders) =>
       orders.map(

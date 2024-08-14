@@ -6,9 +6,9 @@ import { Order } from '../../core/interfaces/market.interface';
  * @author Yepeng Ding
  */
 export class History {
-  private readonly records: HistoryRecord[];
+  private readonly records: MutableHistoryRecord[];
 
-  private currentRecord: HistoryRecord;
+  private currentRecord: MutableHistoryRecord;
 
   constructor() {
     this.records = [];
@@ -16,7 +16,7 @@ export class History {
   }
 
   addTradeOrder(order: Order) {
-    this.currentRecord.tradeOrders.push(order);
+    this.currentRecord.orders.push(order);
   }
 
   start(timestamp: number, balances: Map<string, number>) {
@@ -25,12 +25,12 @@ export class History {
     }
     this.currentRecord = {
       timestamp: timestamp,
-      tradeOrders: [],
+      orders: [],
       balances: balances,
     };
   }
 
-  getBalanceHistory(currency: string): BalanceRecord[] {
+  getBalanceHistory(currency: string): BalanceRecords {
     return this.records.map((record) => {
       return {
         timestamp: record.timestamp,
@@ -39,18 +39,44 @@ export class History {
     });
   }
 
-  getTradeOrderHistory(): Order[][] {
-    return this.records.map((record) => record.tradeOrders);
+  getTradeOrderHistory(): OrderRecords {
+    return this.records.map((record) => {
+      return {
+        timestamp: record.timestamp,
+        orders: record.orders,
+      } as OrderRecord;
+    });
+  }
+
+  get allRecords(): HistoryRecords {
+    return this.records;
   }
 }
 
+type MutableHistoryRecord = {
+  timestamp: number;
+  orders: Order[];
+  balances: Map<string, number>;
+};
+
 export type HistoryRecord = {
   timestamp: number;
-  tradeOrders: Order[];
+  orders: ReadonlyArray<Readonly<Order>>;
   balances: Map<string, number>;
+};
+
+export type OrderRecord = {
+  timestamp: number;
+  orders: ReadonlyArray<Readonly<Order>>;
 };
 
 export type BalanceRecord = {
   timestamp: number;
   balance: number;
 };
+
+export type HistoryRecords = ReadonlyArray<HistoryRecord>;
+
+export type OrderRecords = ReadonlyArray<OrderRecord>;
+
+export type BalanceRecords = ReadonlyArray<BalanceRecord>;
