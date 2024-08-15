@@ -3,6 +3,9 @@ import { CronJob } from 'cron';
 import { CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { BinancePerpBrokerService } from './broker/binance.perp.broker.service';
 import { StrategyClass } from '../../strategy/strategy.types';
+import { InjectRepository } from '@nestjs/typeorm';
+import { StrategyState } from '../../strategy/strategy.dao';
+import { Repository } from 'typeorm';
 
 /**
  * Binance Perpetual Strategy Execution Service
@@ -16,11 +19,13 @@ export class BinancePerpService {
   constructor(
     private schedulerRegistry: SchedulerRegistry,
     private readonly broker: BinancePerpBrokerService,
+    @InjectRepository(StrategyState)
+    private stateRepository: Repository<StrategyState>,
   ) {}
 
   async run(strategyClass: StrategyClass, strategyArgs: string) {
     // Instantiate strategy
-    const strategy = new strategyClass(this.broker);
+    const strategy = new strategyClass(this.broker, this.stateRepository);
 
     // Initialize strategy
     await strategy.init(strategyArgs);

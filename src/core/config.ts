@@ -15,4 +15,7 @@ export default () => ({
     apiKey: process.env.BINANCE_API_KEY || '',
     secret: process.env.BINANCE_SECRET || '',
   } as BinanceConfig,
+  db: {
+    path: process.env.DB_PATH || '/quantstorm_db',
+  },
 });

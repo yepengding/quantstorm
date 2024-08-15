@@ -20,6 +20,9 @@ import {
 import { ChartBalances, ChartTrades } from './backtest.view.type';
 import { BasePair } from '../core/structures/pair';
 import { StrategyRegistryType } from '../strategy/strategy.types';
+import { InjectRepository } from '@nestjs/typeorm';
+import { StrategyState } from '../strategy/strategy.dao';
+import { Repository } from 'typeorm';
 
 /**
  * Backtest Controller
@@ -34,6 +37,8 @@ export class BacktestController {
     private readonly feeder: BacktestFeederService,
     @Inject('STRATEGY_REGISTRY')
     private readonly registry: StrategyRegistryType,
+    @InjectRepository(StrategyState)
+    private stateRepository: Repository<StrategyState>,
   ) {}
 
   @Get('/strategy/:name')
@@ -56,7 +61,7 @@ export class BacktestController {
     let orderHistoryText: string[] = [];
     const strategyClass = this.registry.get(name);
     if (strategyClass) {
-      const strategy = new strategyClass(this.broker);
+      const strategy = new strategyClass(this.broker, this.stateRepository);
       const result = await this.backtest.run(
         strategy,
         args,

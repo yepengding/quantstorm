@@ -4,6 +4,8 @@ import { BinancePerpService } from './perp/binance.perp.service';
 import { BinanceController } from './binance.controller';
 import { StrategyModule } from '../strategy/strategy.module';
 import { BinancePerpBrokerService } from './perp/broker/binance.perp.broker.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { StrategyState } from '../strategy/strategy.dao';
 
 /**
  * Binance Module
@@ -11,7 +13,7 @@ import { BinancePerpBrokerService } from './perp/broker/binance.perp.broker.serv
  * @author Yepeng Ding
  */
 @Module({
-  imports: [StrategyModule],
+  imports: [TypeOrmModule.forFeature([StrategyState]), StrategyModule],
   controllers: [BinanceController],
   providers: [BinancePerpService, BinancePerpBrokerService],
 })
