@@ -286,6 +286,13 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
       : null;
   }
 
+  async getOpenOrders(pair: PerpetualPair): Promise<Order[]> {
+    const orders = await this.exchange.fetchOpenOrders(
+      pair.toPerpetualSymbol(),
+    );
+    return orders.map((o) => this.toOrder(o));
+  }
+
   async getOrders(pair: PerpetualPair): Promise<Order[]> {
     const orders = await this.exchange.fetchOrders(pair.toPerpetualSymbol());
     return orders.map((o) => this.toOrder(o));
