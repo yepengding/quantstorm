@@ -54,6 +54,7 @@ export class BacktestFeederService {
     let data = this.dataCache.get(this.getBinanceCSVName(pair, interval));
     if (
       !data ||
+      data.length == 0 ||
       data.at(0).timestamp > clockTimestamp ||
       data.at(-1).timestamp < clockTimestamp
     ) {

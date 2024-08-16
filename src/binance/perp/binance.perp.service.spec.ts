@@ -7,6 +7,8 @@ import { StrategyState } from '../../strategy/strategy.dao';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigModule } from '@nestjs/config';
 import configuration from '../../core/config';
+import { MockType } from '../../core/testing/mock/mock.types';
+import { repositoryMockFactory } from '../../core/testing/mock/factories/repository';
 
 describe('BinanceService', () => {
   let service: BinancePerpService;
@@ -34,15 +36,6 @@ describe('BinanceService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+    expect(stateRepositoryMock).toBeDefined();
   });
 });
-
-export const repositoryMockFactory: () => MockType<Repository<any>> = jest.fn(
-  () => ({
-    findOne: jest.fn((entity) => entity),
-  }),
-);
-
-export type MockType<T> = {
-  [P in keyof T]?: jest.Mock<NonNullable<unknown>>;
-};

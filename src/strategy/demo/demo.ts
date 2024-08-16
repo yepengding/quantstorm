@@ -26,9 +26,10 @@ export class Demo extends StrategyAbstract {
       size: config.size,
       interval: config.interval as Interval,
     };
-    const order = await this.broker
-      .placeMarketLong(this.config.pair, this.config.size)
-      .catch(() => null);
+    const order = await this.broker.placeMarketLong(
+      this.config.pair,
+      this.config.size,
+    );
     if (order) {
       this.logger.log(`Long ${this.config.size} BTC at ${order.price}`);
     }
@@ -52,9 +53,10 @@ export class Demo extends StrategyAbstract {
       kLines.at(-1).close > lower.at(-1) &&
       kLines.at(-1).close > position.entryPrice
     ) {
-      const order = await this.broker
-        .placeMarketShort(this.config.pair, this.config.size)
-        .catch(() => null);
+      const order = await this.broker.placeMarketShort(
+        this.config.pair,
+        this.config.size,
+      );
       if (order) {
         this.logger.log(`Short ${this.config.size} BTC at ${order.price}`);
       }
