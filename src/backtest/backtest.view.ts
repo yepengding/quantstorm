@@ -1,5 +1,5 @@
 import { KLine } from '../core/interfaces/market.interface';
-import { TradeSide } from '../core/constants';
+import { TradeSide, TradeType } from '../core/constants';
 import { ChartBalance, ChartKLine, ChartTrades } from './backtest.view.type';
 import { BalanceRecords, TradeRecords } from './structures/history';
 
@@ -48,7 +48,7 @@ export function toOrderHistoryText(orderRecords: TradeRecords): string[] {
     .flatMap((trades) =>
       trades.map(
         (trade) =>
-          `${toDateString(trade.timestamp)} ${trade.side == TradeSide.LONG ? 'Long' : 'Short'} ${trade.size} ${trade.symbol} at ${trade.price}`,
+          `${toDateString(trade.timestamp)} ${trade.side == TradeSide.LONG ? 'Long' : 'Short'} (${trade.type == TradeType.TAKER ? 'take' : 'make'}) ${trade.size} ${trade.symbol} at ${trade.price}`,
       ),
     );
 }
