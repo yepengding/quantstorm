@@ -1,5 +1,4 @@
 import { Currency } from '../constants';
-import { NumUtil } from '../num.util';
 
 export interface Pair {
   readonly base: Currency;
@@ -7,9 +6,9 @@ export interface Pair {
 
   toSymbol(): string;
 
-  roundBasePrice(price: number): number;
+  roundPrice(price: number): number;
 
-  roundBaseSize(quantity: number): number;
+  roundSize(quantity: number): number;
 }
 
 /**
@@ -31,12 +30,12 @@ export class BasePair {
     return new BasePair(base as Currency, quote as Currency);
   }
 
-  public roundBasePrice(price: number): number {
-    return NumUtil.roundCurrencyPrice(price, this.base);
+  public roundPrice(price: number): number {
+    return parseFloat(price.toFixed(priceDecimalMap.get(this.toSymbol())));
   }
 
-  public roundBaseSize(quantity: number): number {
-    return NumUtil.roundCurrencySize(quantity, this.base);
+  public roundSize(quantity: number): number {
+    return parseFloat(quantity.toFixed(sizeDecimalMap.get(this.toSymbol())));
   }
 
   public toSymbol(): string {
@@ -66,3 +65,20 @@ export class PerpetualPair extends BasePair {
     return `${this.base}/${this.quote}:${this.isInverse ? this.base : this.quote}`;
   }
 }
+
+const priceDecimalMap = new Map<string, number>([
+  ['BTC/USDC', 1],
+  ['BTC/USDC:USDC', 1],
+  ['ETH/USDC', 2],
+  ['ETH/USDC:USDC', 2],
+  ['ETH/USD:ETH', 2],
+]);
+
+const sizeDecimalMap = new Map<string, number>([
+  ['BTC/USDC', 3],
+  ['BTC/USDC:USDC', 3],
+  ['BTC/USD:BTC', 0],
+  ['ETH/USDC', 3],
+  ['ETH/USDC:USDC', 3],
+  ['ETH/USD:ETH', 0],
+]);
