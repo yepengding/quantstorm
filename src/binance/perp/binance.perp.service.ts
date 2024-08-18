@@ -23,12 +23,22 @@ export class BinancePerpService {
     private stateRepository: Repository<StrategyState>,
   ) {}
 
-  async run(strategyClass: StrategyClass, strategyArgs: string) {
+  async run(
+    strategyClass: StrategyClass,
+    strategyArgs: string,
+  ): Promise<boolean> {
     // Instantiate strategy
     const strategy = new strategyClass(this.broker, this.stateRepository);
 
     // Initialize strategy
-    await strategy.init(strategyArgs);
+    try {
+      await strategy.init(strategyArgs);
+    } catch {
+      this.logger.error(
+        `${this.getJobName(strategy.name)} crashed during initialization`,
+      );
+      return false;
+    }
 
     // Schedule strategy execution
     const job = new CronJob(CronExpression.EVERY_5_SECONDS, async () => {
@@ -41,6 +51,7 @@ export class BinancePerpService {
     });
     this.schedulerRegistry.addCronJob(this.getJobName(strategy.name), job);
     job.start();
+    return true;
   }
 
   stop(strategyName: string) {

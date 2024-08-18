@@ -23,7 +23,13 @@ export class BinanceController {
         return `Strategy ${name} has been running`;
       }
       try {
-        await this.binancePerpService.run(strategyClass, args);
+        const isRunning = await this.binancePerpService.run(
+          strategyClass,
+          args,
+        );
+        if (!isRunning) {
+          return `Failed to execute ${name}`;
+        }
       } catch {
         return `Failed to execute ${name}`;
       }
