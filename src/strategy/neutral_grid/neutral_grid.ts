@@ -27,6 +27,8 @@ export class NeutralGrid extends StrategyAbstract {
       size: config.size,
       maxTrial: !!config.maxTrial ? config.maxTrial : 3,
     };
+    this.logger.log(`Config: ${JSON.stringify(this.config)}`);
+
     this.grid = Grid.create(this.config, this.broker, this.logger);
     await this.grid.init();
   }

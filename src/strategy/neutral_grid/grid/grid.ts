@@ -29,6 +29,9 @@ export class Grid {
 
   public async init() {
     await this.operator.updateCurrentBars();
+    this.logger.log(
+      `Start grid between bar ${!!this.state.longBar ? this.state.longBar.index : null} and ${!!this.state.shortBar ? this.state.shortBar.index : null}`,
+    );
   }
 
   public async next() {
@@ -45,6 +48,7 @@ export class Grid {
       const order = await this.broker.getOrder(bar.orderId, this.config.pair);
       if (!!order) {
         if (order.status == OrderStatus.FILLED) {
+          this.logger.verbose(`Long order at ${bar.index} is filled.`);
           await this.operator.updateCurrentBars();
         }
       } else {
@@ -60,6 +64,7 @@ export class Grid {
       const order = await this.broker.getOrder(bar.orderId, this.config.pair);
       if (!!order) {
         if (order.status == OrderStatus.FILLED) {
+          this.logger.verbose(`Short order at ${bar.index} is filled.`);
           await this.operator.updateCurrentBars();
         }
       } else {
