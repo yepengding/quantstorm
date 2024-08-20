@@ -28,13 +28,34 @@ export class Grid {
   }
 
   public async init() {
-    await this.operator.updateCurrentBars();
-    this.logger.log(
-      `Start grid between bar ${!!this.state.longBar ? this.state.longBar.index : null} and ${!!this.state.shortBar ? this.state.shortBar.index : null}`,
-    );
+    if (!!this.config.triggerPrice) {
+      if (!this.state.isTriggered) {
+        const marketPrice = await this.broker.getMarketPrice(this.config.pair);
+        if (
+          marketPrice > this.state.triggerPriceRange[0] &&
+          marketPrice < this.state.triggerPriceRange[1]
+        ) {
+          await this.operator.updateCurrentBars();
+          this.state.setTriggered();
+          this.logger.log(
+            `Start grid between bar ${!!this.state.longBar ? this.state.longBar.index : null} and ${!!this.state.shortBar ? this.state.shortBar.index : null}`,
+          );
+        }
+      }
+    } else {
+      await this.operator.updateCurrentBars();
+      this.state.setTriggered();
+      this.logger.log(
+        `Start grid between bar ${!!this.state.longBar ? this.state.longBar.index : null} and ${!!this.state.shortBar ? this.state.shortBar.index : null}`,
+      );
+    }
   }
 
   public async next() {
+    if (!this.state.isTriggered) {
+      await this.init();
+      return;
+    }
     await this.checkCurrenBars();
   }
 

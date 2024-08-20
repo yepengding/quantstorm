@@ -40,6 +40,13 @@ export class StateManager {
         long: null,
         short: null,
       },
+      isTriggered: !this.config.triggerPrice,
+      triggerRange: !!this.config.triggerPrice
+        ? [
+            this.config.triggerPrice - interval,
+            this.config.triggerPrice + interval,
+          ]
+        : [this.config.lower - interval, this.config.upper + interval],
     };
   }
 
@@ -53,6 +60,10 @@ export class StateManager {
 
   setOrderId(bar: NonNullable<BarState>, orderId: string) {
     bar.orderId = orderId;
+  }
+
+  setTriggered() {
+    this.state.isTriggered = true;
   }
 
   getBarAt(index: number): Readonly<BarState | null> {
@@ -99,5 +110,13 @@ export class StateManager {
 
   get maxTrial(): number {
     return this.config.maxTrial;
+  }
+
+  get triggerPriceRange(): ReadonlyArray<number> {
+    return this.state.triggerRange;
+  }
+
+  get isTriggered(): boolean {
+    return this.state.isTriggered;
   }
 }

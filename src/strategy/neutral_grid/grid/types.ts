@@ -11,6 +11,8 @@ export type GridConfigArg = {
   size: number;
   // Max number of trials to place bar order
   maxTrial?: number;
+  // Start grid if the market price is near triggerPrice
+  triggerPrice?: number;
 };
 
 export type GridConfig = {
@@ -23,6 +25,8 @@ export type GridConfig = {
   size: number;
   // Max number of trials to place bar order
   maxTrial: number;
+  // Start grid if the market price is near triggerPrice
+  triggerPrice?: number;
 };
 
 export type GridState = {
@@ -32,6 +36,8 @@ export type GridState = {
     long: BarState;
     short: BarState;
   };
+  isTriggered: boolean;
+  triggerRange: [number, number];
 };
 
 /**

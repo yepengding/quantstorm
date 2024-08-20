@@ -26,6 +26,7 @@ export class NeutralGrid extends StrategyAbstract {
       number: config.number,
       size: config.size,
       maxTrial: !!config.maxTrial ? config.maxTrial : 3,
+      triggerPrice: config.triggerPrice,
     };
     this.logger.log(`Config: ${JSON.stringify(this.config)}`);
 
