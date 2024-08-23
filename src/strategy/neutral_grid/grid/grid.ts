@@ -3,7 +3,7 @@ import { StateManager } from './state_manager';
 import { Broker } from '../../../core/interfaces/broker.interface';
 import { Logger } from '@nestjs/common';
 import { BarState, GridConfig } from './types';
-import { OrderStatus } from '../../../core/constants';
+import { OrderStatus, TradeSide } from '../../../core/constants';
 
 /**
  * Grid Core Logic
@@ -35,18 +35,18 @@ export class Grid {
           marketPrice > this.state.triggerPriceRange[0] &&
           marketPrice < this.state.triggerPriceRange[1]
         ) {
-          await this.operator.updateCurrentBars();
+          await this.operator.openBarsNearMarketPrice();
           this.state.setTriggered();
           this.logger.log(
-            `Start grid between bar ${!!this.state.longBar ? this.state.longBar.index : null} and ${!!this.state.shortBar ? this.state.shortBar.index : null}`,
+            `Initialized grid [${this.config.lower}, ${this.config.upper}]`,
           );
         }
       }
     } else {
-      await this.operator.updateCurrentBars();
+      await this.operator.openBarsNearMarketPrice();
       this.state.setTriggered();
       this.logger.log(
-        `Start grid between bar ${!!this.state.longBar ? this.state.longBar.index : null} and ${!!this.state.shortBar ? this.state.shortBar.index : null}`,
+        `Initialized grid [${this.config.lower}, ${this.config.upper}]`,
       );
     }
   }
@@ -60,7 +60,39 @@ export class Grid {
       await this.init();
       return;
     }
-    await this.checkCurrenBars();
+    await this.checkOpeningBars();
+    await this.operator.openBarsNearMarketPrice();
+  }
+
+  private async checkOpeningBars() {
+    const openingBars = this.state.openingBars;
+    for (const bar of openingBars) {
+      const order = await this.broker.getOrder(bar.orderId, this.config.pair);
+      if (!!order) {
+        if (order.status == OrderStatus.FILLED) {
+          this.state.updatePositionByOrder(order);
+          this.state.setBarOpened(bar.index);
+          let barToClose: BarState = null;
+          if (bar.side == TradeSide.LONG) {
+            barToClose = this.state.getFurthestOpenedShortBarAbove(bar.index);
+          } else if (bar.side == TradeSide.SHORT) {
+            barToClose = this.state.getFurthestOpenedLongBarBelow(bar.index);
+          }
+          if (!!barToClose) {
+            this.state.setBarClosed(barToClose.index);
+          }
+          await this.operator.updateStopUpperOrder();
+          await this.operator.updateStopLowerOrder();
+          this.logger.verbose(
+            `${bar.side == TradeSide.LONG ? 'Long' : 'Short'} order at ${bar.index} is filled.`,
+          );
+        }
+      } else {
+        this.logger.error(
+          `Cannot find the ${bar.side == TradeSide.LONG ? 'long' : 'short'} order (${bar.orderId}) at (${bar.index})`,
+        );
+      }
+    }
   }
 
   /**
@@ -73,45 +105,6 @@ export class Grid {
     await this.operator.closePosition();
     this.state.setCurrentBars(null, null);
     this.state.setTerminated();
-  }
-
-  private async checkCurrenBars() {
-    await this.checkLong(this.state.longBar);
-    await this.checkShort(this.state.shortBar);
-  }
-
-  private async checkLong(bar: BarState) {
-    if (!!bar) {
-      const order = await this.broker.getOrder(bar.orderId, this.config.pair);
-      if (!!order) {
-        if (order.status == OrderStatus.FILLED) {
-          this.state.updatePositionByOrder(order);
-          await this.operator.updateCurrentBars();
-          this.logger.verbose(`Long order at ${bar.index} is filled.`);
-        }
-      } else {
-        this.logger.error(
-          `Cannot find the long order (${bar.orderId}) at (${bar.index})`,
-        );
-      }
-    }
-  }
-
-  private async checkShort(bar: BarState) {
-    if (!!bar) {
-      const order = await this.broker.getOrder(bar.orderId, this.config.pair);
-      if (!!order) {
-        if (order.status == OrderStatus.FILLED) {
-          this.state.updatePositionByOrder(order);
-          await this.operator.updateCurrentBars();
-          this.logger.verbose(`Short order at ${bar.index} is filled.`);
-        }
-      } else {
-        this.logger.error(
-          `Cannot find the short order (${bar.orderId}) at (${bar.index})`,
-        );
-      }
-    }
   }
 
   static create(config: GridConfig, broker: Broker, logger: Logger): Grid {

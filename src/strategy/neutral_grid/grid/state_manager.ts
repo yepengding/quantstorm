@@ -1,4 +1,4 @@
-import { BarState, GridConfig, GridState } from './types';
+import { BarState, BarStatus, GridConfig, GridState } from './types';
 import { PerpetualPair } from '../../../core/structures/pair';
 import { Order } from '../../../core/interfaces/market.interface';
 import { TradeSide } from '../../../core/constants';
@@ -28,12 +28,16 @@ export class StateManager {
         index: i,
         price: this.config.pair.roundPrice(this.config.lower + i * interval),
         orderId: null,
+        side: null,
+        status: BarStatus.CLOSED,
       });
     }
     bars.set(this.config.number, {
       index: this.config.number,
       price: this.config.upper,
       orderId: null,
+      side: null,
+      status: BarStatus.CLOSED,
     });
     this.state = {
       interval: interval,
@@ -66,8 +70,20 @@ export class StateManager {
     };
   }
 
-  setOrderId(bar: NonNullable<BarState>, orderId: string) {
-    bar.orderId = orderId;
+  setBarOpening(index: number, orderId: string, side: TradeSide) {
+    this.state.bars.get(index).status = BarStatus.OPENING;
+    this.state.bars.get(index).orderId = orderId;
+    this.state.bars.get(index).side = side;
+  }
+
+  setBarOpened(index: number) {
+    this.state.bars.get(index).status = BarStatus.OPENED;
+  }
+
+  setBarClosed(index: number) {
+    this.state.bars.get(index).status = BarStatus.CLOSED;
+    this.state.bars.get(index).orderId = null;
+    this.state.bars.get(index).side = null;
   }
 
   updatePositionByOrder(order: Order) {
@@ -78,8 +94,20 @@ export class StateManager {
     );
   }
 
+  setStopLowerOrder(orderId: string) {
+    this.state.stopOrders.lower = orderId;
+  }
+
+  setStopUpperOrder(orderId: string) {
+    this.state.stopOrders.upper = orderId;
+  }
+
   setTriggered() {
     this.state.isTriggered = true;
+  }
+
+  setTerminated() {
+    this.state.isTerminated = true;
   }
 
   getBarAt(index: number): Readonly<BarState | null> {
@@ -108,16 +136,36 @@ export class StateManager {
     return bar.index > 0 ? this.state.bars.get(bar.index - 1) : null;
   }
 
-  setStopLowerOrder(orderId: string) {
-    this.state.stopOrders.lower = orderId;
+  getFurthestOpenedShortBarAbove(index: number): Readonly<BarState | null> {
+    let ret: BarState = null;
+    for (const bar of this.openedBars) {
+      if (
+        bar.index > index &&
+        bar.status == BarStatus.OPENED &&
+        bar.side == TradeSide.SHORT
+      ) {
+        if (!ret || ret.index < bar.index) {
+          ret = bar;
+        }
+      }
+    }
+    return ret;
   }
 
-  setStopUpperOrder(orderId: string) {
-    this.state.stopOrders.upper = orderId;
-  }
-
-  setTerminated() {
-    this.state.isTerminated = true;
+  getFurthestOpenedLongBarBelow(index: number): Readonly<BarState | null> {
+    let ret: BarState = null;
+    for (const bar of this.openedBars) {
+      if (
+        bar.index < index &&
+        bar.status == BarStatus.OPENED &&
+        bar.side == TradeSide.SHORT
+      ) {
+        if (!ret || ret.index > bar.index) {
+          ret = bar;
+        }
+      }
+    }
+    return ret;
   }
 
   get barOrderIds(): string[] {
@@ -126,12 +174,16 @@ export class StateManager {
       .map((bar) => bar.orderId);
   }
 
-  get longBar(): Readonly<BarState | null> {
-    return this.state.currentBars.long;
+  get openingBars(): ReadonlyArray<Readonly<BarState>> {
+    return [...this.state.bars.values()].filter(
+      (bar) => bar.status == BarStatus.OPENING,
+    );
   }
 
-  get shortBar(): Readonly<BarState | null> {
-    return this.state.currentBars.short;
+  get openedBars(): ReadonlyArray<Readonly<BarState>> {
+    return [...this.state.bars.values()].filter(
+      (bar) => bar.status == BarStatus.OPENED,
+    );
   }
 
   get position(): number {

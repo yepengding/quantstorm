@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
 import { Broker } from '../../../core/interfaces/broker.interface';
 import { StateManager } from './state_manager';
-import { BarState } from './types';
-import { OrderStatus } from '../../../core/constants';
+import { BarState, BarStatus } from './types';
+import { OrderStatus, TradeSide } from '../../../core/constants';
 
 /**
  * Grid Operator
@@ -20,33 +20,30 @@ export class Operator {
     this.state = state;
   }
 
-  async updateCurrentBars() {
+  async openBarsNearMarketPrice() {
     const marketPrice = await this.broker.getMarketPrice(this.state.pair);
     const bar = this.state.getNearestBar(marketPrice);
-    const barLong = this.state.getBarBelow(bar);
-    const barShort = this.state.getBarAbove(bar);
-    if (!!barLong) {
-      await this.placeLongOrderAt(barLong);
+    const barBelow = this.state.getBarBelow(bar);
+    const barAbove = this.state.getBarAbove(bar);
+    if (!!barBelow && barBelow.status == BarStatus.CLOSED) {
+      await this.placeLongOrderAt(barBelow);
     }
-    if (!!barShort) {
-      await this.placeShortOrderAt(barShort);
+    if (!!barAbove && barAbove.status == BarStatus.CLOSED) {
+      await this.placeShortOrderAt(barAbove);
     }
-    this.state.setCurrentBars(barLong, barShort);
+
     await this.updateStopUpperOrder();
     await this.updateStopLowerOrder();
   }
 
   async placeLongOrderAt(bar: BarState): Promise<BarState> {
-    if (await this.orderExistsAt(bar)) {
-      return bar;
-    }
     let order = null;
     for (let i = 0; i < this.state.maxTrial; i++) {
       order = await this.broker
         .placeGTXLong(this.state.pair, this.state.size, bar.price)
         .then((order) => {
           if (!!order) {
-            this.state.setOrderId(bar, order.id);
+            this.state.setBarOpening(bar.index, order.id, TradeSide.LONG);
           } else {
             this.logger.error(`Failed to place long order at bar ${bar.index}`);
           }
@@ -64,16 +61,13 @@ export class Operator {
   }
 
   async placeShortOrderAt(bar: BarState): Promise<BarState> {
-    if (await this.orderExistsAt(bar)) {
-      return bar;
-    }
     let order = null;
     for (let i = 0; i < this.state.maxTrial; i++) {
       order = await this.broker
         .placeGTXShort(this.state.pair, this.state.size, bar.price)
         .then((order) => {
           if (!!order) {
-            this.state.setOrderId(bar, order.id);
+            this.state.setBarOpening(bar.index, order.id, TradeSide.SHORT);
           } else {
             this.logger.error(
               `Failed to place short order at bar ${bar.index}`,
@@ -96,7 +90,7 @@ export class Operator {
    * Update the stop lower (short) order if needed
    *
    */
-  private async updateStopLowerOrder(): Promise<boolean> {
+  async updateStopLowerOrder(): Promise<boolean> {
     // If no stop lower price or the current position is short (<=0), then no update
     if (!this.state.stopLowerPrice || this.state.position <= 0) {
       return true;
@@ -150,7 +144,7 @@ export class Operator {
    * Update the stop upper (long) order if needed
    *
    */
-  private async updateStopUpperOrder(): Promise<boolean> {
+  async updateStopUpperOrder(): Promise<boolean> {
     // If no stop upper price or the current position is long (>=0), then no update
     if (!this.state.stopUpperPrice || this.state.position >= 0) {
       return true;
@@ -222,25 +216,6 @@ export class Operator {
     } else if (this.state.position < 0) {
       // Close by long
       await this.broker.placeMarketLong(this.state.pair, -this.state.position);
-    }
-  }
-
-  private async orderExistsAt(bar: NonNullable<BarState>): Promise<boolean> {
-    if (!!bar.orderId) {
-      return await this.broker
-        .getOrder(bar.orderId, this.state.pair)
-        .then((order) => {
-          if (!!order) {
-            return order.status == OrderStatus.OPEN;
-          } else {
-            this.logger.error(
-              `Cannot find order ${bar.orderId} at index ${bar.index}`,
-            );
-            return false;
-          }
-        });
-    } else {
-      return false;
     }
   }
 }
