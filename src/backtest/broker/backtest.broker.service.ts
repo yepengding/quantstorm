@@ -208,12 +208,23 @@ export class BacktestBrokerService implements BacktestBroker {
 
   public async cancelOrder(id: string, pair: Pair): Promise<boolean> {
     const order = this.orders.get(id);
-    if (order) {
+    if (!!order) {
       order.status = OrderStatus.CANCELLED;
       return true;
     } else {
       return false;
     }
+  }
+
+  public async cancelOrders(ids: string[], pair: Pair): Promise<boolean> {
+    let ret = true;
+    for (const id of ids) {
+      ret = await this.cancelOrder(id, pair);
+      if (!ret) {
+        return false;
+      }
+    }
+    return ret;
   }
 
   async getBalance(currency: Currency): Promise<number> {

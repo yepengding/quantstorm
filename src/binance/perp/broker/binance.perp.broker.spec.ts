@@ -79,6 +79,13 @@ describe('BinancePerpBrokerService', () => {
     );
     console.log(isCancelled);
   });
+  it('should cancel multiple orders', async () => {
+    const isCancelled = await service.cancelOrders(
+      [],
+      new PerpetualPair('ETH', 'USDC'),
+    );
+    console.log(isCancelled);
+  });
   it('should get position', async () => {
     const position = await service.getPosition(
       new PerpetualPair('ETH', 'USDC'),

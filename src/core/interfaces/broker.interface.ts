@@ -23,6 +23,8 @@ export interface Broker {
 
   cancelOrder(id: string, pair: Pair): Promise<boolean>;
 
+  cancelOrders(ids: string[], pair: Pair): Promise<boolean>;
+
   getBalance(currency: Currency): Promise<number>;
 
   getMarketPrice(pair: Pair): Promise<number>;

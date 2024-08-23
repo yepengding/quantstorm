@@ -32,6 +32,8 @@ export class Operator {
       await this.placeShortOrderAt(barShort);
     }
     this.state.setCurrentBars(barLong, barShort);
+    await this.updateStopUpperOrder();
+    await this.updateStopLowerOrder();
   }
 
   async placeLongOrderAt(bar: BarState): Promise<BarState> {
@@ -88,6 +90,139 @@ export class Operator {
       }
     }
     return !!order ? this.state.getBarAt(bar.index) : bar;
+  }
+
+  /**
+   * Update the stop lower (short) order if needed
+   *
+   */
+  private async updateStopLowerOrder(): Promise<boolean> {
+    // If no stop lower price or the current position is short (<=0), then no update
+    if (!this.state.stopLowerPrice || this.state.position <= 0) {
+      return true;
+    }
+    if (!!this.state.stopLowerOrderId) {
+      const order = await this.broker.getOrder(
+        this.state.stopLowerOrderId,
+        this.state.pair,
+      );
+      if (
+        order.status == OrderStatus.OPEN &&
+        order.size == this.state.position
+      ) {
+        // If the open order has the same size as the position, then no update
+        return true;
+      } else if (order.status == OrderStatus.OPEN) {
+        await this.broker.cancelOrder(order.id, this.state.pair);
+      }
+    }
+    // Place new stop short order
+    let order = null;
+    for (let i = 0; i < this.state.maxTrial; i++) {
+      order = await this.broker
+        .placeStopMarketShort(
+          this.state.pair,
+          this.state.position,
+          this.state.stopLowerPrice,
+        )
+        .then((order) => {
+          if (!!order) {
+            this.state.setStopLowerOrder(order.id);
+          } else {
+            this.logger.error(
+              `Failed to place stop lower order (size: ${this.state.position})`,
+            );
+          }
+          return order;
+        });
+      if (
+        !!order &&
+        (await this.broker.getOrder(order.id, this.state.pair)).status !=
+          OrderStatus.CANCELLED
+      ) {
+        break;
+      }
+    }
+    return !!order;
+  }
+
+  /**
+   * Update the stop upper (long) order if needed
+   *
+   */
+  private async updateStopUpperOrder(): Promise<boolean> {
+    // If no stop upper price or the current position is long (>=0), then no update
+    if (!this.state.stopUpperPrice || this.state.position >= 0) {
+      return true;
+    }
+    if (!!this.state.stopUpperOrderId) {
+      const order = await this.broker.getOrder(
+        this.state.stopUpperOrderId,
+        this.state.pair,
+      );
+      if (
+        order.status == OrderStatus.OPEN &&
+        order.size == -this.state.position
+      ) {
+        // If the open order has the same size as the position, then no update
+        return true;
+      } else if (order.status == OrderStatus.OPEN) {
+        await this.broker.cancelOrder(order.id, this.state.pair);
+      }
+    }
+    // Place new stop short order
+    let order = null;
+    for (let i = 0; i < this.state.maxTrial; i++) {
+      order = await this.broker
+        .placeStopMarketLong(
+          this.state.pair,
+          -this.state.position,
+          this.state.stopUpperPrice,
+        )
+        .then((order) => {
+          if (!!order) {
+            this.state.setStopUpperOrder(order.id);
+          } else {
+            this.logger.error(
+              `Failed to place stop upper order (size: ${-this.state.position})`,
+            );
+          }
+          return order;
+        });
+      if (
+        !!order &&
+        (await this.broker.getOrder(order.id, this.state.pair)).status !=
+          OrderStatus.CANCELLED
+      ) {
+        break;
+      }
+    }
+    return !!order;
+  }
+
+  async cancelAllBarOrders() {
+    await this.broker.cancelOrders(this.state.barOrderIds, this.state.pair);
+  }
+
+  async cancelStopOrders() {
+    const ids = [];
+    if (!!this.state.stopUpperOrderId) {
+      ids.push(this.state.stopUpperOrderId);
+    }
+    if (!!this.state.stopLowerOrderId) {
+      ids.push(this.state.stopLowerOrderId);
+    }
+    await this.broker.cancelOrders(ids, this.state.pair);
+  }
+
+  async closePosition() {
+    if (this.state.position > 0) {
+      // Close by short
+      await this.broker.placeMarketShort(this.state.pair, this.state.position);
+    } else if (this.state.position < 0) {
+      // Close by long
+      await this.broker.placeMarketLong(this.state.pair, -this.state.position);
+    }
   }
 
   private async orderExistsAt(bar: NonNullable<BarState>): Promise<boolean> {

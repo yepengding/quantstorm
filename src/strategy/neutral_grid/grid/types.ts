@@ -13,6 +13,9 @@ export type GridConfigArg = {
   maxTrial?: number;
   // Start grid if the market price is near triggerPrice
   triggerPrice?: number;
+  // Terminate grid and close grid position if the market price reaches stopUpperPrice or stopLowerPrice
+  stopLowerPrice?: number;
+  stopUpperPrice?: number;
 };
 
 export type GridConfig = {
@@ -27,6 +30,9 @@ export type GridConfig = {
   maxTrial: number;
   // Start grid if the market price is near triggerPrice
   triggerPrice?: number;
+  // Terminate grid and close grid position if the market price reaches stopUpperPrice or stopLowerPrice
+  stopUpperPrice?: number;
+  stopLowerPrice?: number;
 };
 
 export type GridState = {
@@ -38,6 +44,13 @@ export type GridState = {
   };
   isTriggered: boolean;
   triggerRange: [number, number];
+  stopOrders: {
+    lower: string;
+    upper: string;
+  };
+  // Positive => Long | Negative => Short
+  position: number;
+  isTerminated: boolean;
 };
 
 /**

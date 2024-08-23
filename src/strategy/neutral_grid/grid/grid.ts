@@ -52,11 +52,27 @@ export class Grid {
   }
 
   public async next() {
+    if (this.state.isTerminated) {
+      this.logger.log('Terminated');
+      return;
+    }
     if (!this.state.isTriggered) {
       await this.init();
       return;
     }
     await this.checkCurrenBars();
+  }
+
+  /**
+   * Terminate grid
+   *
+   */
+  public async terminate() {
+    await this.operator.cancelAllBarOrders();
+    await this.operator.cancelStopOrders();
+    await this.operator.closePosition();
+    this.state.setCurrentBars(null, null);
+    this.state.setTerminated();
   }
 
   private async checkCurrenBars() {
@@ -69,8 +85,9 @@ export class Grid {
       const order = await this.broker.getOrder(bar.orderId, this.config.pair);
       if (!!order) {
         if (order.status == OrderStatus.FILLED) {
-          this.logger.verbose(`Long order at ${bar.index} is filled.`);
+          this.state.updatePositionByOrder(order);
           await this.operator.updateCurrentBars();
+          this.logger.verbose(`Long order at ${bar.index} is filled.`);
         }
       } else {
         this.logger.error(
@@ -85,8 +102,9 @@ export class Grid {
       const order = await this.broker.getOrder(bar.orderId, this.config.pair);
       if (!!order) {
         if (order.status == OrderStatus.FILLED) {
-          this.logger.verbose(`Short order at ${bar.index} is filled.`);
+          this.state.updatePositionByOrder(order);
           await this.operator.updateCurrentBars();
+          this.logger.verbose(`Short order at ${bar.index} is filled.`);
         }
       } else {
         this.logger.error(

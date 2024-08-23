@@ -1,5 +1,7 @@
 import { BarState, GridConfig, GridState } from './types';
 import { PerpetualPair } from '../../../core/structures/pair';
+import { Order } from '../../../core/interfaces/market.interface';
+import { TradeSide } from '../../../core/constants';
 
 /**
  * Grid State Manager
@@ -47,6 +49,12 @@ export class StateManager {
             this.config.triggerPrice + interval,
           ]
         : [this.config.lower - interval, this.config.upper + interval],
+      stopOrders: {
+        lower: null,
+        upper: null,
+      },
+      position: 0.0,
+      isTerminated: false,
     };
   }
 
@@ -60,6 +68,14 @@ export class StateManager {
 
   setOrderId(bar: NonNullable<BarState>, orderId: string) {
     bar.orderId = orderId;
+  }
+
+  updatePositionByOrder(order: Order) {
+    this.state.position = this.pair.roundSize(
+      this.state.position + order.side == TradeSide.LONG
+        ? order.filledSize
+        : -order.filledSize,
+    );
   }
 
   setTriggered() {
@@ -92,12 +108,34 @@ export class StateManager {
     return bar.index > 0 ? this.state.bars.get(bar.index - 1) : null;
   }
 
+  setStopLowerOrder(orderId: string) {
+    this.state.stopOrders.lower = orderId;
+  }
+
+  setStopUpperOrder(orderId: string) {
+    this.state.stopOrders.upper = orderId;
+  }
+
+  setTerminated() {
+    this.state.isTerminated = true;
+  }
+
+  get barOrderIds(): string[] {
+    return [...this.state.bars.values()]
+      .filter((bar) => !!bar.orderId)
+      .map((bar) => bar.orderId);
+  }
+
   get longBar(): Readonly<BarState | null> {
     return this.state.currentBars.long;
   }
 
   get shortBar(): Readonly<BarState | null> {
     return this.state.currentBars.short;
+  }
+
+  get position(): number {
+    return this.state.position;
   }
 
   get pair(): Readonly<PerpetualPair> {
@@ -118,5 +156,25 @@ export class StateManager {
 
   get isTriggered(): boolean {
     return this.state.isTriggered;
+  }
+
+  get stopLowerPrice(): number {
+    return this.config.stopLowerPrice;
+  }
+
+  get stopUpperPrice(): number {
+    return this.config.stopUpperPrice;
+  }
+
+  get stopLowerOrderId(): string {
+    return this.state.stopOrders.lower;
+  }
+
+  get stopUpperOrderId(): string {
+    return this.state.stopOrders.upper;
+  }
+
+  get isTerminated(): boolean {
+    return this.state.isTerminated;
   }
 }
