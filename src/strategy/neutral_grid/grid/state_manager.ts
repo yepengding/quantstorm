@@ -27,17 +27,27 @@ export class StateManager {
       bars.set(i, {
         index: i,
         price: this.config.pair.roundPrice(this.config.lower + i * interval),
-        orderId: null,
-        side: null,
-        status: BarStatus.CLOSED,
+        long: {
+          orderId: null,
+          status: BarStatus.CLOSED,
+        },
+        short: {
+          orderId: null,
+          status: BarStatus.CLOSED,
+        },
       });
     }
     bars.set(this.config.number, {
       index: this.config.number,
       price: this.config.upper,
-      orderId: null,
-      side: null,
-      status: BarStatus.CLOSED,
+      long: {
+        orderId: null,
+        status: BarStatus.CLOSED,
+      },
+      short: {
+        orderId: null,
+        status: BarStatus.CLOSED,
+      },
     });
     this.state = {
       interval: interval,
@@ -71,19 +81,39 @@ export class StateManager {
   }
 
   setBarOpening(index: number, orderId: string, side: TradeSide) {
-    this.state.bars.get(index).status = BarStatus.OPENING;
-    this.state.bars.get(index).orderId = orderId;
-    this.state.bars.get(index).side = side;
+    if (side == TradeSide.LONG) {
+      this.state.bars.get(index).long = {
+        orderId: orderId,
+        status: BarStatus.OPENING,
+      };
+    } else {
+      this.state.bars.get(index).short = {
+        orderId: orderId,
+        status: BarStatus.OPENING,
+      };
+    }
   }
 
-  setBarOpened(index: number) {
-    this.state.bars.get(index).status = BarStatus.OPENED;
+  setBarOpened(index: number, side: TradeSide) {
+    if (side == TradeSide.LONG) {
+      this.state.bars.get(index).long.status = BarStatus.OPENED;
+    } else {
+      this.state.bars.get(index).short.status = BarStatus.OPENED;
+    }
   }
 
-  setBarClosed(index: number) {
-    this.state.bars.get(index).status = BarStatus.CLOSED;
-    this.state.bars.get(index).orderId = null;
-    this.state.bars.get(index).side = null;
+  setBarClosed(index: number, side: TradeSide) {
+    if (side == TradeSide.LONG) {
+      this.state.bars.get(index).long = {
+        orderId: null,
+        status: BarStatus.CLOSED,
+      };
+    } else {
+      this.state.bars.get(index).short = {
+        orderId: null,
+        status: BarStatus.CLOSED,
+      };
+    }
   }
 
   updatePositionByOrder(order: Order) {
@@ -100,6 +130,14 @@ export class StateManager {
 
   setStopUpperOrder(orderId: string) {
     this.state.stopOrders.upper = orderId;
+  }
+
+  clearStopLowerOrder() {
+    this.state.stopOrders.lower = null;
+  }
+
+  clearStopUpperOrder() {
+    this.state.stopOrders.upper = null;
   }
 
   setTriggered() {
@@ -136,30 +174,10 @@ export class StateManager {
     return bar.index > 0 ? this.state.bars.get(bar.index - 1) : null;
   }
 
-  getFurthestOpenedShortBarAbove(index: number): Readonly<BarState | null> {
+  getLongBarToCloseAt(index: number): Readonly<BarState | null> {
     let ret: BarState = null;
-    for (const bar of this.openedBars) {
-      if (
-        bar.index > index &&
-        bar.status == BarStatus.OPENED &&
-        bar.side == TradeSide.SHORT
-      ) {
-        if (!ret || ret.index < bar.index) {
-          ret = bar;
-        }
-      }
-    }
-    return ret;
-  }
-
-  getFurthestOpenedLongBarBelow(index: number): Readonly<BarState | null> {
-    let ret: BarState = null;
-    for (const bar of this.openedBars) {
-      if (
-        bar.index < index &&
-        bar.status == BarStatus.OPENED &&
-        bar.side == TradeSide.SHORT
-      ) {
+    for (const bar of this.openedLongBars) {
+      if (bar.index < index) {
         if (!ret || ret.index > bar.index) {
           ret = bar;
         }
@@ -168,21 +186,63 @@ export class StateManager {
     return ret;
   }
 
-  get barOrderIds(): string[] {
-    return [...this.state.bars.values()]
-      .filter((bar) => !!bar.orderId)
-      .map((bar) => bar.orderId);
+  /**
+   * Get short bar to close at the given index
+   *
+   * @param index
+   */
+  getShortBarToCloseAt(index: number): Readonly<BarState | null> {
+    let ret: BarState = null;
+    for (const bar of this.openedShortBars) {
+      if (bar.index > index) {
+        if (!ret || ret.index < bar.index) {
+          ret = bar;
+        }
+      }
+    }
+    return ret;
   }
 
-  get openingBars(): ReadonlyArray<Readonly<BarState>> {
-    return [...this.state.bars.values()].filter(
-      (bar) => bar.status == BarStatus.OPENING,
+  /**
+   * Check if the bar is closed at the given index
+   *
+   * @param index
+   */
+  isClosedAt(index: number): boolean {
+    const bar = this.state.bars.get(index);
+    return (
+      bar.long.status == BarStatus.CLOSED &&
+      bar.short.status == BarStatus.CLOSED
     );
   }
 
-  get openedBars(): ReadonlyArray<Readonly<BarState>> {
+  get openingLongBars(): ReadonlyArray<Readonly<BarState>> {
+    return [...this.state.bars.values()]
+      .filter((bar) => bar.long.status == BarStatus.OPENING)
+      .reverse();
+  }
+
+  get openingShortBars(): ReadonlyArray<Readonly<BarState>> {
     return [...this.state.bars.values()].filter(
-      (bar) => bar.status == BarStatus.OPENED,
+      (bar) => bar.short.status == BarStatus.OPENING,
+    );
+  }
+
+  get openingOrderIds(): string[] {
+    return this.openingLongBars
+      .map((bar) => bar.long.orderId)
+      .concat(this.openingShortBars.map((bar) => bar.short.orderId));
+  }
+
+  get openedLongBars(): ReadonlyArray<Readonly<BarState>> {
+    return [...this.state.bars.values()].filter(
+      (bar) => bar.long.status == BarStatus.OPENED,
+    );
+  }
+
+  get openedShortBars(): ReadonlyArray<Readonly<BarState>> {
+    return [...this.state.bars.values()].filter(
+      (bar) => bar.short.status == BarStatus.OPENED,
     );
   }
 

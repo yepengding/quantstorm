@@ -1,5 +1,4 @@
 import { PerpetualPair } from '../../../core/structures/pair';
-import { TradeSide } from '../../../core/constants';
 
 export type GridConfigArg = {
   base: string;
@@ -61,9 +60,14 @@ export type GridState = {
 export type BarState = {
   index: number;
   price: number;
-  orderId: string | null;
-  side: TradeSide | null;
-  status: BarStatus;
+  long: {
+    orderId: string | null;
+    status: BarStatus;
+  };
+  short: {
+    orderId: string | null;
+    status: BarStatus;
+  };
 };
 
 export enum BarStatus {

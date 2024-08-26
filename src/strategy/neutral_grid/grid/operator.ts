@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { Broker } from '../../../core/interfaces/broker.interface';
 import { StateManager } from './state_manager';
-import { BarState, BarStatus } from './types';
+import { BarState } from './types';
 import { OrderStatus, TradeSide } from '../../../core/constants';
 
 /**
@@ -25,15 +25,12 @@ export class Operator {
     const bar = this.state.getNearestBar(marketPrice);
     const barBelow = this.state.getBarBelow(bar);
     const barAbove = this.state.getBarAbove(bar);
-    if (!!barBelow && barBelow.status == BarStatus.CLOSED) {
+    if (!!barBelow && this.state.isClosedAt(barBelow.index)) {
       await this.placeLongOrderAt(barBelow);
     }
-    if (!!barAbove && barAbove.status == BarStatus.CLOSED) {
+    if (!!barAbove && this.state.isClosedAt(barAbove.index)) {
       await this.placeShortOrderAt(barAbove);
     }
-
-    await this.updateStopUpperOrder();
-    await this.updateStopLowerOrder();
   }
 
   async placeLongOrderAt(bar: BarState): Promise<BarState> {
@@ -195,7 +192,7 @@ export class Operator {
   }
 
   async cancelAllBarOrders() {
-    await this.broker.cancelOrders(this.state.barOrderIds, this.state.pair);
+    await this.broker.cancelOrders(this.state.openingOrderIds, this.state.pair);
   }
 
   async cancelStopOrders() {

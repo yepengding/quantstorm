@@ -4,6 +4,7 @@ import { Broker } from '../../../core/interfaces/broker.interface';
 import { Logger } from '@nestjs/common';
 import { BarState, GridConfig } from './types';
 import { OrderStatus, TradeSide } from '../../../core/constants';
+import { Order } from '../../../core/interfaces/market.interface';
 
 /**
  * Grid Core Logic
@@ -60,36 +61,109 @@ export class Grid {
       await this.init();
       return;
     }
-    await this.checkOpeningBars();
+    await this.checkStopOrders();
+    await this.checkOpeningLongBars();
+    await this.checkOpeningShortBars();
     await this.operator.openBarsNearMarketPrice();
   }
 
-  private async checkOpeningBars() {
-    const openingBars = this.state.openingBars;
+  private async checkOpeningLongBars() {
+    const openingBars = this.state.openingLongBars;
     for (const bar of openingBars) {
-      const order = await this.broker.getOrder(bar.orderId, this.config.pair);
+      const order = await this.broker.getOrder(
+        bar.long.orderId,
+        this.config.pair,
+      );
       if (!!order) {
         if (order.status == OrderStatus.FILLED) {
           this.state.updatePositionByOrder(order);
-          this.state.setBarOpened(bar.index);
-          let barToClose: BarState = null;
-          if (bar.side == TradeSide.LONG) {
-            barToClose = this.state.getFurthestOpenedShortBarAbove(bar.index);
-          } else if (bar.side == TradeSide.SHORT) {
-            barToClose = this.state.getFurthestOpenedLongBarBelow(bar.index);
-          }
+          this.state.setBarOpened(bar.index, TradeSide.LONG);
+          const barToClose: BarState = this.state.getShortBarToCloseAt(
+            bar.index,
+          );
           if (!!barToClose) {
-            this.state.setBarClosed(barToClose.index);
+            this.state.setBarClosed(barToClose.index, TradeSide.SHORT);
+            this.state.setBarClosed(bar.index, TradeSide.LONG);
           }
           await this.operator.updateStopUpperOrder();
           await this.operator.updateStopLowerOrder();
+          this.logger.verbose(`Long order at ${bar.index} is filled.`);
+        }
+      } else {
+        this.logger.error(
+          `Cannot find the long order (${bar.long.orderId}) at (${bar.index})`,
+        );
+      }
+    }
+  }
+
+  private async checkOpeningShortBars() {
+    const openingBars = this.state.openingShortBars;
+    for (const bar of openingBars) {
+      const order = await this.broker.getOrder(
+        bar.short.orderId,
+        this.config.pair,
+      );
+      if (!!order) {
+        if (order.status == OrderStatus.FILLED) {
+          this.state.updatePositionByOrder(order);
+          this.state.setBarOpened(bar.index, TradeSide.SHORT);
+          const barToClose: BarState = this.state.getLongBarToCloseAt(
+            bar.index,
+          );
+          if (!!barToClose) {
+            this.state.setBarClosed(barToClose.index, TradeSide.LONG);
+            this.state.setBarClosed(bar.index, TradeSide.SHORT);
+          }
+          await this.operator.updateStopUpperOrder();
+          await this.operator.updateStopLowerOrder();
+          this.logger.verbose(`Short order at ${bar.index} is filled.`);
+        }
+      } else {
+        this.logger.error(
+          `Cannot find the short order (${bar.short.orderId}) at (${bar.index})`,
+        );
+      }
+    }
+  }
+
+  private async checkStopOrders() {
+    let order: Order;
+    if (!!this.state.stopLowerOrderId) {
+      order = await this.broker.getOrder(
+        this.state.stopLowerOrderId,
+        this.config.pair,
+      );
+      if (!!order) {
+        if (order.status == OrderStatus.FILLED) {
+          this.state.updatePositionByOrder(order);
+          this.state.clearStopLowerOrder();
           this.logger.verbose(
-            `${bar.side == TradeSide.LONG ? 'Long' : 'Short'} order at ${bar.index} is filled.`,
+            `Stop lower order (size: ${order.size}) is filled`,
           );
         }
       } else {
         this.logger.error(
-          `Cannot find the ${bar.side == TradeSide.LONG ? 'long' : 'short'} order (${bar.orderId}) at (${bar.index})`,
+          `Stop lower order (${this.state.stopLowerOrderId}) is missing.`,
+        );
+      }
+    }
+    if (!!this.state.stopUpperOrderId) {
+      order = await this.broker.getOrder(
+        this.state.stopUpperOrderId,
+        this.config.pair,
+      );
+      if (!!order) {
+        if (order.status == OrderStatus.FILLED) {
+          this.state.updatePositionByOrder(order);
+          this.state.clearStopUpperOrder();
+          this.logger.verbose(
+            `Stop upper order (${order.id}) (size: ${order.size}) is filled`,
+          );
+        }
+      } else {
+        this.logger.error(
+          `Stop upper order (${this.state.stopUpperOrderId}) is missing.`,
         );
       }
     }
