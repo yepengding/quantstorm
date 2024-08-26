@@ -117,11 +117,9 @@ export class StateManager {
   }
 
   updatePositionByOrder(order: Order) {
-    this.state.position = this.pair.roundSize(
-      this.state.position + order.side == TradeSide.LONG
-        ? order.filledSize
-        : -order.filledSize,
-    );
+    const size =
+      order.side == TradeSide.LONG ? order.filledSize : -order.filledSize;
+    this.state.position = this.pair.roundSize(this.state.position + size);
   }
 
   setStopLowerOrder(orderId: string) {

@@ -138,8 +138,9 @@ export class Grid {
         if (order.status == OrderStatus.FILLED) {
           this.state.updatePositionByOrder(order);
           this.state.clearStopLowerOrder();
+          await this.terminate();
           this.logger.verbose(
-            `Stop lower order (size: ${order.size}) is filled`,
+            `Terminated with stop lower order (size: ${order.size}) is filled`,
           );
         }
       } else {
@@ -157,8 +158,9 @@ export class Grid {
         if (order.status == OrderStatus.FILLED) {
           this.state.updatePositionByOrder(order);
           this.state.clearStopUpperOrder();
+          await this.terminate();
           this.logger.verbose(
-            `Stop upper order (${order.id}) (size: ${order.size}) is filled`,
+            `Terminated with stop upper order (${order.id}) (size: ${order.size}) is filled`,
           );
         }
       } else {
