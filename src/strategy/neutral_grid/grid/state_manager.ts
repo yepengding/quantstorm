@@ -202,6 +202,22 @@ export class StateManager {
     );
   }
 
+  isOpenedLongAt(index: number): boolean {
+    return this.state.bars.get(index).long.status == BarStatus.OPENED;
+  }
+
+  isOpenedShortAt(index: number): boolean {
+    return this.state.bars.get(index).short.status == BarStatus.OPENED;
+  }
+
+  isClosedLongAt(index: number): boolean {
+    return this.state.bars.get(index).long.status == BarStatus.CLOSED;
+  }
+
+  isClosedShortAt(index: number): boolean {
+    return this.state.bars.get(index).short.status == BarStatus.CLOSED;
+  }
+
   get openingLongBars(): ReadonlyArray<Readonly<BarState>> {
     return [...this.state.bars.values()]
       .filter((bar) => bar.long.status == BarStatus.OPENING)

@@ -397,7 +397,7 @@ export class BacktestBrokerService implements BacktestBroker {
     this.currentClock = clock;
     this.interval = interval;
     this.clockInterval = toTimestampInterval(interval);
-    this.history.start(this.currentClock, new Map(this.balances));
+    this.history.flush(this.currentClock, new Map(this.balances));
   }
 
   async nextClock() {
@@ -426,8 +426,8 @@ export class BacktestBrokerService implements BacktestBroker {
       balances.set(currency, await this.getBalance(Currency.USDC));
     }
 
-    // Update history
-    this.history.start(this.currentClock, balances);
+    // Flush history
+    this.history.flush(this.currentClock, balances);
   }
 
   get clock() {

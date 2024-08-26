@@ -25,10 +25,21 @@ export class Operator {
     const bar = this.state.getNearestBar(marketPrice);
     const barBelow = this.state.getBarBelow(bar);
     const barAbove = this.state.getBarAbove(bar);
-    if (!!barBelow && this.state.isClosedAt(barBelow.index)) {
+
+    if (
+      !!barBelow &&
+      (this.state.isClosedAt(barBelow.index) ||
+        (this.state.isOpenedShortAt(bar.index) &&
+          this.state.isClosedLongAt(barBelow.index)))
+    ) {
       await this.placeLongOrderAt(barBelow);
     }
-    if (!!barAbove && this.state.isClosedAt(barAbove.index)) {
+    if (
+      !!barAbove &&
+      (this.state.isClosedAt(barAbove.index) ||
+        (this.state.isOpenedLongAt(bar.index) &&
+          this.state.isClosedShortAt(barAbove.index)))
+    ) {
       await this.placeShortOrderAt(barAbove);
     }
   }
