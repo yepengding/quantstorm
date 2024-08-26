@@ -179,7 +179,6 @@ export class Grid {
     await this.operator.cancelAllBarOrders();
     await this.operator.cancelStopOrders();
     await this.operator.closePosition();
-    this.state.setCurrentBars(null, null);
     this.state.setTerminated();
   }
 

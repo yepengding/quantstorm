@@ -38,10 +38,6 @@ export type GridConfig = {
 export type GridState = {
   interval: number;
   bars: Map<number, BarState>;
-  currentBars: {
-    long: BarState;
-    short: BarState;
-  };
   isTriggered: boolean;
   triggerRange: [number, number];
   stopOrders: {

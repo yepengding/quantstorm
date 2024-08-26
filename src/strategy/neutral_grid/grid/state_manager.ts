@@ -52,10 +52,6 @@ export class StateManager {
     this.state = {
       interval: interval,
       bars: bars,
-      currentBars: {
-        long: null,
-        short: null,
-      },
       isTriggered: !this.config.triggerPrice,
       triggerRange: !!this.config.triggerPrice
         ? [
@@ -69,14 +65,6 @@ export class StateManager {
       },
       position: 0.0,
       isTerminated: false,
-    };
-  }
-
-  setCurrentBars(longBar: BarState, shortBar: BarState) {
-    // Update current bars with the given bars
-    this.state.currentBars = {
-      long: longBar,
-      short: shortBar,
     };
   }
 
