@@ -33,10 +33,11 @@ export class BinancePerpService {
     // Initialize strategy
     try {
       await strategy.init(strategyArgs);
-    } catch {
+    } catch (e) {
       this.logger.error(
         `${this.getJobName(strategy.name)} crashed during initialization`,
       );
+      this.logger.error(e.toString());
       return false;
     }
 
