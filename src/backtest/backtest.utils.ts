@@ -11,6 +11,8 @@ export function toTimestampInterval(interval: Interval): number {
       return 60;
     case '3m':
       return 180;
+    case '5m':
+      return 300;
     case '15m':
       return 900;
     case '30m':
