@@ -306,13 +306,11 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
   }
 
   private toOrder(order: CCXTOrder): Order {
-    let status = OrderStatus.OPEN;
+    let status = OrderStatus.CANCELLED;
     if (order.status == 'open') {
       status = OrderStatus.OPEN;
     } else if (order.status == 'closed' && order.amount == order.filled) {
       status = OrderStatus.FILLED;
-    } else if (order.status == 'canceled') {
-      status = OrderStatus.CANCELLED;
     }
     return {
       id: order.id,
