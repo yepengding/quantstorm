@@ -5,6 +5,9 @@ export class StrategyState {
   @PrimaryColumn({ unique: true, nullable: false })
   id: string;
 
+  @Column()
+  name: string;
+
   @Column('text')
   value: string;
 

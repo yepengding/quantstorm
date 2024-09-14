@@ -10,6 +10,7 @@ import { StrategyState } from './strategy.dao';
  */
 export abstract class StrategyAbstract implements Strategy {
   readonly id: string;
+  readonly name: string;
   protected readonly broker: Broker;
   protected readonly stateRepository: Repository<StrategyState>;
 
@@ -19,6 +20,7 @@ export abstract class StrategyAbstract implements Strategy {
     stateRepository: Repository<StrategyState>,
   ) {
     this.id = id;
+    this.name = 'Abstract';
     this.broker = broker;
     this.stateRepository = stateRepository;
   }
@@ -36,6 +38,7 @@ export abstract class StrategyAbstract implements Strategy {
     if (!state) {
       state = this.stateRepository.create({
         id: this.id,
+        name: this.name,
         value: JSON.stringify(value),
       });
     } else {

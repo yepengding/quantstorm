@@ -10,7 +10,7 @@ import { Logger } from '@nestjs/common';
  */
 export class Demo extends StrategyAbstract {
   public name: string = Demo.name;
-  private readonly logger = new Logger(Demo.name);
+  private readonly logger = new Logger(this.id);
 
   // Strategy configuration initialized by parsing arguments of `init`
   private config: {
