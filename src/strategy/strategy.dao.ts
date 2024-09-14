@@ -1,12 +1,9 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity()
 export class StrategyState {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column()
-  name: string;
+  @PrimaryColumn({ unique: true, nullable: false })
+  id: string;
 
   @Column('text')
   value: string;

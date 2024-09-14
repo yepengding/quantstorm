@@ -9,12 +9,16 @@ import { StrategyState } from './strategy.dao';
  * @author Yepeng Ding
  */
 export abstract class StrategyAbstract implements Strategy {
-  readonly name: string;
+  readonly id: string;
   protected readonly broker: Broker;
   protected readonly stateRepository: Repository<StrategyState>;
 
-  constructor(broker: Broker, stateRepository: Repository<StrategyState>) {
-    this.name = 'StrategyAbstract';
+  constructor(
+    id: string,
+    broker: Broker,
+    stateRepository: Repository<StrategyState>,
+  ) {
+    this.id = id;
     this.broker = broker;
     this.stateRepository = stateRepository;
   }
@@ -28,10 +32,10 @@ export abstract class StrategyAbstract implements Strategy {
   }
 
   async setState<T>(value: T): Promise<void> {
-    let state = await this.stateRepository.findOneBy({ name: this.name });
+    let state = await this.stateRepository.findOneBy({ id: this.id });
     if (!state) {
       state = this.stateRepository.create({
-        name: this.name,
+        id: this.id,
         value: JSON.stringify(value),
       });
     } else {
@@ -42,7 +46,7 @@ export abstract class StrategyAbstract implements Strategy {
   }
 
   async getState<T>(): Promise<T> {
-    const state = await this.stateRepository.findOneBy({ name: this.name });
+    const state = await this.stateRepository.findOneBy({ id: this.id });
     return !!state ? (JSON.parse(state.value) as T) : null;
   }
 }

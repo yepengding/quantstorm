@@ -1,5 +1,5 @@
 export interface Strategy {
-  name: string;
+  id: string;
 
   init(args: string): Promise<void>;
 

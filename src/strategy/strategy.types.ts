@@ -5,6 +5,7 @@ import { StrategyState } from './strategy.dao';
 
 export type StrategyClass = {
   new (
+    id: string,
     broker: Broker,
     stateRepository: Repository<StrategyState>,
   ): StrategyAbstract;

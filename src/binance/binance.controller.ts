@@ -15,36 +15,44 @@ export class BinanceController {
     private readonly strategyRegistry: StrategyRegistryType,
   ) {}
 
-  @Get('/perp/execute/:name')
-  async executePerp(@Param('name') name: string, @Query('args') args: string) {
+  @Get('/perp/execute/:name/:id')
+  async executePerp(
+    @Param('name') name: string,
+    @Param('id') id: string,
+    @Query('args') args: string,
+  ) {
+    if (!id || id.length == 0) {
+      return 'ID cannot be empty';
+    }
     const strategyClass = this.strategyRegistry.get(name);
     if (strategyClass) {
-      if (this.binancePerpService.isRunning(name)) {
-        return `Strategy ${name} has been running`;
+      if (this.binancePerpService.isRunning(id)) {
+        return `Strategy ${id} has been running`;
       }
       try {
         const isRunning = await this.binancePerpService.run(
+          id,
           strategyClass,
           args,
         );
         if (!isRunning) {
-          return `Failed to execute ${name}`;
+          return `Failed to execute ${id} (${name})`;
         }
       } catch {
-        return `Failed to execute ${name}`;
+        return `Failed to execute ${id} (${name})`;
       }
-      return `Start executing ${name}`;
+      return `Start executing ${id} (${name})`;
     } else {
-      return `Strategy ${name} not found`;
+      return `Strategy ${name} for ${id} not found`;
     }
   }
 
-  @Get('/perp/stop/:name')
-  async stop(@Param('name') name: string) {
-    if (this.binancePerpService.stop(name)) {
-      return `Strategy ${name} has stopped`;
+  @Get('/perp/stop/:id')
+  async stop(@Param('id') id: string) {
+    if (this.binancePerpService.stop(id)) {
+      return `Strategy ${id} has stopped`;
     } else {
-      return `Failed to stop ${name}. ${name} may not exist`;
+      return `Failed to stop ${id}. ${id} may not exist`;
     }
   }
 }
