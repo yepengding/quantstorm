@@ -311,6 +311,8 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
       status = OrderStatus.OPEN;
     } else if (order.status == 'closed' && order.filled > 0) {
       status = OrderStatus.FILLED;
+    } else if (order.status == 'expired') {
+      status = OrderStatus.CANCELLED;
     } else {
       this.logger.warn(
         `Unknown status (${order.status}) of order (${order.id})`,
