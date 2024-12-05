@@ -10,6 +10,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { join } from 'node:path';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { StrategyState } from './strategy/strategy.dao';
+import { BitgetModule } from './bitget/bitget.module';
 
 /**
  * App Module
@@ -35,6 +36,7 @@ import { StrategyState } from './strategy/strategy.dao';
     StrategyModule,
     BacktestModule,
     BinanceModule,
+    BitgetModule,
   ],
   controllers: [AppController],
   providers: [AppService],
