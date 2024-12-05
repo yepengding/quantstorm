@@ -44,6 +44,7 @@ describe('BacktestService', () => {
   it('should run the demo strategy', async () => {
     await service.run(
       new Demo(
+        'Demo',
         broker,
         toInstance<Repository<StrategyState>>(stateRepositoryMock),
       ),
