@@ -268,6 +268,11 @@ export class BacktestBrokerService implements BacktestBroker {
     return order ? order : null;
   }
 
+  // TODO
+  async getOpenOrders(pair: Pair): Promise<Order[]> {
+    return [];
+  }
+
   async getPosition(pair: Pair): Promise<Position> {
     const position = this.positions.get(pair.toSymbol());
     if (position) {

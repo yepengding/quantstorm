@@ -33,6 +33,8 @@ export interface Broker {
 
   getBestAsk(pair: Pair): Promise<number>;
 
+  getOpenOrders(pair: Pair): Promise<Order[]>;
+
   getOrder(id: string, pair: Pair): Promise<Order>;
 
   getPosition(pair: Pair): Promise<Position>;

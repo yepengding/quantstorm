@@ -319,7 +319,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         if (!!res && res.msg == 'success' && !!res.data.entrustedList) {
           return res.data.entrustedList;
         } else {
-          return null;
+          return [];
         }
       });
 
