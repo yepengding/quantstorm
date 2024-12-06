@@ -37,7 +37,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         this.logger.error(e);
         return null;
       });
-    return order ? await this.getOrder(order.id, pair) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async placeMarketShort(pair: PerpetualPair, size: number): Promise<Order> {
@@ -47,7 +47,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         this.logger.error(e);
         return null;
       });
-    return order ? await this.getOrder(order.id, pair) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async placeLimitLong(
@@ -61,7 +61,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         this.logger.error(e);
         return null;
       });
-    return order ? await this.getOrder(order.id, pair) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async placeLimitShort(
@@ -75,7 +75,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         this.logger.error(e);
         return null;
       });
-    return order ? await this.getOrder(order.id, pair) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async placeGTXLong(
@@ -91,7 +91,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         this.logger.error(e);
         return null;
       });
-    return order ? await this.getOrder(order.id, pair) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async placeGTXShort(
@@ -107,7 +107,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         this.logger.error(e);
         return null;
       });
-    return order ? await this.getOrder(order.id, pair) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async placeStopMarketLong(
@@ -124,7 +124,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         return null;
       });
 
-    return order ? await this.getOrder(order.id, pair) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async placeStopMarketShort(
@@ -147,7 +147,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         this.logger.error(e);
         return null;
       });
-    return order ? await this.getOrder(order.id, pair) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async cancelOrder(id: string, pair: PerpetualPair): Promise<boolean> {
@@ -217,22 +217,20 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
 
   async getMarketPrice(pair: PerpetualPair): Promise<number> {
     const symbol = pair.toPerpetualSymbol();
-    const prices = await this.exchange
-      .fetchLastPrices([symbol])
-      .catch(() => null);
-    return prices ? prices[symbol].price : null;
+    const ticker = await this.exchange.fetchTicker(symbol).catch(() => null);
+    return !!ticker ? ticker.last : null;
   }
 
   async getBestBid(pair: PerpetualPair): Promise<number> {
     const symbol = pair.toPerpetualSymbol();
-    const ba = await this.exchange.fetchOrderBook(symbol).catch(() => null);
-    return !!ba ? ba.bids[0][0] : null;
+    const ticker = await this.exchange.fetchTicker(symbol).catch(() => null);
+    return !!ticker ? ticker.bid : null;
   }
 
   async getBestAsk(pair: PerpetualPair): Promise<number> {
     const symbol = pair.toPerpetualSymbol();
-    const ba = await this.exchange.fetchOrderBook(symbol).catch(() => null);
-    return !!ba ? ba.asks[0][0] : null;
+    const ticker = await this.exchange.fetchTicker(symbol).catch(() => null);
+    return !!ticker ? ticker.ask : null;
   }
 
   async getOrder(id: string, pair: PerpetualPair): Promise<Order> {
@@ -337,7 +335,11 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
       status = OrderStatus.OPEN;
     } else if (order.status == 'closed' && order.filled > 0) {
       status = OrderStatus.FILLED;
-    } else if (order.status == 'expired' || order.status == 'canceled') {
+    } else if (
+      order.status == 'expired' ||
+      order.status == 'canceled' ||
+      order.status == 'rejected'
+    ) {
       status = OrderStatus.CANCELLED;
     } else {
       this.logger.warn(

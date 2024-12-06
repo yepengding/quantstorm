@@ -311,7 +311,11 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
       status = OrderStatus.OPEN;
     } else if (order.status == 'closed' && order.filled > 0) {
       status = OrderStatus.FILLED;
-    } else if (order.status == 'expired' || order.status == 'canceled') {
+    } else if (
+      order.status == 'expired' ||
+      order.status == 'canceled' ||
+      order.status == 'rejected'
+    ) {
       status = OrderStatus.CANCELLED;
     } else {
       this.logger.warn(

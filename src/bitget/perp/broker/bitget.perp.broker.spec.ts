@@ -125,6 +125,12 @@ describe('BitgetPerpBrokerService', () => {
     );
     console.log(orders);
   });
+  it('should get market price', async () => {
+    const price = await service.getMarketPrice(
+      new PerpetualPair('ETH', 'USDT'),
+    );
+    console.log(price);
+  });
   it('should get K-lines', async () => {
     const kLines = await service.getKLines(
       new PerpetualPair('ETH', 'USDT'),
