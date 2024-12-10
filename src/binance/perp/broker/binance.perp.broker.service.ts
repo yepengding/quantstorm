@@ -337,6 +337,11 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
       }
       default: {
         orderStatus = OrderStatus.CANCELLED;
+        if (order.status != 'canceled' && order.status != 'expired') {
+          this.logger.warn(
+            `Unknown status (${order.status}) of order (${order.id})`,
+          );
+        }
       }
     }
     return {
