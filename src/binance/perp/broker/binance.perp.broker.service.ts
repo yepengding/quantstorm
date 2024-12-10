@@ -323,11 +323,24 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
       default:
         orderType = OrderType.LIMIT;
     }
-    let status = OrderStatus.CANCELLED;
-    if (order.status == 'open') {
-      status = OrderStatus.OPEN;
-    } else if (order.status == 'closed' && order.amount == order.filled) {
-      status = OrderStatus.FILLED;
+
+    let orderStatus: OrderStatus;
+    switch (order.status) {
+      case 'open': {
+        orderStatus = OrderStatus.OPEN;
+        break;
+      }
+      case 'closed': {
+        if (order.amount <= order.filled) {
+          orderStatus = OrderStatus.FILLED;
+        } else {
+          orderStatus = OrderStatus.OPEN;
+        }
+        break;
+      }
+      default: {
+        orderStatus = OrderStatus.CANCELLED;
+      }
     }
     return {
       id: order.id,
@@ -338,7 +351,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
       filledSize: order.filled,
       side: order.side == 'buy' ? TradeSide.LONG : TradeSide.SHORT,
       timestamp: order.timestamp,
-      status: status,
+      status: orderStatus,
     };
   }
 }

@@ -334,7 +334,11 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
     if (order.status == 'open') {
       status = OrderStatus.OPEN;
     } else if (order.status == 'closed' && order.filled > 0) {
-      status = OrderStatus.FILLED;
+      if (order.amount <= order.filled) {
+        status = OrderStatus.FILLED;
+      } else {
+        status = OrderStatus.OPEN;
+      }
     } else if (
       order.status == 'expired' ||
       order.status == 'canceled' ||
