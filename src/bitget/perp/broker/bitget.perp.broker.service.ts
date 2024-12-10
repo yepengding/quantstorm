@@ -333,12 +333,9 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
     let status = OrderStatus.CANCELLED;
     if (order.status == 'open') {
       status = OrderStatus.OPEN;
-    } else if (order.status == 'closed' && order.filled > 0) {
-      if (order.amount <= order.filled) {
-        status = OrderStatus.FILLED;
-      } else {
-        status = OrderStatus.OPEN;
-      }
+    } else if (order.status == 'closed') {
+      // CCXT defines "An order can be closed (filled) with multiple opposing trades"
+      status = OrderStatus.FILLED;
     } else if (
       order.status == 'expired' ||
       order.status == 'canceled' ||

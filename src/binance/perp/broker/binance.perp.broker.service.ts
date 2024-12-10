@@ -331,11 +331,8 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
         break;
       }
       case 'closed': {
-        if (order.amount <= order.filled) {
-          orderStatus = OrderStatus.FILLED;
-        } else {
-          orderStatus = OrderStatus.OPEN;
-        }
+        // CCXT defines "An order can be closed (filled) with multiple opposing trades"
+        orderStatus = OrderStatus.FILLED;
         break;
       }
       default: {

@@ -8,6 +8,7 @@ export enum OrderType {
 
 export enum OrderStatus {
   OPEN = 0,
+  // Fully or partially filled
   FILLED = 1,
   CANCELLED = -1,
 }
