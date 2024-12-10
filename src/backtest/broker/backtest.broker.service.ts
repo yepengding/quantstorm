@@ -428,7 +428,7 @@ export class BacktestBrokerService implements BacktestBroker {
     // Update balances
     const balances = new Map<Currency, number>();
     for (const currency of this.balances.keys()) {
-      balances.set(currency, await this.getBalance(Currency.USDC));
+      balances.set(currency, await this.getBalance(currency));
     }
 
     // Flush history
