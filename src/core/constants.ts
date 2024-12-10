@@ -3,6 +3,7 @@ export const DEFAULT_KLINE_LIMIT = 100;
 export enum OrderType {
   LIMIT = 0,
   MARKET = 1,
+  TRIGGER = -1,
 }
 
 export enum OrderStatus {

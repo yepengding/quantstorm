@@ -306,27 +306,34 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
   }
 
   private toOrder(order: CCXTOrder): Order {
+    let orderType: OrderType;
+    switch (order.type) {
+      case 'limit': {
+        orderType = OrderType.LIMIT;
+        break;
+      }
+      case 'market': {
+        orderType = OrderType.MARKET;
+        break;
+      }
+      case 'stop_market': {
+        orderType = OrderType.TRIGGER;
+        break;
+      }
+      default:
+        orderType = OrderType.LIMIT;
+    }
     let status = OrderStatus.CANCELLED;
     if (order.status == 'open') {
       status = OrderStatus.OPEN;
-    } else if (order.status == 'closed' && order.filled > 0) {
+    } else if (order.status == 'closed' && order.amount == order.filled) {
       status = OrderStatus.FILLED;
-    } else if (
-      order.status == 'expired' ||
-      order.status == 'canceled' ||
-      order.status == 'rejected'
-    ) {
-      status = OrderStatus.CANCELLED;
-    } else {
-      this.logger.warn(
-        `Unknown status (${order.status}) of order (${order.id})`,
-      );
     }
     return {
       id: order.id,
-      type: order.type == 'limit' ? OrderType.LIMIT : OrderType.MARKET,
+      type: orderType,
       symbol: PerpetualPair.fromSymbol(order.symbol).toSymbol(),
-      price: order.price,
+      price: orderType != OrderType.TRIGGER ? order.price : order.triggerPrice,
       size: order.amount,
       filledSize: order.filled,
       side: order.side == 'buy' ? TradeSide.LONG : TradeSide.SHORT,

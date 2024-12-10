@@ -366,7 +366,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
   ): Order {
     return {
       id: order.orderId,
-      type: order.orderType == 'limit' ? OrderType.LIMIT : OrderType.MARKET,
+      type: OrderType.TRIGGER,
       symbol: pair.toSymbol(),
       price: order.triggerPrice,
       size: Number(order.size),
