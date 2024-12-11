@@ -336,6 +336,12 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
         break;
       }
       default: {
+        if (order.filled > 0) {
+          orderStatus = OrderStatus.FILLED;
+          this.logger.warn(
+            `Unknown filled order (${order.id}) status ${order.status}`,
+          );
+        }
         orderStatus = OrderStatus.CANCELLED;
         if (order.status != 'canceled' && order.status != 'expired') {
           this.logger.warn(
