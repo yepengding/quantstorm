@@ -234,9 +234,13 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
   }
 
   async getOrder(id: string, pair: PerpetualPair): Promise<Order> {
-    const order = await this.exchange
+    const order: CCXTOrder = await this.exchange
       .fetchOrder(id, pair.toPerpetualSymbol())
       .catch(() => null);
+    if (order.type == 'market' && !order.price) {
+      // Set the current market price to order price if the market order does not have one.
+      order.price = await this.getMarketPrice(pair);
+    }
     if (!!order) {
       return this.toOrder(order);
     }

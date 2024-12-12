@@ -3,7 +3,7 @@ import { Order } from '../../../core/interfaces/market.interface';
 import { PerpetualPair } from '../../../core/structures/pair';
 
 /**
- * Binance Broker
+ * Binance Broker Interface
  *
  * @author Yepeng Ding
  */

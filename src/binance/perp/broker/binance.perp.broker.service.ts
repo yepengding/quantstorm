@@ -16,7 +16,7 @@ import { Position } from '../../../core/interfaces/broker.interface';
 import { BinanceConfig } from '../../binance.interface';
 
 /**
- * Backtest Perpetual Broker Service
+ * Binance Perpetual Broker Service
  *
  * @author Yepeng Ding
  */
