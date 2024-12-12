@@ -237,11 +237,11 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
     const order: CCXTOrder = await this.exchange
       .fetchOrder(id, pair.toPerpetualSymbol())
       .catch(() => null);
-    if (order.type == 'market' && !order.price) {
-      // Set the current market price to order price if the market order does not have one.
-      order.price = await this.getMarketPrice(pair);
-    }
     if (!!order) {
+      if (order.type == 'market' && !order.price) {
+        // Set the current market price to order price if the market order does not have one.
+        order.price = await this.getMarketPrice(pair);
+      }
       return this.toOrder(order);
     }
 
