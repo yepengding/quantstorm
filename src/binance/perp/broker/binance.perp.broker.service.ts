@@ -270,10 +270,17 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     return !!ba ? ba[symbol].ask : null;
   }
 
-  async getOrder(id: string, pair: PerpetualPair): Promise<Order> {
+  async getOrder(
+    id: string,
+    pair: PerpetualPair,
+    logRaw: boolean = false,
+  ): Promise<Order> {
     const order = await this.exchange
       .fetchOrder(id, pair.toPerpetualSymbol())
       .catch(() => null);
+    if (logRaw) {
+      this.logger.debug(order);
+    }
     return order ? this.toOrder(order) : null;
   }
 

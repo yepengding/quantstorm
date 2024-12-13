@@ -35,7 +35,7 @@ export interface Broker {
 
   getOpenOrders(pair: Pair): Promise<Order[]>;
 
-  getOrder(id: string, pair: Pair): Promise<Order>;
+  getOrder(id: string, pair: Pair, logRaw?: boolean): Promise<Order>;
 
   getPosition(pair: Pair): Promise<Position>;
 
