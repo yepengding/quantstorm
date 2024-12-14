@@ -29,6 +29,7 @@ export enum Currency {
   ETH = 'ETH',
   XRP = 'XRP',
   BNB = 'BNB',
+  SOL = 'SOL',
   USDT = 'USDT',
   USDC = 'USDC',
 }

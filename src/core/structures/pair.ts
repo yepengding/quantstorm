@@ -85,4 +85,8 @@ const sizeDecimalMap = new Map<string, number>([
   ['BTC/USDT:USDT', 3],
   ['ETH/USDT', 3],
   ['ETH/USDT:USDT', 3],
+  ['SOL/USDT', 0],
+  ['SOL/USDT:USDT', 0],
+  ['SOL/USDC', 0],
+  ['SOL/USDC:USDC', 0],
 ]);
