@@ -1,4 +1,4 @@
-export interface BinanceConfig {
+export interface BinanceAPIConfig {
   apiKey: string;
   secret: string;
 }

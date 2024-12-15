@@ -4,13 +4,12 @@ import { AppService } from './app.service';
 import { StrategyModule } from './strategy/strategy.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BacktestModule } from './backtest/backtest.module';
-import { BinanceModule } from './binance/binance.module';
 import configuration from './core/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { join } from 'node:path';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { StrategyState } from './strategy/strategy.dao';
-import { BitgetModule } from './bitget/bitget.module';
+import { ExecutorModule } from './executor/executor.module';
 
 /**
  * App Module
@@ -35,8 +34,7 @@ import { BitgetModule } from './bitget/bitget.module';
     }),
     StrategyModule,
     BacktestModule,
-    BinanceModule,
-    BitgetModule,
+    ExecutorModule,
   ],
   controllers: [AppController],
   providers: [AppService],

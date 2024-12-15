@@ -3,7 +3,6 @@ import { PerpetualPair } from '../../../core/structures/pair';
 import { Interval } from '../../../core/types';
 import { KLines } from '../../../core/structures/klines';
 import { bitget, Order as CCXTOrder } from 'ccxt';
-import { ConfigService } from '@nestjs/config';
 import { Order } from '../../../core/interfaces/market.interface';
 import {
   Currency,
@@ -13,7 +12,7 @@ import {
 } from '../../../core/constants';
 import { Position } from '../../../core/interfaces/broker.interface';
 import { BitgetPerpBroker } from './bitget.perp.broker.interface';
-import { BitgetConfig } from '../../bitget.interface';
+import { BitgetApiConfig } from '../bitget.interface';
 
 /**
  * Bitget Perpetual Broker Service
@@ -22,12 +21,13 @@ import { BitgetConfig } from '../../bitget.interface';
  */
 @Injectable()
 export class BitgetPerpBrokerService implements BitgetPerpBroker {
-  private readonly logger = new Logger(BitgetPerpBrokerService.name);
+  private readonly logger: Logger;
 
   private readonly exchange: bitget;
 
-  constructor(private readonly configService: ConfigService) {
-    this.exchange = new bitget(this.configService.get<BitgetConfig>('bitget'));
+  constructor(apiConfig: BitgetApiConfig, logger: Logger) {
+    this.exchange = new bitget(apiConfig);
+    this.logger = logger;
   }
 
   async placeMarketLong(pair: PerpetualPair, size: number): Promise<Order> {

@@ -1,26 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { CronJob } from 'cron';
 import { SchedulerRegistry } from '@nestjs/schedule';
-import { StrategyClass } from '../../strategy/strategy.types';
 import { InjectRepository } from '@nestjs/typeorm';
-import { StrategyState } from '../../strategy/strategy.dao';
 import { Repository } from 'typeorm';
-import { BitgetPerpBrokerService } from './broker/bitget.perp.broker.service';
+import { StrategyState } from '../strategy/strategy.dao';
+import { StrategyClass } from '../strategy/strategy.types';
 
 /**
- * Bitget Perpetual Strategy Execution Service
+ * Strategy Execution Service
  *
  * @author Yepeng Ding
  */
 @Injectable()
-export class BitgetPerpService {
-  private readonly logger = new Logger(BitgetPerpService.name);
+export class ExecutorService {
+  private readonly logger = new Logger(ExecutorService.name);
 
   private counter: number;
 
   constructor(
     private schedulerRegistry: SchedulerRegistry,
-    private readonly broker: BitgetPerpBrokerService,
     @InjectRepository(StrategyState)
     private stateRepository: Repository<StrategyState>,
   ) {
@@ -33,19 +31,13 @@ export class BitgetPerpService {
     strategyArgs: string,
   ): Promise<boolean> {
     // Instantiate strategy
-    const strategy = new strategyClass(
-      strategyId,
-      this.broker,
-      this.stateRepository,
-    );
+    const strategy = new strategyClass(strategyId, this.stateRepository);
 
     // Initialize strategy
     try {
       await strategy.init(strategyArgs);
     } catch (e) {
-      this.logger.error(
-        `${this.getJobName(strategyId)} crashed during initialization`,
-      );
+      this.logger.error(`${strategyId} crashed during initialization`);
       this.logger.error(e.toString());
       return false;
     }
@@ -57,11 +49,11 @@ export class BitgetPerpService {
         await strategy.next();
       } catch (e) {
         this.logger.error(e);
-        this.logger.error(`${this.getJobName(strategyId)} crashed`);
+        this.logger.error(`${strategyId} crashed`);
         return;
       }
     });
-    this.schedulerRegistry.addCronJob(this.getJobName(strategyId), job);
+    this.schedulerRegistry.addCronJob(strategyId, job);
     job.start();
     return true;
   }
@@ -69,9 +61,7 @@ export class BitgetPerpService {
   stop(strategyId: string) {
     let runningJob: CronJob;
     try {
-      runningJob = this.schedulerRegistry.getCronJob(
-        this.getJobName(strategyId),
-      );
+      runningJob = this.schedulerRegistry.getCronJob(strategyId);
     } catch (e) {
       runningJob = null;
     }
@@ -79,10 +69,10 @@ export class BitgetPerpService {
       return false;
     } else if (runningJob.running) {
       runningJob.stop();
-      this.schedulerRegistry.deleteCronJob(this.getJobName(strategyId));
+      this.schedulerRegistry.deleteCronJob(strategyId);
       return true;
     } else {
-      this.schedulerRegistry.deleteCronJob(this.getJobName(strategyId));
+      this.schedulerRegistry.deleteCronJob(strategyId);
       return true;
     }
   }
@@ -90,16 +80,10 @@ export class BitgetPerpService {
   isRunning(strategyId: string): boolean {
     let runningJob: CronJob;
     try {
-      runningJob = this.schedulerRegistry.getCronJob(
-        this.getJobName(strategyId),
-      );
+      runningJob = this.schedulerRegistry.getCronJob(strategyId);
     } catch (e) {
       runningJob = null;
     }
     return runningJob ? runningJob.running : false;
-  }
-
-  private getJobName(strategyId: string): string {
-    return `${BitgetPerpService.name}${strategyId}`;
   }
 }

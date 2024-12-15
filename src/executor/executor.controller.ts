@@ -1,22 +1,22 @@
 import { Controller, Get, Inject, Param, Query } from '@nestjs/common';
 import { StrategyRegistryType } from '../strategy/strategy.types';
-import { BitgetPerpService } from './perp/bitget.perp.service';
+import { ExecutorService } from './executor.service';
 
 /**
- * Bitget Strategy Execution Controller
+ * Strategy Execution Controller
  *
  * @author Yepeng Ding
  */
-@Controller('bitget')
-export class BitgetController {
+@Controller('executor')
+export class ExecutorController {
   constructor(
-    private readonly bitgetPerpService: BitgetPerpService,
+    private readonly executorService: ExecutorService,
     @Inject('STRATEGY_REGISTRY')
     private readonly strategyRegistry: StrategyRegistryType,
   ) {}
 
-  @Get('/perp/execute/:name/:id')
-  async executePerp(
+  @Get('/execute/:name/:id')
+  async execute(
     @Param('name') name: string,
     @Param('id') id: string,
     @Query('args') args: string,
@@ -25,12 +25,12 @@ export class BitgetController {
       return 'ID cannot be empty';
     }
     const strategyClass = this.strategyRegistry.get(name);
-    if (strategyClass) {
-      if (this.bitgetPerpService.isRunning(id)) {
+    if (!!strategyClass) {
+      if (this.executorService.isRunning(id)) {
         return `Strategy ${id} has been running`;
       }
       try {
-        const isRunning = await this.bitgetPerpService.run(
+        const isRunning = await this.executorService.run(
           id,
           strategyClass,
           args,
@@ -47,9 +47,9 @@ export class BitgetController {
     }
   }
 
-  @Get('/perp/stop/:id')
+  @Get('/stop/:id')
   async stop(@Param('id') id: string) {
-    if (this.bitgetPerpService.stop(id)) {
+    if (this.executorService.stop(id)) {
       return `Strategy ${id} has stopped`;
     } else {
       return `Failed to stop ${id}. ${id} may not exist`;

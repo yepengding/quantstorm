@@ -1,7 +1,7 @@
 import { Broker } from '../../../core/interfaces/broker.interface';
 
 /**
- * Bitget Perpetual Broker
+ * Bitget Perpetual Broker Interface
  *
  * @author Yepeng Ding
  */

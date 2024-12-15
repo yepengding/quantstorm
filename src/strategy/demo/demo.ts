@@ -3,17 +3,26 @@ import { Interval } from '../../core/types';
 import { Indicator } from '../../indicator/indicator';
 import { PerpetualPair } from '../../core/structures/pair';
 import { Logger } from '@nestjs/common';
+import { Broker } from '../../core/interfaces/broker.interface';
+import { BinancePerpBrokerService } from '../../broker/binance/perp/binance.perp.broker.service';
 
 /**
  * Demo Strategy
  * @author Yepeng Ding
  */
 export class Demo extends StrategyAbstract {
-  public name: string = Demo.name;
+  public readonly name: string = Demo.name;
   private readonly logger = new Logger(this.id);
+
+  private broker: Broker;
 
   // Strategy configuration initialized by parsing arguments of `init`
   private config: {
+    api?: {
+      key: string;
+      secret: string;
+    };
+    apiSecret?: string;
     pair: PerpetualPair;
     size: number;
     interval: Interval;
@@ -21,12 +30,24 @@ export class Demo extends StrategyAbstract {
 
   async init(args: string): Promise<void> {
     const config: Config = JSON.parse(args);
-    this.config = {
-      pair: new PerpetualPair(config.base, config.quote),
-      size: config.size,
-      interval: config.interval as Interval,
-    };
-    const order = await this.broker.placeMarketLong(
+    if (!!config.api) {
+      this.broker = new BinancePerpBrokerService(
+        {
+          apiKey: config.api.key,
+          secret: config.api.secret,
+        },
+        this.logger,
+      );
+    } else {
+      this.broker = this.testBroker;
+    }
+    if (config)
+      this.config = {
+        pair: new PerpetualPair(config.base, config.quote),
+        size: config.size,
+        interval: config.interval as Interval,
+      };
+    const order = await this.testBroker.placeMarketLong(
       this.config.pair,
       this.config.size,
     );
@@ -65,6 +86,10 @@ export class Demo extends StrategyAbstract {
 }
 
 interface Config {
+  api?: {
+    key: string;
+    secret: string;
+  };
   base: string;
   quote: string;
   size: number;

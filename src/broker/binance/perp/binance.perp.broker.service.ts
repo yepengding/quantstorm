@@ -1,10 +1,8 @@
-import { BinancePerpBroker } from './binance.perp.broker.interface';
 import { Injectable, Logger } from '@nestjs/common';
 import { PerpetualPair } from '../../../core/structures/pair';
 import { Interval } from '../../../core/types';
 import { KLines } from '../../../core/structures/klines';
 import { binance, Order as CCXTOrder } from 'ccxt';
-import { ConfigService } from '@nestjs/config';
 import { Order } from '../../../core/interfaces/market.interface';
 import {
   Currency,
@@ -13,7 +11,8 @@ import {
   TradeSide,
 } from '../../../core/constants';
 import { Position } from '../../../core/interfaces/broker.interface';
-import { BinanceConfig } from '../../binance.interface';
+import { BinanceAPIConfig } from '../binance.interface';
+import { BinancePerpBroker } from './binance.perp.broker.interface';
 
 /**
  * Binance Perpetual Broker Service
@@ -22,14 +21,13 @@ import { BinanceConfig } from '../../binance.interface';
  */
 @Injectable()
 export class BinancePerpBrokerService implements BinancePerpBroker {
-  private readonly logger = new Logger(BinancePerpBrokerService.name);
+  private readonly logger: Logger;
 
   private readonly exchange: binance;
 
-  constructor(private readonly configService: ConfigService) {
-    this.exchange = new binance(
-      this.configService.get<BinanceConfig>('binance'),
-    );
+  constructor(config: BinanceAPIConfig, logger: Logger) {
+    this.exchange = new binance(config);
+    this.logger = logger;
   }
 
   async placeMarketLong(pair: PerpetualPair, size: number): Promise<Order> {

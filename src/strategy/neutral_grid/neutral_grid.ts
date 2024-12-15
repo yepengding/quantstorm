@@ -32,7 +32,7 @@ export class NeutralGrid extends StrategyAbstract {
     };
     this.logger.log(`Config: ${JSON.stringify(this.config)}`);
 
-    this.grid = Grid.create(this.config, this.broker, this.logger);
+    this.grid = Grid.create(this.config, this.testBroker, this.logger);
     await this.grid.init();
   }
 

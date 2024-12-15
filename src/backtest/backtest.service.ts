@@ -22,27 +22,24 @@ export class BacktestService {
     executionInterval: Interval,
   ): Promise<BacktestResult> {
     // Initialize the balance
-    this.initBalance(strategy.backtestBroker);
+    this.initBalance(strategy.testBroker);
 
     // Initialize the clock to the start timestamp
-    strategy.backtestBroker.initClockAndInterval(
-      startTimestamp,
-      executionInterval,
-    );
+    strategy.testBroker.initClockAndInterval(startTimestamp, executionInterval);
 
     // Initialize strategy
     await strategy.init(strategyArgs);
 
     // Continue executing strategy until reaching the end time
-    while (strategy.backtestBroker.clock < endTimestamp) {
+    while (strategy.testBroker.clock < endTimestamp) {
       // Execute the strategy
       await strategy.next();
 
       // Update clock
-      await strategy.backtestBroker.nextClock();
+      await strategy.testBroker.nextClock();
     }
 
-    return strategy.backtestBroker.backtestResult;
+    return strategy.testBroker.backtestResult;
   }
 
   private initBalance(backtestBroker: BacktestBroker) {

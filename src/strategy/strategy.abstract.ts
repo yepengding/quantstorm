@@ -1,5 +1,4 @@
 import { Strategy } from './strategy.interface';
-import { Broker } from '../core/interfaces/broker.interface';
 import { BacktestBrokerService } from '../backtest/broker/backtest.broker.service';
 import { Repository } from 'typeorm';
 import { StrategyState } from './strategy.dao';
@@ -11,27 +10,20 @@ import { StrategyState } from './strategy.dao';
 export abstract class StrategyAbstract implements Strategy {
   readonly id: string;
   readonly name: string;
-  protected readonly broker: Broker;
+  readonly testBroker: BacktestBrokerService;
   protected readonly stateRepository: Repository<StrategyState>;
 
-  constructor(
-    id: string,
-    broker: Broker,
-    stateRepository: Repository<StrategyState>,
-  ) {
+  constructor(id: string, stateRepository: Repository<StrategyState>) {
     this.id = id;
     this.name = 'Abstract';
-    this.broker = broker;
+    // TODO Set backtest broker
+    this.testBroker = null;
     this.stateRepository = stateRepository;
   }
 
   abstract init(args: string): Promise<void>;
 
   abstract next(): Promise<void>;
-
-  get backtestBroker() {
-    return this.broker instanceof BacktestBrokerService ? this.broker : null;
-  }
 
   async setState<T>(value: T): Promise<void> {
     let state = await this.stateRepository.findOneBy({ id: this.id });

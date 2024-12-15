@@ -61,11 +61,7 @@ export class BacktestController {
     let orderHistoryText: string[] = [];
     const strategyClass = this.registry.get(name);
     if (strategyClass) {
-      const strategy = new strategyClass(
-        'backtest',
-        this.broker,
-        this.stateRepository,
-      );
+      const strategy = new strategyClass('backtest', this.stateRepository);
       const result = await this.backtest.run(
         strategy,
         args,

@@ -1,6 +1,6 @@
 import * as process from 'node:process';
-import { BinanceConfig } from '../binance/binance.interface';
-import { BitgetConfig } from '../bitget/bitget.interface';
+import { BinanceAPIConfig } from '../broker/binance/binance.interface';
+import { BitgetApiConfig } from '../broker/bitget/bitget.interface';
 
 export default () => ({
   backtest: {
@@ -15,12 +15,12 @@ export default () => ({
   binance: {
     apiKey: process.env.BINANCE_API_KEY || '',
     secret: process.env.BINANCE_SECRET || '',
-  } as BinanceConfig,
+  } as BinanceAPIConfig,
   bitget: {
     apiKey: process.env.BITGET_API_KEY || '',
     secret: process.env.BITGET_SECRET || '',
     password: process.env.BITGET_PASSWORD || '',
-  } as BitgetConfig,
+  } as BitgetApiConfig,
   db: {
     path: process.env.DB_PATH || '/quantstorm_db',
   },

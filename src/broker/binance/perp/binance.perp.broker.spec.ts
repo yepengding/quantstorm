@@ -1,20 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigModule } from '@nestjs/config';
+import { BinancePerpBrokerService } from './binance.perp.broker.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from '../../../core/config';
 import { Currency } from '../../../core/constants';
 import { PerpetualPair } from '../../../core/structures/pair';
-import { BitgetPerpBrokerService } from './bitget.perp.broker.service';
+import { BitgetApiConfig } from '../../bitget/bitget.interface';
+import { Logger } from '@nestjs/common';
 
-describe('BitgetPerpBrokerService', () => {
-  let service: BitgetPerpBrokerService;
+describe('BinancePerpBrokerService', () => {
+  let envService: ConfigService;
+  let service: BinancePerpBrokerService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [ConfigModule.forRoot({ load: [configuration] })],
-      providers: [BitgetPerpBrokerService],
     }).compile();
 
-    service = module.get<BitgetPerpBrokerService>(BitgetPerpBrokerService);
+    envService = module.get<ConfigService>(ConfigService);
+    service = new BinancePerpBrokerService(
+      envService.get<BitgetApiConfig>('binance'),
+      new Logger(),
+    );
   });
 
   it('should be defined', () => {
@@ -22,118 +28,108 @@ describe('BitgetPerpBrokerService', () => {
   });
   it('should place a limit (post-only) long order', async () => {
     const order = await service.placeGTXLong(
-      new PerpetualPair('ETH', 'USDT'),
+      new PerpetualPair('ETH', 'USDC'),
       0.01,
-      3800,
+      3000,
     );
     console.log(order);
   });
   it('should place a limit (post-only) short order', async () => {
     const order = await service.placeGTXShort(
-      new PerpetualPair('ETH', 'USDT'),
-      0.01,
-      4100,
-    );
-    console.log(order);
-  });
-  it('should place a limit long order', async () => {
-    const order = await service.placeLimitLong(
-      new PerpetualPair('ETH', 'USDT'),
-      0.01,
-      3800,
-    );
-    console.log(order);
-  });
-  it('should place a limit short order', async () => {
-    const order = await service.placeLimitShort(
-      new PerpetualPair('ETH', 'USDT'),
-      0.01,
-      4100,
-    );
-    console.log(order);
-  });
-  it('should place a stop market long order', async () => {
-    const order = await service.placeStopMarketLong(
-      new PerpetualPair('ETH', 'USDT'),
-      0.01,
-      4100,
-    );
-    console.log(order);
-  });
-  it('should place a stop market short order', async () => {
-    const order = await service.placeStopMarketShort(
-      new PerpetualPair('ETH', 'USDT'),
+      new PerpetualPair('ETH', 'USDC'),
       0.01,
       3500,
     );
     console.log(order);
   });
-  it('should place a market long order', async () => {
-    const order = await service.placeMarketLong(
-      new PerpetualPair('ETH', 'USDT'),
+  it('should place a limit long order', async () => {
+    const order = await service.placeLimitLong(
+      new PerpetualPair('ETH', 'USDC'),
       0.01,
+      3000,
     );
     console.log(order);
   });
-  it('should place a market short order', async () => {
-    const order = await service.placeMarketShort(
-      new PerpetualPair('ETH', 'USDT'),
+  it('should place a limit short order', async () => {
+    const order = await service.placeLimitShort(
+      new PerpetualPair('ETH', 'USDC'),
       0.01,
+      3500,
+    );
+    console.log(order);
+  });
+  it('should place a stop market long order', async () => {
+    const order = await service.placeStopMarketLong(
+      new PerpetualPair('ETH', 'USDC'),
+      0.01,
+      3500,
+    );
+    console.log(order);
+  });
+  it('should place a stop market short order', async () => {
+    const order = await service.placeStopMarketShort(
+      new PerpetualPair('ETH', 'USDC'),
+      0.01,
+      3300,
     );
     console.log(order);
   });
   it('should get an order', async () => {
-    const order = await service.getOrder('', new PerpetualPair('ETH', 'USDT'));
+    const order = await service.getOrder('', new PerpetualPair('ETH', 'USDC'));
     console.log(order);
   });
   it('should cancel an order', async () => {
     const isCancelled = await service.cancelOrder(
       '',
-      new PerpetualPair('ETH', 'USDT'),
+      new PerpetualPair('ETH', 'USDC'),
     );
     console.log(isCancelled);
   });
   it('should cancel multiple orders', async () => {
     const isCancelled = await service.cancelOrders(
       [],
-      new PerpetualPair('ETH', 'USDT'),
+      new PerpetualPair('ETH', 'USDC'),
     );
     console.log(isCancelled);
   });
   it('should get position', async () => {
     const position = await service.getPosition(
-      new PerpetualPair('ETH', 'USDT'),
+      new PerpetualPair('ETH', 'USDC'),
     );
     console.log(position);
   });
   it('should get best bid and ask', async () => {
-    const bestBid = await service.getBestBid(new PerpetualPair('ETH', 'USDT'));
-    const bestAsk = await service.getBestAsk(new PerpetualPair('ETH', 'USDT'));
+    const bestBid = await service.getBestBid(new PerpetualPair('ETH', 'USDC'));
+    const bestAsk = await service.getBestAsk(new PerpetualPair('ETH', 'USDC'));
     console.log(bestBid, bestAsk);
   });
   it('should get balance', async () => {
-    const balance = await service.getBalance(Currency.USDT);
+    const balance = await service.getBalance(Currency.USDC);
     console.log(balance);
   });
   it('should get an order by id', async () => {
-    const order = await service.getOrder('', new PerpetualPair('ETH', 'USDT'));
+    const order = await service.getOrder('', new PerpetualPair('ETH', 'USDC'));
     console.log(order);
+  });
+  it('should get orders', async () => {
+    const orders = await service.getOrders(new PerpetualPair('ETH', 'USDC'));
+    console.log(orders);
   });
   it('should get open orders', async () => {
     const orders = await service.getOpenOrders(
-      new PerpetualPair('ETH', 'USDT'),
+      new PerpetualPair('ETH', 'USDC'),
     );
     console.log(orders);
   });
   it('should get market price', async () => {
     const price = await service.getMarketPrice(
-      new PerpetualPair('ETH', 'USDT'),
+      new PerpetualPair('ETH', 'USDC'),
     );
     console.log(price);
   });
   it('should get K-lines', async () => {
     const kLines = await service.getKLines(
-      new PerpetualPair('ETH', 'USDT'),
+      new PerpetualPair('ETH', 'USDC'),
       '30m',
       100,
     );
