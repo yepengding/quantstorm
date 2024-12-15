@@ -1,6 +1,6 @@
 import { Strategy } from './strategy.interface';
 import { Repository } from 'typeorm';
-import { StrategyState } from './strategy.dao';
+import { StrategyState } from '../executor/executor.dao';
 import { BacktestBroker } from '../broker/backtest/backtest.broker.interface';
 
 /**

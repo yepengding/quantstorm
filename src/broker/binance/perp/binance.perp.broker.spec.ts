@@ -4,8 +4,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from '../../../core/config';
 import { Currency } from '../../../core/constants';
 import { PerpetualPair } from '../../../core/structures/pair';
-import { BitgetApiConfig } from '../../bitget/bitget.interface';
 import { Logger } from '@nestjs/common';
+import { BinanceConfig } from '../binance.interface';
 
 describe('BinancePerpBrokerService', () => {
   let envService: ConfigService;
@@ -18,7 +18,7 @@ describe('BinancePerpBrokerService', () => {
 
     envService = module.get<ConfigService>(ConfigService);
     service = new BinancePerpBrokerService(
-      envService.get<BitgetApiConfig>('binance'),
+      envService.get<BinanceConfig>('binance'),
       new Logger(),
     );
   });

@@ -8,7 +8,7 @@ import configuration from './core/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { join } from 'node:path';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { StrategyState } from './strategy/strategy.dao';
+import { StrategyState } from './executor/executor.dao';
 import { ExecutorModule } from './executor/executor.module';
 
 /**

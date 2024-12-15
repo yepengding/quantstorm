@@ -5,7 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import configuration from '../core/config';
 import { HttpModule } from '@nestjs/axios';
 import { Repository } from 'typeorm';
-import { StrategyState } from '../strategy/strategy.dao';
+import { StrategyState } from '../executor/executor.dao';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { toInstance } from '../core/testing/mock/mock.utils';
 import { MockType } from '../core/testing/mock/mock.types';

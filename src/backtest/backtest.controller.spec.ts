@@ -5,7 +5,7 @@ import { StrategyModule } from '../strategy/strategy.module';
 import { ConfigModule } from '@nestjs/config';
 import configuration from '../core/config';
 import { HttpModule } from '@nestjs/axios';
-import { StrategyState } from '../strategy/strategy.dao';
+import { StrategyState } from '../executor/executor.dao';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { repositoryMockFactory } from '../core/testing/mock/factories/repository';
 import { execSync } from 'node:child_process';

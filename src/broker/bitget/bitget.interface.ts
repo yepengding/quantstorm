@@ -1,4 +1,4 @@
-export interface BitgetApiConfig {
+export interface BitgetConfig {
   apiKey: string;
   secret: string;
   password: string;

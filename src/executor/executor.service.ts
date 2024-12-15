@@ -3,7 +3,7 @@ import { CronJob } from 'cron';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { StrategyState } from '../strategy/strategy.dao';
+import { StrategyState } from './executor.dao';
 import { StrategyClass } from '../strategy/strategy.types';
 
 /**

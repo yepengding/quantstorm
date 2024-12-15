@@ -12,7 +12,7 @@ import {
 } from '../../../core/constants';
 import { Position } from '../../../core/interfaces/broker.interface';
 import { BitgetPerpBroker } from './bitget.perp.broker.interface';
-import { BitgetApiConfig } from '../bitget.interface';
+import { BitgetConfig } from '../bitget.interface';
 
 /**
  * Bitget Perpetual Broker Service
@@ -25,7 +25,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
 
   private readonly exchange: bitget;
 
-  constructor(apiConfig: BitgetApiConfig, logger: Logger) {
+  constructor(apiConfig: BitgetConfig, logger: Logger) {
     this.exchange = new bitget(apiConfig);
     this.logger = logger;
   }

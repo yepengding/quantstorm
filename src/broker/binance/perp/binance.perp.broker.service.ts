@@ -11,7 +11,7 @@ import {
   TradeSide,
 } from '../../../core/constants';
 import { Position } from '../../../core/interfaces/broker.interface';
-import { BinanceAPIConfig } from '../binance.interface';
+import { BinanceConfig } from '../binance.interface';
 import { BinancePerpBroker } from './binance.perp.broker.interface';
 
 /**
@@ -25,7 +25,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
 
   private readonly exchange: binance;
 
-  constructor(config: BinanceAPIConfig, logger: Logger) {
+  constructor(config: BinanceConfig, logger: Logger) {
     this.exchange = new binance(config);
     this.logger = logger;
   }

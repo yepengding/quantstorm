@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ExecutorService } from './executor.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { getRepositoryToken } from '@nestjs/typeorm';
-import { StrategyState } from '../strategy/strategy.dao';
+import { StrategyState } from './executor.dao';
 import { repositoryMockFactory } from '../core/testing/mock/factories/repository';
 
 describe('ExecutorService', () => {

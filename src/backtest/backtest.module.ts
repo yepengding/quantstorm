@@ -4,7 +4,7 @@ import { BacktestService } from './backtest.service';
 import { StrategyModule } from '../strategy/strategy.module';
 import { HttpModule } from '@nestjs/axios';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { StrategyState } from '../strategy/strategy.dao';
+import { StrategyState } from '../executor/executor.dao';
 
 /**
  * Backtest Module

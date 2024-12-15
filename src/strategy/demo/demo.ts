@@ -5,6 +5,7 @@ import { PerpetualPair } from '../../core/structures/pair';
 import { Logger } from '@nestjs/common';
 import { Broker } from '../../core/interfaces/broker.interface';
 import { BinancePerpBrokerService } from '../../broker/binance/perp/binance.perp.broker.service';
+import { BinanceConfig } from '../../broker/binance/binance.interface';
 
 /**
  * Demo Strategy
@@ -27,16 +28,13 @@ export class Demo extends StrategyAbstract {
     const config: Config = JSON.parse(args);
 
     if (!!config) {
-      if (!!config.api) {
+      if (!!config.credential) {
         this.broker = new BinancePerpBrokerService(
-          {
-            apiKey: config.api.key,
-            secret: config.api.secret,
-          },
+          config.credential,
           this.logger,
         );
       } else {
-        // Set broker to backtest broker if no API is given.
+        // Set broker to backtest broker if no credential is given.
         this.broker = this.backtestBroker;
       }
       this.config = {
@@ -87,10 +85,7 @@ export class Demo extends StrategyAbstract {
 }
 
 interface Config {
-  api?: {
-    key: string;
-    secret: string;
-  };
+  credential: BinanceConfig;
   base: string;
   quote: string;
   size: number;

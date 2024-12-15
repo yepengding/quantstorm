@@ -5,7 +5,7 @@ import { Currency } from '../../../core/constants';
 import { PerpetualPair } from '../../../core/structures/pair';
 import { BitgetPerpBrokerService } from './bitget.perp.broker.service';
 import { Logger } from '@nestjs/common';
-import { BitgetApiConfig } from '../bitget.interface';
+import { BitgetConfig } from '../bitget.interface';
 
 describe('BitgetPerpBrokerService', () => {
   let envService: ConfigService;
@@ -18,7 +18,7 @@ describe('BitgetPerpBrokerService', () => {
 
     envService = module.get<ConfigService>(ConfigService);
     service = new BitgetPerpBrokerService(
-      envService.get<BitgetApiConfig>('bitget'),
+      envService.get<BitgetConfig>('bitget'),
       new Logger(),
     );
   });

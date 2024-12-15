@@ -19,7 +19,7 @@ import { ChartBalances, ChartTrades } from './backtest.view.type';
 import { BasePair } from '../core/structures/pair';
 import { StrategyRegistryType } from '../strategy/strategy.types';
 import { InjectRepository } from '@nestjs/typeorm';
-import { StrategyState } from '../strategy/strategy.dao';
+import { StrategyState } from '../executor/executor.dao';
 import { Repository } from 'typeorm';
 import { BacktestFeederService } from './feeder/backtest.feeder.service';
 import { ConfigService } from '@nestjs/config';
