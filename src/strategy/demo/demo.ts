@@ -18,11 +18,6 @@ export class Demo extends StrategyAbstract {
 
   // Strategy configuration initialized by parsing arguments of `init`
   private config: {
-    api?: {
-      key: string;
-      secret: string;
-    };
-    apiSecret?: string;
     pair: PerpetualPair;
     size: number;
     interval: Interval;
@@ -30,28 +25,34 @@ export class Demo extends StrategyAbstract {
 
   async init(args: string): Promise<void> {
     const config: Config = JSON.parse(args);
-    if (!!config.api) {
-      this.broker = new BinancePerpBrokerService(
-        {
-          apiKey: config.api.key,
-          secret: config.api.secret,
-        },
-        this.logger,
-      );
-    } else {
-      this.broker = this.testBroker;
-    }
-    if (config)
+
+    if (!!config) {
+      if (!!config.api) {
+        this.broker = new BinancePerpBrokerService(
+          {
+            apiKey: config.api.key,
+            secret: config.api.secret,
+          },
+          this.logger,
+        );
+      } else {
+        // Set broker to backtest broker if no API is given.
+        this.broker = this.backtestBroker;
+      }
       this.config = {
         pair: new PerpetualPair(config.base, config.quote),
         size: config.size,
         interval: config.interval as Interval,
       };
-    const order = await this.testBroker.placeMarketLong(
+    } else {
+      throw new Error('Invalid config');
+    }
+
+    const order = await this.broker.placeMarketLong(
       this.config.pair,
       this.config.size,
     );
-    if (order) {
+    if (!!order) {
       this.logger.log(`Long ${this.config.size} BTC at ${order.price}`);
     }
   }
@@ -78,7 +79,7 @@ export class Demo extends StrategyAbstract {
         this.config.pair,
         this.config.size,
       );
-      if (order) {
+      if (!!order) {
         this.logger.log(`Short ${this.config.size} BTC at ${order.price}`);
       }
     }

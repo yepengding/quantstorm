@@ -1,17 +1,20 @@
 import * as process from 'node:process';
 import { BinanceAPIConfig } from '../broker/binance/binance.interface';
 import { BitgetApiConfig } from '../broker/bitget/bitget.interface';
+import { BacktestConfig } from '../broker/backtest/backtest.broker.interface';
 
 export default () => ({
   backtest: {
-    dataPath: process.env.BACKTEST_DATA_PATH || '',
     tick: parseInt(process.env.BACKTEST_TICK) || 1,
     commission: {
-      taker: parseInt(process.env.BACKTEST_COMMISSION_TAKER) || 0,
       maker: parseInt(process.env.BACKTEST_COMMISSION_MAKER) || 0,
+      taker: parseInt(process.env.BACKTEST_COMMISSION_TAKER) || 0,
     },
-    dataCacheSize: parseInt(process.env.BACKTEST_DATA_CACHE_SIZE) || 32768,
-  },
+    feeder: {
+      dataPath: process.env.BACKTEST_DATA_PATH || '',
+      dataCacheSize: parseInt(process.env.BACKTEST_DATA_CACHE_SIZE) || 32768,
+    },
+  } as BacktestConfig,
   binance: {
     apiKey: process.env.BINANCE_API_KEY || '',
     secret: process.env.BINANCE_SECRET || '',

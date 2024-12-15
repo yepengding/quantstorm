@@ -1,4 +1,4 @@
-import { Interval } from '../core/types';
+import { Interval } from '../../core/types';
 
 /**
  * Get UNIX timestamp difference of the given time interval

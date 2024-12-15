@@ -1,4 +1,4 @@
-import { Injectable, Scope } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import {
   Currency,
   DEFAULT_KLINE_LIMIT,
@@ -7,24 +7,23 @@ import {
   TradeSide,
   TradeType,
 } from '../../core/constants';
-import { BacktestBroker } from './backtest.broker.interface';
+import { BacktestBroker, BacktestConfig } from './backtest.broker.interface';
 import { Position } from '../../core/interfaces/broker.interface';
 import { Order, Trade } from '../../core/interfaces/market.interface';
-import { BacktestFeederService } from '../feeder/backtest.feeder.service';
+import { BacktestFeederService } from '../../backtest/feeder/backtest.feeder.service';
 import { Interval } from '../../core/types';
-import { toTimestampInterval } from '../backtest.utils';
+import { toTimestampInterval } from './backtest.utils';
 import { KLines } from '../../core/structures/klines';
-import { History } from '../structures/history';
+import { History } from '../../backtest/structures/history';
 import { BasePair, Pair } from '../../core/structures/pair';
-import { ConfigService } from '@nestjs/config';
-import { BacktestResult } from '../structures/result';
+import { BacktestResult } from '../../backtest/structures/result';
 
 /**
  * Backtest Broker Service
  *
  * @author Yepeng Ding
  */
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class BacktestBrokerService implements BacktestBroker {
   private readonly tick: number;
   private readonly commission: {
@@ -43,16 +42,13 @@ export class BacktestBrokerService implements BacktestBroker {
   private readonly orders: Map<string, Order>;
   private readonly history: History;
 
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly feeder: BacktestFeederService,
-  ) {
-    this.tick = this.configService.get<number>('backtest.tick') / 10000;
+  private readonly feeder: BacktestFeederService;
+
+  constructor(config: BacktestConfig) {
+    this.tick = config.tick / 10000;
     this.commission = {
-      taker:
-        this.configService.get<number>('backtest.commission.taker') / 10000,
-      maker:
-        this.configService.get<number>('backtest.commission.maker') / 10000,
+      maker: config.commission.maker / 10000,
+      taker: config.commission.taker / 10000,
     };
     this.orderIdCounter = 0;
     this.tradeIdCounter = 0;
@@ -62,6 +58,7 @@ export class BacktestBrokerService implements BacktestBroker {
     this.positions = new Map<string, Position>();
     this.orders = new Map<string, Order>();
     this.history = new History();
+    this.feeder = new BacktestFeederService(config.feeder);
   }
 
   async placeMarketLong(pair: Pair, size: number): Promise<Order> {

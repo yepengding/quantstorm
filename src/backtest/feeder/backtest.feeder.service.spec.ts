@@ -1,38 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { BacktestFeederService } from './backtest.feeder.service';
-import { ConfigService } from '@nestjs/config';
-import * as path from 'node:path';
+import { ConfigModule } from '@nestjs/config';
 import { BasePair } from '../../core/structures/pair';
 import { HttpModule } from '@nestjs/axios';
+import configuration from '../../core/config';
 
 describe('BacktestFeederService', () => {
   let service: BacktestFeederService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      imports: [HttpModule],
-      providers: [
-        {
-          provide: ConfigService,
-          useValue: {
-            get: jest.fn((key: string) => {
-              // this is being super extra, in the case that you need multiple keys with the `get` method
-              if (key === 'backtest.dataPath') {
-                return path.join(__dirname, '../../../data_example');
-              } else if (key === 'backtest.dataCacheSize') {
-                return 32768;
-              }
-              return null;
-            }),
-          },
-        },
-        BacktestFeederService,
-      ],
+      imports: [ConfigModule.forRoot({ load: [configuration] }), HttpModule],
+      providers: [BacktestFeederService],
     }).compile();
 
     service = await module.resolve<BacktestFeederService>(
       BacktestFeederService,
     );
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
   });
 
   it('should build Binance K-line data set', async () => {

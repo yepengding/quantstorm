@@ -1,7 +1,7 @@
 import { Strategy } from './strategy.interface';
-import { BacktestBrokerService } from '../backtest/broker/backtest.broker.service';
 import { Repository } from 'typeorm';
 import { StrategyState } from './strategy.dao';
+import { BacktestBroker } from '../broker/backtest/backtest.broker.interface';
 
 /**
  * Abstract Strategy
@@ -10,14 +10,12 @@ import { StrategyState } from './strategy.dao';
 export abstract class StrategyAbstract implements Strategy {
   readonly id: string;
   readonly name: string;
-  readonly testBroker: BacktestBrokerService;
   protected readonly stateRepository: Repository<StrategyState>;
+  private _backtestBroker: BacktestBroker;
 
   constructor(id: string, stateRepository: Repository<StrategyState>) {
     this.id = id;
     this.name = 'Abstract';
-    // TODO Set backtest broker
-    this.testBroker = null;
     this.stateRepository = stateRepository;
   }
 
@@ -43,5 +41,13 @@ export abstract class StrategyAbstract implements Strategy {
   async getState<T>(): Promise<T> {
     const state = await this.stateRepository.findOneBy({ id: this.id });
     return !!state ? (JSON.parse(state.value) as T) : null;
+  }
+
+  setBacktestBroker(backtestBroker: BacktestBroker): void {
+    this._backtestBroker = backtestBroker;
+  }
+
+  get backtestBroker(): Readonly<BacktestBroker> {
+    return this._backtestBroker;
   }
 }

@@ -1,7 +1,7 @@
 import { Broker } from '../../core/interfaces/broker.interface';
 import { Interval } from '../../core/types';
 import { Currency } from '../../core/constants';
-import { BacktestResult } from '../structures/result';
+import { BacktestResult } from '../../backtest/structures/result';
 
 /**
  * Backtest Broker
@@ -33,4 +33,18 @@ export interface BacktestBroker extends Broker {
 
   // Backtesting result
   backtestResult: BacktestResult;
+}
+
+export interface FeederConfig {
+  dataCacheSize: number;
+  dataPath: string;
+}
+
+export interface BacktestConfig {
+  tick: number;
+  commission: {
+    maker: number;
+    taker: number;
+  };
+  feeder: FeederConfig;
 }
