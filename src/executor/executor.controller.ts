@@ -1,4 +1,4 @@
-import { Controller, Get, Inject, Param, Query } from '@nestjs/common';
+import { Controller, Get, Inject, Logger, Param, Query } from '@nestjs/common';
 import { StrategyRegistryType } from '../strategy/strategy.types';
 import { ExecutorService } from './executor.service';
 
@@ -9,6 +9,8 @@ import { ExecutorService } from './executor.service';
  */
 @Controller('executor')
 export class ExecutorController {
+  private readonly logger = new Logger(ExecutorController.name);
+
   constructor(
     private readonly executorService: ExecutorService,
     @Inject('STRATEGY_REGISTRY')
@@ -41,6 +43,7 @@ export class ExecutorController {
       } catch {
         return `Failed to execute ${id} (${name})`;
       }
+      this.logger.log(`Start executing ${id} (${name})`);
       return `Start executing ${id} (${name})`;
     } else {
       return `Strategy ${name} for ${id} not found`;
@@ -50,6 +53,7 @@ export class ExecutorController {
   @Get('/stop/:id')
   async stop(@Param('id') id: string) {
     if (this.executorService.stop(id)) {
+      this.logger.log(`Strategy ${id} has stopped`);
       return `Strategy ${id} has stopped`;
     } else {
       return `Failed to stop ${id}. ${id} may not exist`;
