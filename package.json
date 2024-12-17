@@ -37,7 +37,7 @@
     "handlebars": "^4.7.8",
     "hbs": "^4.2.0",
     "mathjs": "^13.0.3",
-    "moment": "^2.30.1",
+    "moment-timezone": "^0.5.46",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "sqlite3": "^5.1.7",

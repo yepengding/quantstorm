@@ -5,12 +5,16 @@ import {
   FastifyAdapter,
 } from '@nestjs/platform-fastify';
 import { join } from 'node:path';
+import { LoggerService } from './core/logger/logger.service';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter(),
+    { bufferLogs: true },
   );
+
+  app.useLogger(app.get(LoggerService));
 
   app.useStaticAssets({
     root: join(__dirname, '..', 'public'),

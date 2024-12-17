@@ -27,4 +27,7 @@ export default () => ({
   db: {
     path: process.env.DB_PATH || '/quantstorm_db',
   },
+  log: {
+    path: process.env.LOG_PATH || '/quantstorm_log',
+  },
 });

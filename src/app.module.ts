@@ -10,6 +10,7 @@ import { join } from 'node:path';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { StrategyState } from './executor/executor.dao';
 import { ExecutorModule } from './executor/executor.module';
+import { LoggerModule } from './core/logger/logger.module';
 
 /**
  * App Module
@@ -35,6 +36,7 @@ import { ExecutorModule } from './executor/executor.module';
     StrategyModule,
     BacktestModule,
     ExecutorModule,
+    LoggerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
