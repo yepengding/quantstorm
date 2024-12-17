@@ -11,6 +11,6 @@ export class StrategyState {
   @Column('text')
   value: string;
 
-  @Column({ default: Date.now() })
+  @Column({ nullable: true })
   timestamp: number;
 }

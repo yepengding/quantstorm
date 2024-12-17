@@ -25,6 +25,12 @@ export default () => ({
     password: process.env.BITGET_PASSWORD || '',
   } as BitgetConfig,
   db: {
+    type: process.env.DB_TYPE || 'sqlite',
+    name: process.env.DB_NAME || 'quantstorm',
+    host: process.env.DB_HOST || 'localhost',
+    port: parseInt(process.env.DB_PORT) || 3306,
+    username: process.env.DB_USERNAME || '',
+    password: process.env.DB_PASSWORD || '',
     path: process.env.DB_PATH || '/quantstorm_db',
   },
   log: {

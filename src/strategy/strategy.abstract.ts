@@ -30,9 +30,11 @@ export abstract class StrategyAbstract implements Strategy {
         id: this.id,
         name: this.name,
         value: JSON.stringify(value),
+        timestamp: Date.now(),
       });
     } else {
       state.value = JSON.stringify(value);
+      state.timestamp = Date.now();
     }
 
     await this.stateRepository.save(state);

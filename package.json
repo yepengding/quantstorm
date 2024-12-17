@@ -38,6 +38,7 @@
     "hbs": "^4.2.0",
     "mathjs": "^13.0.3",
     "moment-timezone": "^0.5.46",
+    "mysql": "^2.18.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "sqlite3": "^5.1.7",
