@@ -228,12 +228,9 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     interval: Interval,
     limit?: number,
   ): Promise<KLines> {
-    const kLines = await this.exchange.fetchOHLCV(
-      pair.toPerpetualSymbol(),
-      interval,
-      undefined,
-      limit,
-    );
+    const kLines = await this.exchange
+      .fetchOHLCV(pair.toPerpetualSymbol(), interval, undefined, limit)
+      .catch(() => []);
     return new KLines(
       kLines.map((ohlcv) => {
         return {
@@ -248,7 +245,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     );
   }
 
-  async getMarketPrice(pair: PerpetualPair): Promise<number> {
+  async getMarketPrice(pair: PerpetualPair): Promise<number | null> {
     const symbol = pair.toPerpetualSymbol();
     const prices = await this.exchange
       .fetchLastPrices([symbol])
@@ -282,13 +279,13 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     return order ? this.toOrder(order) : null;
   }
 
-  async getPosition(pair: PerpetualPair): Promise<Position> {
+  async getPosition(pair: PerpetualPair): Promise<Position | null> {
     const symbol = pair.toPerpetualSymbol();
     const positions = await this.exchange
       .fetchPositions([symbol])
       .catch(() => null);
 
-    return positions && positions.length > 0
+    return !!positions && positions.length > 0
       ? {
           entryPrice: positions[0].entryPrice,
           size: positions[0].contracts,
@@ -299,14 +296,16 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
   }
 
   async getOpenOrders(pair: PerpetualPair): Promise<Order[]> {
-    const orders = await this.exchange.fetchOpenOrders(
-      pair.toPerpetualSymbol(),
-    );
+    const orders = await this.exchange
+      .fetchOpenOrders(pair.toPerpetualSymbol())
+      .catch(() => []);
     return orders.map((o) => this.toOrder(o));
   }
 
   async getOrders(pair: PerpetualPair): Promise<Order[]> {
-    const orders = await this.exchange.fetchOrders(pair.toPerpetualSymbol());
+    const orders = await this.exchange
+      .fetchOrders(pair.toPerpetualSymbol())
+      .catch(() => []);
     return orders.map((o) => this.toOrder(o));
   }
 

@@ -195,12 +195,9 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
     interval: Interval,
     limit?: number,
   ): Promise<KLines> {
-    const kLines = await this.exchange.fetchOHLCV(
-      pair.toPerpetualSymbol(),
-      interval,
-      undefined,
-      limit,
-    );
+    const kLines = await this.exchange
+      .fetchOHLCV(pair.toPerpetualSymbol(), interval, undefined, limit)
+      .catch(() => []);
     return new KLines(
       kLines.map((ohlcv) => {
         return {
@@ -310,9 +307,9 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
   }
 
   async getOpenOrders(pair: PerpetualPair): Promise<Order[]> {
-    const orders = await this.exchange.fetchOpenOrders(
-      pair.toPerpetualSymbol(),
-    );
+    const orders = await this.exchange
+      .fetchOpenOrders(pair.toPerpetualSymbol())
+      .catch(() => []);
     const openTriggerOrders = await this.exchange
       .privateMixGetV2MixOrderOrdersPlanPending({
         symbol: `${pair.base}${pair.quote}`,
@@ -325,7 +322,8 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         } else {
           return [];
         }
-      });
+      })
+      .catch(() => []);
 
     return [
       ...orders.map((o) => this.toOrder(o)),
