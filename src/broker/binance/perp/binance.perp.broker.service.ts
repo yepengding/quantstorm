@@ -281,6 +281,10 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
 
   async getPosition(pair: PerpetualPair): Promise<Position | null> {
     const symbol = pair.toPerpetualSymbol();
+    this.exchange.options['defaultSubType'] = pair.isInverse
+      ? 'inverse'
+      : undefined;
+
     const positions = await this.exchange
       .fetchPositions([symbol])
       .catch(() => null);
