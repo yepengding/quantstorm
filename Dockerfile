@@ -10,6 +10,7 @@ COPY . .
 
 RUN npm run build
 
+# Create directories for db and logs
 RUN mkdir /db
 RUN mkdir /logs
 
