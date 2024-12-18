@@ -11,6 +11,6 @@ export class StrategyState {
   @Column('text')
   value: string;
 
-  @Column({ nullable: true })
+  @Column({ type: 'bigint', nullable: true })
   timestamp: number;
 }
