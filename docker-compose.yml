@@ -1,17 +1,38 @@
-version: '3.1'
+# Docker-compose config for Quantstorm, MariaDB, and Adminer
+version: '3.7'
 
 services:
+
+  quantstorm:
+    build: .
+    ports:
+      - '8888:8888'
+    volumes:
+      - ${LOG_VOLUME_PATH}:/logs
+    depends_on:
+      db:
+        condition: service_healthy
 
   db:
     image: mariadb
     restart: always
     environment:
-      MARIADB_DATABASE: quantstorm
-      MARIADB_USER: admin
-      MARIADB_PASSWORD: admin
+      MARIADB_DATABASE: ${DB_NAME}
+      MARIADB_USER: ${DB_USERNAME}
+      MARIADB_PASSWORD: ${DB_PASSWORD}
       MARIADB_ROOT_PASSWORD: root_password
+    volumes:
+      - ${DB_VOLUME_PATH}:/var/lib/mysql
     ports:
-      - "3306:3306"
+      - "${DB_PORT}:3306"
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD", "healthcheck.sh", "--connect", "--innodb_initialized" ]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
 
   adminer:
     image: adminer

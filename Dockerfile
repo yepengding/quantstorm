@@ -10,10 +10,10 @@ COPY . .
 
 RUN npm run build
 
-RUN mkdir /logs
 RUN mkdir /db
+RUN mkdir /logs
 
-EXPOSE 3000
+EXPOSE 8888
 
 # Start the server using the production build
 CMD ["npm", "run", "start:prod"]
