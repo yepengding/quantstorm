@@ -274,7 +274,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
       .fetchOrder(id, pair.toPerpetualSymbol())
       .catch(() => null);
     if (logRaw) {
-      this.logger.debug(order);
+      this.logger.debug(!!order ? JSON.stringify(order) : 'Order not found');
     }
     return order ? this.toOrder(order) : null;
   }
