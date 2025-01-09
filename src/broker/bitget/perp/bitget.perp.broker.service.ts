@@ -302,6 +302,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
           size: positions[0].contracts,
           side: positions[0].side == 'long' ? TradeSide.LONG : TradeSide.SHORT,
           unrealizedPnL: positions[0].unrealizedPnl,
+          liquidationPrice: positions[0].liquidationPrice,
         }
       : null;
   }

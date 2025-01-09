@@ -47,4 +47,5 @@ export interface Position {
   side: TradeSide;
   size: number;
   unrealizedPnL?: number;
+  liquidationPrice?: number;
 }
