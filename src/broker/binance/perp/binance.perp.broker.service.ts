@@ -245,12 +245,11 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     );
   }
 
-  async getMarketPrice(pair: PerpetualPair): Promise<number | null> {
-    const symbol = pair.toPerpetualSymbol();
-    const prices = await this.exchange
-      .fetchLastPrices([symbol])
+  async getMarketPrice(pair: PerpetualPair): Promise<number> {
+    const ticker = await this.exchange
+      .fetchTicker(pair.toPerpetualSymbol())
       .catch(() => null);
-    return !!prices ? prices[symbol].price : null;
+    return !!ticker ? ticker.last : null;
   }
 
   async getBestBid(pair: PerpetualPair): Promise<number> {
