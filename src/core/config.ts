@@ -24,6 +24,10 @@ export default () => ({
     secret: process.env.BITGET_SECRET || '',
     password: process.env.BITGET_PASSWORD || '',
   } as BitgetConfig,
+  bybit: {
+    apiKey: process.env.BYBIT_API_KEY || '',
+    secret: process.env.BYBIT_SECRET || '',
+  },
   db: {
     type: process.env.DB_TYPE || 'sqlite',
     name: process.env.DB_NAME || 'quantstorm',
