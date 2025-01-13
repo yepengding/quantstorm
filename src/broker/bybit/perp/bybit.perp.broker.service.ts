@@ -38,7 +38,7 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
         return null;
       });
 
-    return !!order ? this.getOrder(order.id, pair) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async placeMarketShort(pair: PerpetualPair, size: number): Promise<Order> {
@@ -48,7 +48,7 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
         this.logger.error(e);
         return null;
       });
-    return !!order ? this.getOrder(order.id, pair) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async placeLimitLong(
@@ -62,15 +62,7 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
         this.logger.error(e);
         return null;
       });
-    if (!!order) {
-      order.type = 'limit';
-      order.side = 'buy';
-      order.status = 'open';
-      order.amount = size;
-      order.price = price;
-      order.filled = 0;
-    }
-    return order ? this.toOrder(order) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async placeLimitShort(
@@ -84,15 +76,7 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
         this.logger.error(e);
         return null;
       });
-    if (!!order) {
-      order.type = 'limit';
-      order.side = 'sell';
-      order.status = 'open';
-      order.amount = size;
-      order.price = price;
-      order.filled = 0;
-    }
-    return order ? this.toOrder(order) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async placeGTXLong(
@@ -108,15 +92,7 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
         this.logger.error(e);
         return null;
       });
-    if (!!order) {
-      order.type = 'limit';
-      order.side = 'buy';
-      order.status = 'open';
-      order.amount = size;
-      order.price = price;
-      order.filled = 0;
-    }
-    return !!order ? this.toOrder(order) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async placeGTXShort(
@@ -132,15 +108,7 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
         this.logger.error(e);
         return null;
       });
-    if (!!order) {
-      order.type = 'limit';
-      order.side = 'sell';
-      order.status = 'open';
-      order.amount = size;
-      order.price = price;
-      order.filled = 0;
-    }
-    return order ? this.toOrder(order) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async placeStopMarketLong(
@@ -157,15 +125,7 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
         this.logger.error(e);
         return null;
       });
-    if (!!order) {
-      order.type = 'market';
-      order.side = 'buy';
-      order.status = 'open';
-      order.triggerPrice = price;
-      order.amount = size;
-      order.filled = 0;
-    }
-    return !!order ? this.toOrder(order) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async placeStopMarketShort(
@@ -189,15 +149,7 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
         this.logger.error(e);
         return null;
       });
-    if (!!order) {
-      order.type = 'market';
-      order.side = 'sell';
-      order.status = 'open';
-      order.triggerPrice = price;
-      order.amount = size;
-      order.filled = 0;
-    }
-    return !!order ? this.toOrder(order) : null;
+    return !!order ? await this.getOrder(order.id, pair) : null;
   }
 
   async cancelOrder(id: string, pair: PerpetualPair): Promise<boolean> {

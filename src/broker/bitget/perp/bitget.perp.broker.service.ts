@@ -213,20 +213,23 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
   }
 
   async getMarketPrice(pair: PerpetualPair): Promise<number> {
-    const symbol = pair.toPerpetualSymbol();
-    const ticker = await this.exchange.fetchTicker(symbol).catch(() => null);
+    const ticker = await this.exchange
+      .fetchTicker(pair.toPerpetualSymbol())
+      .catch(() => null);
     return !!ticker ? ticker.last : null;
   }
 
   async getBestBid(pair: PerpetualPair): Promise<number> {
-    const symbol = pair.toPerpetualSymbol();
-    const ticker = await this.exchange.fetchTicker(symbol).catch(() => null);
+    const ticker = await this.exchange
+      .fetchTicker(pair.toPerpetualSymbol())
+      .catch(() => null);
     return !!ticker ? ticker.bid : null;
   }
 
   async getBestAsk(pair: PerpetualPair): Promise<number> {
-    const symbol = pair.toPerpetualSymbol();
-    const ticker = await this.exchange.fetchTicker(symbol).catch(() => null);
+    const ticker = await this.exchange
+      .fetchTicker(pair.toPerpetualSymbol())
+      .catch(() => null);
     return !!ticker ? ticker.ask : null;
   }
 
