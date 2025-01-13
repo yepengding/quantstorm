@@ -37,7 +37,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
         this.logger.error(e);
         return null;
       });
-    return order ? this.toOrder(order) : null;
+    return !!order ? this.toOrder(order) : null;
   }
 
   async placeMarketShort(pair: PerpetualPair, size: number): Promise<Order> {
@@ -47,7 +47,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
         this.logger.error(e);
         return null;
       });
-    return order ? this.toOrder(order) : null;
+    return !!order ? this.toOrder(order) : null;
   }
 
   async placeLimitLong(
@@ -61,7 +61,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
         this.logger.error(e);
         return null;
       });
-    return order ? this.toOrder(order) : null;
+    return !!order ? this.toOrder(order) : null;
   }
 
   async placeLimitShort(
@@ -75,7 +75,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
         this.logger.error(e);
         return null;
       });
-    return order ? this.toOrder(order) : null;
+    return !!order ? this.toOrder(order) : null;
   }
 
   async placeGTXLong(
@@ -91,7 +91,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
         this.logger.error(e);
         return null;
       });
-    return order ? this.toOrder(order) : null;
+    return !!order ? this.toOrder(order) : null;
   }
 
   async placeGTXShort(
@@ -107,7 +107,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
         this.logger.error(e);
         return null;
       });
-    return order ? this.toOrder(order) : null;
+    return !!order ? this.toOrder(order) : null;
   }
 
   async placeStopMarketLong(
@@ -150,7 +150,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
           return null;
         });
     }
-    return order ? this.toOrder(order) : null;
+    return !!order ? this.toOrder(order) : null;
   }
 
   async placeStopMarketShort(
@@ -193,7 +193,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
           return null;
         });
     }
-    return order ? this.toOrder(order) : null;
+    return !!order ? this.toOrder(order) : null;
   }
 
   async cancelOrder(id: string, pair: PerpetualPair): Promise<boolean> {
@@ -220,7 +220,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     const balances = await this.exchange
       .fetchBalance({ type: 'future' })
       .catch(() => null);
-    return balances ? balances[currency].total : null;
+    return !!balances ? balances[currency].total : null;
   }
 
   async getKLines(
@@ -250,7 +250,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     const prices = await this.exchange
       .fetchLastPrices([symbol])
       .catch(() => null);
-    return prices ? prices[symbol].price : null;
+    return !!prices ? prices[symbol].price : null;
   }
 
   async getBestBid(pair: PerpetualPair): Promise<number> {

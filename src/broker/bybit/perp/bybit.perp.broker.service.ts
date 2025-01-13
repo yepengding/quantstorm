@@ -160,6 +160,7 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
     if (!!order) {
       order.type = 'market';
       order.side = 'buy';
+      order.status = 'open';
       order.triggerPrice = price;
       order.amount = size;
       order.filled = 0;
@@ -191,6 +192,7 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
     if (!!order) {
       order.type = 'market';
       order.side = 'sell';
+      order.status = 'open';
       order.triggerPrice = price;
       order.amount = size;
       order.filled = 0;
