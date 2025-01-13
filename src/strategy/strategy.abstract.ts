@@ -1,8 +1,7 @@
 import { Strategy } from './strategy.interface';
-import { Broker } from '../core/interfaces/broker.interface';
-import { BacktestBrokerService } from '../backtest/broker/backtest.broker.service';
 import { Repository } from 'typeorm';
-import { StrategyState } from './strategy.dao';
+import { StrategyState } from '../executor/executor.dao';
+import { BacktestBroker } from '../broker/backtest/backtest.broker.interface';
 
 /**
  * Abstract Strategy
@@ -11,27 +10,18 @@ import { StrategyState } from './strategy.dao';
 export abstract class StrategyAbstract implements Strategy {
   readonly id: string;
   readonly name: string;
-  protected readonly broker: Broker;
   protected readonly stateRepository: Repository<StrategyState>;
+  private _backtestBroker: BacktestBroker;
 
-  constructor(
-    id: string,
-    broker: Broker,
-    stateRepository: Repository<StrategyState>,
-  ) {
+  constructor(id: string, stateRepository: Repository<StrategyState>) {
     this.id = id;
     this.name = 'Abstract';
-    this.broker = broker;
     this.stateRepository = stateRepository;
   }
 
   abstract init(args: string): Promise<void>;
 
   abstract next(): Promise<void>;
-
-  get backtestBroker() {
-    return this.broker instanceof BacktestBrokerService ? this.broker : null;
-  }
 
   async setState<T>(value: T): Promise<void> {
     let state = await this.stateRepository.findOneBy({ id: this.id });
@@ -40,9 +30,11 @@ export abstract class StrategyAbstract implements Strategy {
         id: this.id,
         name: this.name,
         value: JSON.stringify(value),
+        timestamp: Date.now(),
       });
     } else {
       state.value = JSON.stringify(value);
+      state.timestamp = Date.now();
     }
 
     await this.stateRepository.save(state);
@@ -51,5 +43,13 @@ export abstract class StrategyAbstract implements Strategy {
   async getState<T>(): Promise<T> {
     const state = await this.stateRepository.findOneBy({ id: this.id });
     return !!state ? (JSON.parse(state.value) as T) : null;
+  }
+
+  setBacktestBroker(backtestBroker: BacktestBroker): void {
+    this._backtestBroker = backtestBroker;
+  }
+
+  get backtestBroker(): Readonly<BacktestBroker> {
+    return this._backtestBroker;
   }
 }

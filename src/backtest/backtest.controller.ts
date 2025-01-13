@@ -7,10 +7,8 @@ import {
   Query,
   Render,
 } from '@nestjs/common';
-import { BacktestBrokerService } from './broker/backtest.broker.service';
 import { Interval } from '../core/types';
 import { BacktestService } from './backtest.service';
-import { BacktestFeederService } from './feeder/backtest.feeder.service';
 import {
   toCharKLines,
   toChartBalance,
@@ -21,8 +19,11 @@ import { ChartBalances, ChartTrades } from './backtest.view.type';
 import { BasePair } from '../core/structures/pair';
 import { StrategyRegistryType } from '../strategy/strategy.types';
 import { InjectRepository } from '@nestjs/typeorm';
-import { StrategyState } from '../strategy/strategy.dao';
+import { StrategyState } from '../executor/executor.dao';
 import { Repository } from 'typeorm';
+import { BacktestFeederService } from './feeder/backtest.feeder.service';
+import { ConfigService } from '@nestjs/config';
+import { FeederConfig } from '../broker/backtest/backtest.broker.interface';
 
 /**
  * Backtest Controller
@@ -31,15 +32,20 @@ import { Repository } from 'typeorm';
  */
 @Controller('backtest')
 export class BacktestController {
+  private readonly feeder: BacktestFeederService;
+
   constructor(
-    private readonly broker: BacktestBrokerService,
+    private readonly configService: ConfigService,
     private readonly backtest: BacktestService,
-    private readonly feeder: BacktestFeederService,
     @Inject('STRATEGY_REGISTRY')
     private readonly registry: StrategyRegistryType,
     @InjectRepository(StrategyState)
     private stateRepository: Repository<StrategyState>,
-  ) {}
+  ) {
+    this.feeder = new BacktestFeederService(
+      this.configService.get<FeederConfig>('backtest.feeder'),
+    );
+  }
 
   @Get('/strategy/:name')
   @Render('index.hbs')
@@ -61,11 +67,7 @@ export class BacktestController {
     let orderHistoryText: string[] = [];
     const strategyClass = this.registry.get(name);
     if (strategyClass) {
-      const strategy = new strategyClass(
-        'backtest',
-        this.broker,
-        this.stateRepository,
-      );
+      const strategy = new strategyClass('backtest', this.stateRepository);
       const result = await this.backtest.run(
         strategy,
         args,

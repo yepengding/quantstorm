@@ -2,8 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { StrategyAbstract } from '../strategy/strategy.abstract';
 import { Interval } from '../core/types';
 import { Currency } from '../core/constants';
-import { BacktestBroker } from './broker/backtest.broker.interface';
 import { BacktestResult } from './structures/result';
+import { BacktestBrokerService } from '../broker/backtest/backtest.broker.service';
+import {
+  BacktestBroker,
+  BacktestConfig,
+} from '../broker/backtest/backtest.broker.interface';
+import { ConfigService } from '@nestjs/config';
 
 /**
  * Backtest Service
@@ -12,7 +17,7 @@ import { BacktestResult } from './structures/result';
  */
 @Injectable()
 export class BacktestService {
-  constructor() {}
+  constructor(private readonly configService: ConfigService) {}
 
   public async run(
     strategy: StrategyAbstract,
@@ -21,6 +26,12 @@ export class BacktestService {
     endTimestamp: number,
     executionInterval: Interval,
   ): Promise<BacktestResult> {
+    strategy.setBacktestBroker(
+      new BacktestBrokerService(
+        this.configService.get<BacktestConfig>('backtest'),
+      ),
+    );
+
     // Initialize the balance
     this.initBalance(strategy.backtestBroker);
 

@@ -1,7 +1,6 @@
-import { Injectable, Scope } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import * as fs from 'node:fs';
 import { parse } from 'csv-parse';
-import { ConfigService } from '@nestjs/config';
 import { KLine } from '../../core/interfaces/market.interface';
 import { Interval } from '../../core/types';
 import { join } from 'node:path';
@@ -10,29 +9,28 @@ import { HttpService } from '@nestjs/axios';
 import * as moment from 'moment/moment';
 import { EOL } from 'node:os';
 import * as AdmZip from 'adm-zip';
-import { toTimestampInterval } from '../backtest.utils';
+import { toTimestampInterval } from '../../broker/backtest/backtest.utils';
+import { FeederConfig } from '../../broker/backtest/backtest.broker.interface';
 
 /**
  * Backtest Data Feeder Service
  *
  * @author Yepeng Ding
  */
-@Injectable({ scope: Scope.REQUEST })
+@Injectable()
 export class BacktestFeederService {
   private readonly dataCacheSize: number;
   private readonly dataPath: string;
 
   private readonly dataCache: Map<string, KLine[]>;
 
-  constructor(
-    private readonly configService: ConfigService,
-    private readonly httpService: HttpService,
-  ) {
+  private readonly httpService: HttpService;
+
+  constructor(config: FeederConfig) {
     this.dataCache = new Map<string, KLine[]>();
-    this.dataCacheSize = this.configService.get<number>(
-      'backtest.dataCacheSize',
-    );
-    this.dataPath = this.configService.get<string>('backtest.dataPath');
+    this.dataCacheSize = config.dataCacheSize;
+    this.dataPath = config.dataPath;
+    this.httpService = new HttpService();
   }
 
   /**

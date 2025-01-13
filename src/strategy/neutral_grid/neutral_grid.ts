@@ -5,7 +5,7 @@ import { GridConfig, GridConfigArg } from './grid/types';
 import { Grid } from './grid/grid';
 
 /**
- * Neutral Grid Strategy
+ * Neutral Grid Strategy for backtesting only
  *
  * @author Yepeng Ding
  */
@@ -32,7 +32,7 @@ export class NeutralGrid extends StrategyAbstract {
     };
     this.logger.log(`Config: ${JSON.stringify(this.config)}`);
 
-    this.grid = Grid.create(this.config, this.broker, this.logger);
+    this.grid = Grid.create(this.config, this.backtestBroker, this.logger);
     await this.grid.init();
   }
 
