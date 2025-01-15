@@ -199,7 +199,10 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
   async cancelOrder(id: string, pair: PerpetualPair): Promise<boolean> {
     let order = await this.exchange
       .cancelOrder(id, pair.toPerpetualSymbol())
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     if (!order) {
       order = await this.exchange.fetchOrder(id, pair.toPerpetualSymbol());
       if (!order) {
@@ -212,14 +215,20 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
   async cancelOrders(ids: string[], pair: PerpetualPair): Promise<boolean> {
     const orders = await this.exchange
       .cancelOrders(ids, pair.toPerpetualSymbol())
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     return !!orders && !orders.some((order) => order.status != 'canceled');
   }
 
   async getBalance(currency: Currency): Promise<number> {
     const balances = await this.exchange
       .fetchBalance({ type: 'future' })
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     return !!balances ? balances[currency].total : null;
   }
 
@@ -230,7 +239,10 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
   ): Promise<KLines> {
     const kLines = await this.exchange
       .fetchOHLCV(pair.toPerpetualSymbol(), interval, undefined, limit)
-      .catch(() => []);
+      .catch((e) => {
+        this.logger.error(e);
+        return [];
+      });
     return new KLines(
       kLines.map((ohlcv) => {
         return {
@@ -248,19 +260,28 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
   async getMarketPrice(pair: PerpetualPair): Promise<number> {
     const ticker = await this.exchange
       .fetchTicker(pair.toPerpetualSymbol())
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     return !!ticker ? ticker.last : null;
   }
 
   async getBestBid(pair: PerpetualPair): Promise<number> {
     const symbol = pair.toPerpetualSymbol();
-    const ba = await this.exchange.fetchBidsAsks([symbol]).catch(() => null);
+    const ba = await this.exchange.fetchBidsAsks([symbol]).catch((e) => {
+      this.logger.error(e);
+      return null;
+    });
     return !!ba ? ba[symbol].bid : null;
   }
 
   async getBestAsk(pair: PerpetualPair): Promise<number> {
     const symbol = pair.toPerpetualSymbol();
-    const ba = await this.exchange.fetchBidsAsks([symbol]).catch(() => null);
+    const ba = await this.exchange.fetchBidsAsks([symbol]).catch((e) => {
+      this.logger.error(e);
+      return null;
+    });
     return !!ba ? ba[symbol].ask : null;
   }
 
@@ -271,7 +292,10 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
   ): Promise<Order> {
     const order = await this.exchange
       .fetchOrder(id, pair.toPerpetualSymbol())
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     if (logRaw) {
       this.logger.debug(!!order ? JSON.stringify(order) : 'Order not found');
     }
@@ -286,7 +310,10 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
 
     const positions = await this.exchange
       .fetchPositions([symbol])
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
 
     return !!positions && positions.length > 0
       ? {
@@ -302,7 +329,10 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
   async getOpenOrders(pair: PerpetualPair): Promise<Order[]> {
     const orders = await this.exchange
       .fetchOpenOrders(pair.toPerpetualSymbol())
-      .catch(() => []);
+      .catch((e) => {
+        this.logger.error(e);
+        return [];
+      });
     return orders.map((o) => this.toOrder(o));
   }
 

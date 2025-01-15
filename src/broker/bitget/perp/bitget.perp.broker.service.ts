@@ -151,9 +151,9 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
   }
 
   async cancelOrder(id: string, pair: PerpetualPair): Promise<boolean> {
-    await this.exchange
-      .cancelOrder(id, pair.toPerpetualSymbol())
-      .catch(() => null);
+    await this.exchange.cancelOrder(id, pair.toPerpetualSymbol()).catch((e) => {
+      this.logger.error(e);
+    });
     await this.exchange.privateMixPostV2MixOrderCancelPlanOrder({
       orderIdList: [{ orderId: id }],
       symbol: `${pair.base}${pair.quote}`,
@@ -170,15 +170,21 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
   async cancelOrders(ids: string[], pair: PerpetualPair): Promise<boolean> {
     await this.exchange
       .cancelOrders(ids, pair.toPerpetualSymbol())
-      .catch(() => null);
-    await this.exchange.privateMixPostV2MixOrderCancelPlanOrder({
-      orderIdList: ids.map((id) => {
-        return { orderId: id };
-      }),
-      symbol: `${pair.base}${pair.quote}`,
-      planType: 'normal_plan',
-      productType: `${pair.quote}-FUTURES`,
-    });
+      .catch((e) => {
+        this.logger.error(e);
+      });
+    await this.exchange
+      .privateMixPostV2MixOrderCancelPlanOrder({
+        orderIdList: ids.map((id) => {
+          return { orderId: id };
+        }),
+        symbol: `${pair.base}${pair.quote}`,
+        planType: 'normal_plan',
+        productType: `${pair.quote}-FUTURES`,
+      })
+      .catch((e) => {
+        this.logger.error(e);
+      });
     // TODO
     return true;
   }
@@ -186,7 +192,10 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
   async getBalance(currency: Currency): Promise<number> {
     const balances = await this.exchange
       .fetchBalance({ type: 'future' })
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     return balances ? balances[currency].total : null;
   }
 
@@ -197,7 +206,10 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
   ): Promise<KLines> {
     const kLines = await this.exchange
       .fetchOHLCV(pair.toPerpetualSymbol(), interval, undefined, limit)
-      .catch(() => []);
+      .catch((e) => {
+        this.logger.error(e);
+        return [];
+      });
     return new KLines(
       kLines.map((ohlcv) => {
         return {
@@ -215,28 +227,40 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
   async getMarketPrice(pair: PerpetualPair): Promise<number> {
     const ticker = await this.exchange
       .fetchTicker(pair.toPerpetualSymbol())
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     return !!ticker ? ticker.last : null;
   }
 
   async getBestBid(pair: PerpetualPair): Promise<number> {
     const ticker = await this.exchange
       .fetchTicker(pair.toPerpetualSymbol())
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     return !!ticker ? ticker.bid : null;
   }
 
   async getBestAsk(pair: PerpetualPair): Promise<number> {
     const ticker = await this.exchange
       .fetchTicker(pair.toPerpetualSymbol())
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     return !!ticker ? ticker.ask : null;
   }
 
   async getOrder(id: string, pair: PerpetualPair): Promise<Order> {
     const order: CCXTOrder = await this.exchange
       .fetchOrder(id, pair.toPerpetualSymbol())
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     if (!!order) {
       if (order.type == 'market' && !order.price) {
         // Set the current market price to order price if the market order does not have one.
@@ -264,6 +288,10 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         } else {
           return null;
         }
+      })
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
       });
     if (!!openTriggerOrder) {
       return this.triggerToOrder(openTriggerOrder, pair, true);
@@ -286,6 +314,10 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         } else {
           return null;
         }
+      })
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
       });
     if (!!closedTriggerOrder) {
       return this.triggerToOrder(closedTriggerOrder, pair, false);
@@ -297,7 +329,10 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
     const symbol = pair.toPerpetualSymbol();
     const positions = await this.exchange
       .fetchPositions([symbol])
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
 
     return positions && positions.length > 0
       ? {
@@ -313,7 +348,10 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
   async getOpenOrders(pair: PerpetualPair): Promise<Order[]> {
     const orders = await this.exchange
       .fetchOpenOrders(pair.toPerpetualSymbol())
-      .catch(() => []);
+      .catch((e) => {
+        this.logger.error(e);
+        return [];
+      });
     const openTriggerOrders = await this.exchange
       .privateMixGetV2MixOrderOrdersPlanPending({
         symbol: `${pair.base}${pair.quote}`,
@@ -327,7 +365,10 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
           return [];
         }
       })
-      .catch(() => []);
+      .catch((e) => {
+        this.logger.error(e);
+        return [];
+      });
 
     return [
       ...orders.map((o) => this.toOrder(o)),

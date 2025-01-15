@@ -155,21 +155,30 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
   async cancelOrder(id: string, pair: PerpetualPair): Promise<boolean> {
     const order = await this.exchange
       .cancelOrder(id, pair.toPerpetualSymbol())
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     return !!order && order.id == id;
   }
 
   async cancelOrders(ids: string[], pair: PerpetualPair): Promise<boolean> {
     const orders = await this.exchange
       .cancelOrders(ids, pair.toPerpetualSymbol())
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     return !!orders && orders.length == ids.length;
   }
 
   async getBalance(currency: Currency): Promise<number> {
     const balances = await this.exchange
       .fetchBalance({ type: 'future' })
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     return balances ? balances[currency].total : null;
   }
 
@@ -180,7 +189,10 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
   ): Promise<KLines> {
     const kLines = await this.exchange
       .fetchOHLCV(pair.toPerpetualSymbol(), interval, undefined, limit)
-      .catch(() => []);
+      .catch((e) => {
+        this.logger.error(e);
+        return [];
+      });
     return new KLines(
       kLines.map((ohlcv) => {
         return {
@@ -198,28 +210,40 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
   async getMarketPrice(pair: PerpetualPair): Promise<number | null> {
     const ticker = await this.exchange
       .fetchTicker(pair.toPerpetualSymbol())
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     return !!ticker ? ticker.last : null;
   }
 
   async getBestBid(pair: PerpetualPair): Promise<number> {
     const ticker = await this.exchange
       .fetchTicker(pair.toPerpetualSymbol())
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     return !!ticker ? ticker.bid : null;
   }
 
   async getBestAsk(pair: PerpetualPair): Promise<number> {
     const ticker = await this.exchange
       .fetchTicker(pair.toPerpetualSymbol())
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     return !!ticker ? ticker.ask : null;
   }
 
   async getOrder(id: string, pair: PerpetualPair): Promise<Order> {
     let order = await this.exchange
       .fetchOpenOrder(id, pair.toPerpetualSymbol())
-      .catch(() => null);
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
     if (!order) {
       const orders = await this.exchange
         .fetchCanceledAndClosedOrders(pair.toPerpetualSymbol(), null, null, {
@@ -237,9 +261,10 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
   async getPosition(pair: PerpetualPair): Promise<Position | null> {
     const symbol = pair.toPerpetualSymbol();
 
-    const position = await this.exchange
-      .fetchPosition(symbol)
-      .catch(() => null);
+    const position = await this.exchange.fetchPosition(symbol).catch((e) => {
+      this.logger.error(e);
+      return null;
+    });
 
     return !!position && !!position.side
       ? {
@@ -255,17 +280,26 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
   async getOpenOrders(pair: PerpetualPair): Promise<Order[]> {
     const orders = await this.exchange
       .fetchOpenOrders(pair.toPerpetualSymbol())
-      .catch(() => []);
+      .catch((e) => {
+        this.logger.error(e);
+        return [];
+      });
     return orders.map((o) => this.toOrder(o));
   }
 
   async getOrders(pair: PerpetualPair): Promise<Order[]> {
     const openOrders = await this.exchange
       .fetchOpenOrders(pair.toPerpetualSymbol())
-      .catch(() => []);
+      .catch((e) => {
+        this.logger.error(e);
+        return [];
+      });
     const cancelledAndClosedOrders = await this.exchange
       .fetchCanceledAndClosedOrders(pair.toPerpetualSymbol())
-      .catch(() => []);
+      .catch((e) => {
+        this.logger.error(e);
+        return [];
+      });
     return openOrders
       .concat(cancelledAndClosedOrders)
       .map((o) => this.toOrder(o));
