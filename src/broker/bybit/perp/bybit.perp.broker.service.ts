@@ -307,10 +307,10 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
 
   private toOrder(order: CCXTOrder): Order {
     let orderType: OrderType = OrderType.LIMIT;
-    if (order.type == 'market' && !!order.price) {
-      orderType = OrderType.MARKET;
-    } else if (order.type == 'market' && !!order.triggerPrice) {
-      orderType = OrderType.TRIGGER;
+    if (order.type == 'market') {
+      orderType = !!order.triggerPrice ? OrderType.TRIGGER : OrderType.MARKET;
+    } else if (order.type != 'limit') {
+      this.logger.warn(`Unknown type (${order.type}) of order (${order.id})`);
     }
 
     let orderStatus: OrderStatus;
