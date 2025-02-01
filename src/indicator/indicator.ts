@@ -68,4 +68,40 @@ export class Indicator {
     const lower = basis.sub([dev]);
     return { basis: basis.toNumbers(), upper, lower };
   }
+
+  public static MACD(
+    series: number[],
+    fastLength: number,
+    slowLength: number,
+    length: number,
+  ): Record<'macd' | 'signal' | 'hist', number[]> {
+    if (series.length < Math.max(fastLength, slowLength, length)) {
+      throw new Error(
+        'Series length must be greater than or equal to the maximum of fastLength, slowLength, and length.',
+      );
+    }
+    // Calculate the fast and slow EMAs
+    const fastEMA = this.EMA(series, fastLength);
+    const slowEMA = this.EMA(series, slowLength);
+
+    // Calculate the MACD line
+    const macdLine: number[] = [];
+    for (let i = 0; i < series.length; i++) {
+      macdLine[i] = fastEMA[i] - slowEMA[i];
+    }
+
+    const signalLine = this.EMA(macdLine, length);
+
+    // Calculate the MACD histogram
+    const histogram: number[] = [];
+    for (let i = 0; i < series.length; i++) {
+      histogram[i] = macdLine[i] - signalLine[i];
+    }
+
+    return {
+      macd: macdLine,
+      signal: signalLine,
+      hist: histogram,
+    };
+  }
 }
