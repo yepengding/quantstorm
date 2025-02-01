@@ -295,7 +295,7 @@ export class BacktestBrokerService implements BacktestBroker {
       pair,
       interval,
       this.clock,
-      DEFAULT_KLINE_LIMIT,
+      limit,
     );
 
     return new KLines(
