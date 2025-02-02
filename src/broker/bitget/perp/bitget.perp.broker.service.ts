@@ -257,8 +257,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
   async getOrder(id: string, pair: PerpetualPair): Promise<Order> {
     const order: CCXTOrder = await this.exchange
       .fetchOrder(id, pair.toPerpetualSymbol())
-      .catch((e) => {
-        this.logger.error(e);
+      .catch(() => {
         return null;
       });
     if (!!order) {
@@ -289,8 +288,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
           return null;
         }
       })
-      .catch((e) => {
-        this.logger.error(e);
+      .catch(() => {
         return null;
       });
     if (!!openTriggerOrder) {
@@ -316,7 +314,6 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         }
       })
       .catch((e) => {
-        this.logger.error(e);
         return null;
       });
     if (!!closedTriggerOrder) {
