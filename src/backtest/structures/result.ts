@@ -44,7 +44,7 @@ export class BacktestResult {
 
   getBalanceRange(currency: Currency): [number, number] {
     const balances = this.getBalanceRecords(currency).map((r) => r.balance);
-    return [Math.min(...balances), Math.max(...balances)];
+    return [this.get_min(balances), this.get_max(balances)];
   }
 
   getMaxDrawdown(currency: Currency): number {
@@ -62,5 +62,25 @@ export class BacktestResult {
       }
     });
     return Math.min(maxDrawdown, drawdown);
+  }
+
+  private get_max(arr: number[]): number {
+    let len = arr.length;
+    let max = -Infinity;
+
+    while (len--) {
+      max = arr[len] > max ? arr[len] : max;
+    }
+    return max;
+  }
+
+  private get_min(arr: number[]): number {
+    let len = arr.length;
+    let min = Infinity;
+
+    while (len--) {
+      min = arr[len] < min ? arr[len] : min;
+    }
+    return min;
   }
 }
