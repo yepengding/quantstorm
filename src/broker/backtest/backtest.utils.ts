@@ -21,6 +21,8 @@ export function toTimestampInterval(interval: Interval): number {
       return 3600;
     case '2h':
       return 7200;
+    case '4h':
+      return 14400;
     default:
       throw new Error('Unsupported interval');
   }
