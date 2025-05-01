@@ -53,7 +53,7 @@ export class ExecutorController {
 
   @Get('/stop/:id')
   async stop(@Param('id') id: string) {
-    if (this.executorService.stop(id)) {
+    if (await this.executorService.stop(id)) {
       this.logger.log(`Strategy ${id} has stopped`);
       return `Strategy ${id} has stopped${os.EOL}`;
     } else {

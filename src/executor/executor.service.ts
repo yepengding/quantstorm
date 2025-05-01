@@ -1,10 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CronJob } from 'cron';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StrategyState } from './executor.dao';
 import { StrategyClass } from '../strategy/strategy.types';
+import { CronJob } from 'cron';
 
 /**
  * Strategy Execution Service
@@ -71,17 +71,18 @@ export class ExecutorService {
     return true;
   }
 
-  stop(strategyId: string) {
+  async stop(strategyId: string) {
     let runningJob: CronJob;
     try {
       runningJob = this.schedulerRegistry.getCronJob(strategyId);
     } catch (e) {
       runningJob = null;
+      this.logger.error(e);
     }
     if (!runningJob) {
       return false;
-    } else if (runningJob.running) {
-      runningJob.stop();
+    } else if (runningJob.isActive) {
+      await runningJob.stop();
       this.schedulerRegistry.deleteCronJob(strategyId);
       this.isLocked.delete(strategyId);
       return true;
@@ -98,7 +99,8 @@ export class ExecutorService {
       runningJob = this.schedulerRegistry.getCronJob(strategyId);
     } catch (e) {
       runningJob = null;
+      this.logger.error(e);
     }
-    return runningJob ? runningJob.running : false;
+    return runningJob ? runningJob.isActive : false;
   }
 }

@@ -4,17 +4,18 @@ A quants-centric trading system.
 
 ## Installation
 
+1. Install [pnpm](https://pnpm.io/)
+2. Use pnpm to install dependencies
+
 ```bash
-$ npm install
+$ pnpm install
 ```
 
 ## Backtesting
 
 ### Set Environment Variables
 
-Set environment variables in `.env`
-
-- *BACKTEST_DATA_PATH*: data path for backtesting
+Set environment variables in `.env` by referring to `.env.example`
 
 ### Run Quantstorm
 
