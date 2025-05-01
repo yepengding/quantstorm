@@ -13,6 +13,23 @@ trader-friendly interface for developing, backtesting, and deploying dependable 
 
 ---
 
+## Disclaimer
+
+This software is provided **for educational and research purposes only**. It is **not intended as financial advice or an
+invitation to trade**. Any use of this software for real-money trading is **ENTIRELY AT YOUR OWN RISK**.
+
+You should **NEVER RISK FUNDS YOU ARE NOT PREPARED TO LOSE**. The authors, contributors, and any affiliated parties *
+*make NO guarantees regarding the accuracy, reliability, or profitability of the software** and **accept NO liability**
+for any direct or indirect loss arising from its use.
+
+Before deploying any trading strategy in live markets, **YOU MUST FIRST BACKTEST IT AND RUN IT IN A SIMULATED
+ENVIRONMENT** to understand its behavior, limitations, and potential outcomes.
+
+It is **strongly recommended** that you possess solid programming and trading knowledge. You are encouraged to **review
+and audit the source code** to fully understand the underlying mechanisms.
+
+---
+
 ## Getting Started
 
 ### 1. Install Dependencies
