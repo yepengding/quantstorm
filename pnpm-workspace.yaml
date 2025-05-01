@@ -1,0 +1,4 @@
+onlyBuiltDependencies:
+  - '@nestjs/core'
+  - ccxt
+  - sqlite3
