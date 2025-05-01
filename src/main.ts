@@ -32,7 +32,7 @@ async function bootstrap() {
   const doc_config = new DocumentBuilder()
     .setTitle('Quantstorm API')
     .setDescription('The Quantstorm API description')
-    .setVersion('0.0.1')
+    .setVersion('0.1.0')
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, doc_config);
   SwaggerModule.setup('api', app, documentFactory);

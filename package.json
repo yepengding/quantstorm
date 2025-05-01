@@ -1,10 +1,14 @@
 {
   "name": "quantstorm",
-  "version": "0.0.1",
-  "description": "A quants-centric trading system.",
-  "author": "Yepeng Ding",
+  "version": "0.1.0",
+  "description": "A quant-centric platform for backtesting and live trading.",
+  "author": "Yepeng Ding <yepengd@acm.org> (https://yepengding.github.io/)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yepengding/quantstorm.git"
+  },
   "private": true,
-  "license": "UNLICENSED",
+  "license": "GPL-3.0",
   "engines": {
     "node": ">=20.0.0",
     "pnpm": ">=10.0.0"
