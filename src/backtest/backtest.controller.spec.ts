@@ -53,7 +53,7 @@ describe('BacktestController', () => {
     );
   });
   it('should backtest the demo strategy via curl', () => {
-    const command = `curl --location --globoff 'http://localhost:3000/backtest/strategy/Demo?start=1722427200&end=1722454200&interval=15m&base=BTC&quote=USDT&args={"base":"BTC","quote":"USDT","size":1,"interval":"30m"}'`;
+    const command = `curl --location --globoff 'http://localhost:8888/backtest/strategy/Demo?start=1722427200&end=1722454200&interval=15m&base=BTC&quote=USDT&args={"base":"BTC","quote":"USDT","size":1,"interval":"30m"}'`;
     const result = execSync(command).toString('utf8');
     console.log(result);
   });
