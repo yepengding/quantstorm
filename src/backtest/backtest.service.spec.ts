@@ -10,6 +10,8 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { toInstance } from '../core/testing/mock/mock.utils';
 import { MockType } from '../core/testing/mock/mock.types';
 import { repositoryMockFactory } from '../core/testing/mock/factories/repository';
+import { BacktestResult } from './structures/result';
+import { Currency } from '../core/constants';
 
 describe('BacktestService', () => {
   let service: BacktestService;
@@ -34,8 +36,8 @@ describe('BacktestService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
-  it('should run the demo strategy', async () => {
-    await service.run(
+  it('should backtest the demo strategy', async () => {
+    const result: BacktestResult = await service.run(
       new Demo(
         'Demo',
         toInstance<Repository<StrategyState>>(stateRepositoryMock),
@@ -50,5 +52,13 @@ describe('BacktestService', () => {
       1722454200,
       '15m',
     );
+
+    // Print the backtest result
+    console.log(
+      'Resulted balance (USDT):',
+      result.getBalanceRecords(Currency.USDT).at(-1).balance,
+    );
+    console.log('Balance range:', result.getBalanceRange(Currency.USDT));
+    console.log('Max drawdown:', result.getMaxDrawdown(Currency.USDT));
   });
 });
