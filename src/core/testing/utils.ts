@@ -1,3 +1,6 @@
 export const TimeOut = {
   ONE_MINUTE: 60000,
+  THREE_MINUTES: 180000,
+  FIVE_MINUTES: 300000,
+  TEN_MINUTES: 6000000,
 };

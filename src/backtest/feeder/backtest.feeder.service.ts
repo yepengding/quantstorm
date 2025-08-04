@@ -211,7 +211,9 @@ export class BacktestFeederService {
       .getEntry(`${this.getBinanceCSVName(pair, interval, date)}`)
       .getData()
       .toString();
-    return removeHeader ? content.substring(content.indexOf(EOL) + 1) : content;
+    return removeHeader
+      ? content.substring(content.indexOf('\n') + 1)
+      : content;
   }
 
   private getBinanceZipName(pair: Pair, interval: Interval, date: string) {
