@@ -270,7 +270,7 @@ export class BacktestBrokerService implements BacktestBroker {
     return [];
   }
 
-  async getPosition(pair: Pair): Promise<Position> {
+  async getPosition(pair: Pair): Promise<Position | null> {
     const position = this.positions.get(pair.toSymbol());
     if (position) {
       // Compute unrealized PnL

@@ -322,7 +322,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
     return null;
   }
 
-  async getPosition(pair: PerpetualPair): Promise<Position> {
+  async getPosition(pair: PerpetualPair): Promise<Position | null> {
     const symbol = pair.toPerpetualSymbol();
     const positions = await this.exchange
       .fetchPositions([symbol])

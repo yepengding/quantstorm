@@ -37,7 +37,7 @@ export interface Broker {
 
   getOrder(id: string, pair: Pair, logRaw?: boolean): Promise<Order>;
 
-  getPosition(pair: Pair): Promise<Position>;
+  getPosition(pair: Pair): Promise<Position | null>;
 
   getKLines(pair: Pair, interval: Interval, limit?: number): Promise<KLines>;
 }
