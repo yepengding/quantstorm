@@ -162,6 +162,7 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
     return !!order && order.id == id;
   }
 
+  // TODO Max cancellable orders
   async cancelOrders(ids: string[], pair: PerpetualPair): Promise<boolean> {
     const orders = await this.exchange
       .cancelOrders(ids, pair.toPerpetualSymbol())

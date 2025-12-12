@@ -167,6 +167,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
     return order.status === OrderStatus.CANCELLED;
   }
 
+  // TODO Max cancellable orders
   async cancelOrders(ids: string[], pair: PerpetualPair): Promise<boolean> {
     await this.exchange
       .cancelOrders(ids, pair.toPerpetualSymbol())

@@ -213,13 +213,23 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
   }
 
   async cancelOrders(ids: string[], pair: PerpetualPair): Promise<boolean> {
-    const orders = await this.exchange
-      .cancelOrders(ids, pair.toPerpetualSymbol())
-      .catch((e) => {
-        this.logger.error(e);
-        return null;
-      });
-    return !!orders && !orders.some((order) => order.status != 'canceled');
+    let result = true;
+    for (let i = 0; i < Math.ceil(ids.length / 10); i++) {
+      const orders = await this.exchange
+        .cancelOrders(
+          ids.slice(i * 10, Math.min(ids.length, (i + 1) * 10)),
+          pair.toPerpetualSymbol(),
+        )
+        .catch((e) => {
+          this.logger.error(e);
+          return null;
+        });
+      result =
+        result &&
+        !!orders &&
+        !orders.some((order) => order.status != 'canceled');
+    }
+    return result;
   }
 
   async getBalance(currency: Currency): Promise<number> {
