@@ -162,15 +162,21 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
     return !!order && order.id == id;
   }
 
-  // TODO Max cancellable orders
   async cancelOrders(ids: string[], pair: PerpetualPair): Promise<boolean> {
-    const orders = await this.exchange
-      .cancelOrders(ids, pair.toPerpetualSymbol())
-      .catch((e) => {
-        this.logger.error(e);
-        return null;
-      });
-    return !!orders && orders.length == ids.length;
+    let result = true;
+    for (let i = 0; i < Math.ceil(ids.length / 10); i++) {
+      const orders = await this.exchange
+        .cancelOrders(
+          ids.slice(i * 10, Math.min(ids.length, (i + 1) * 10)),
+          pair.toPerpetualSymbol(),
+        )
+        .catch((e) => {
+          this.logger.error(e);
+          return null;
+        });
+      result = result && !!orders && orders.length == ids.length;
+    }
+    return result;
   }
 
   async getBalance(currency: Currency): Promise<number> {

@@ -167,25 +167,31 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
     return order.status === OrderStatus.CANCELLED;
   }
 
-  // TODO Max cancellable orders
   async cancelOrders(ids: string[], pair: PerpetualPair): Promise<boolean> {
-    await this.exchange
-      .cancelOrders(ids, pair.toPerpetualSymbol())
-      .catch((e) => {
-        this.logger.error(e);
-      });
-    await this.exchange
-      .privateMixPostV2MixOrderCancelPlanOrder({
-        orderIdList: ids.map((id) => {
-          return { orderId: id };
-        }),
-        symbol: `${pair.base}${pair.quote}`,
-        planType: 'normal_plan',
-        productType: `${pair.quote}-FUTURES`,
-      })
-      .catch((e) => {
-        this.logger.error(e);
-      });
+    for (let i = 0; i < Math.ceil(ids.length / 10); i++) {
+      await this.exchange
+        .cancelOrders(
+          ids.slice(i * 10, Math.min(ids.length, (i + 1) * 10)),
+          pair.toPerpetualSymbol(),
+        )
+        .catch((e) => {
+          this.logger.error(e);
+        });
+      await this.exchange
+        .privateMixPostV2MixOrderCancelPlanOrder({
+          orderIdList: ids
+            .slice(i * 10, Math.min(ids.length, (i + 1) * 10))
+            .map((id) => {
+              return { orderId: id };
+            }),
+          symbol: `${pair.base}${pair.quote}`,
+          planType: 'normal_plan',
+          productType: `${pair.quote}-FUTURES`,
+        })
+        .catch((e) => {
+          this.logger.error(e);
+        });
+    }
     // TODO
     return true;
   }
