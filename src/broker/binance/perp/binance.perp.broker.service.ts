@@ -303,13 +303,24 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     const order = await this.exchange
       .fetchOrder(id, pair.toPerpetualSymbol())
       .catch((e) => {
-        this.logger.error(e);
         return null;
       });
-    if (logRaw) {
+    if (!!order) {
+      return this.toOrder(order);
+    }
+    const conditionalOrder = await this.exchange
+      .fetchOrder(id, pair.toPerpetualSymbol(), { trigger: true })
+      .catch((e) => {
+        return null;
+      });
+    if (!!conditionalOrder) {
+      return this.toOrder(conditionalOrder);
+    }
+
+    if (logRaw && !order && !conditionalOrder) {
       this.logger.debug(!!order ? JSON.stringify(order) : 'Order not found');
     }
-    return order ? this.toOrder(order) : null;
+    return null;
   }
 
   async getPosition(pair: PerpetualPair): Promise<Position | null> {
@@ -343,14 +354,20 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
         this.logger.error(e);
         return [];
       });
-    return orders.map((o) => this.toOrder(o));
+    const conditionalOrders = await this.exchange
+      .fetchOpenOrders(pair.toPerpetualSymbol(), null, null, { trigger: true })
+      .catch(() => []);
+    return orders.concat(conditionalOrders).map((o) => this.toOrder(o));
   }
 
   async getOrders(pair: PerpetualPair): Promise<Order[]> {
     const orders = await this.exchange
       .fetchOrders(pair.toPerpetualSymbol())
       .catch(() => []);
-    return orders.map((o) => this.toOrder(o));
+    const conditionalOrders = await this.exchange
+      .fetchOrders(pair.toPerpetualSymbol(), null, null, { trigger: true })
+      .catch(() => []);
+    return orders.concat(conditionalOrders).map((o) => this.toOrder(o));
   }
 
   private toOrder(order: CCXTOrder): Order {
