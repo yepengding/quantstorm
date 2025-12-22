@@ -21,4 +21,8 @@ describe('Series', () => {
     const series = new Series([2, 4, 4, 4, 5, 5, 7, 9]);
     expect(series.std()).toEqual(2.138089935299395);
   });
+  it('should compute mean', () => {
+    const series = new Series([1, 2, 6.3]);
+    expect(series.mean()).toEqual(3.1);
+  });
 });

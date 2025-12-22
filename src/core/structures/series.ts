@@ -78,7 +78,14 @@ export class Series {
    * Unbiased standard deviation
    */
   public std(): number {
-    return parseFloat(math.std(this.series).toString());
+    return Number(math.std(this.series));
+  }
+
+  /**
+   * Unbiased mean
+   */
+  public mean(): number {
+    return math.mean(this.series);
   }
 
   /**
