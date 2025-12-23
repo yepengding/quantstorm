@@ -18,12 +18,16 @@ export class Indicator {
       return series;
     }
     const result: number[] = [];
-    for (let i = length - 1; i < series.length; i++) {
-      let sum = 0;
-      for (let j = 0; j < length; j++) {
-        sum += series[i - j];
-      }
-      result.push(sum / length);
+
+    // 1. Calculate the first window using mathjs
+    const initialMean = math.mean(series.slice(0, length));
+    result.push(initialMean);
+
+    let currentSum = initialMean * length;
+
+    for (let i = length; i < series.length; i++) {
+      currentSum = currentSum - series[i - length] + series[i];
+      result.push(currentSum / length);
     }
 
     return result;
@@ -243,7 +247,6 @@ export class Indicator {
     close: number[],
     length: number = 14,
   ): number[] {
-    // 1. Validation
     if (high.length !== low.length || low.length !== close.length) {
       throw new Error(
         'Input arrays (High, Low, Close) must have the same length.',
@@ -255,45 +258,49 @@ export class Indicator {
       );
     }
 
-    // 2. Calculate True Ranges (TR)
-    // The first TR is simply High - Low.
-    // Subsequent TRs are Max(H-L, |H-PrevClose|, |L-PrevClose|)
-    const trueRanges: number[] = [];
+    const seriesLength = high.length;
 
-    for (let i = 0; i < high.length; i++) {
-      if (i === 0) {
-        trueRanges.push(high[i] - low[i]);
-      } else {
-        const hl = high[i] - low[i];
-        const hpc = Math.abs(high[i] - close[i - 1]);
-        const lpc = Math.abs(low[i] - close[i - 1]);
-        trueRanges.push(Math.max(hl, hpc, lpc));
-      }
+    // Optimization: Single-pass calculation without intermediate 'trueRanges' array.
+
+    // 1. Calculate Initial ATR (SMA of first 'length' TRs) manually to avoid allocating a TR array for math.mean
+    let trSum = 0;
+    // First TR is always High - Low
+    trSum += high[0] - low[0];
+
+    for (let i = 1; i < length; i++) {
+      const hl = high[i] - low[i];
+      const hpc = Math.abs(high[i] - close[i - 1]);
+      const lpc = Math.abs(low[i] - close[i - 1]);
+      trSum += Math.max(hl, hpc, lpc);
     }
 
-    // 3. Calculate ATR using Wilder's Smoothing
-    // The first ATR value is the arithmetic mean (SMA) of the first 'length' TRs.
-    let firstATR = 0;
-    for (let i = 0; i < length; i++) {
-      firstATR += trueRanges[i];
-    }
-    firstATR /= length;
+    let currentATR = trSum / length;
+    const atrResult: number[] = [currentATR];
 
-    const atrResult: number[] = [firstATR];
+    // 2. Wilder's Smoothing for the rest
+    for (let i = length; i < seriesLength; i++) {
+      const hl = high[i] - low[i];
+      const hpc = Math.abs(high[i] - close[i - 1]);
+      const lpc = Math.abs(low[i] - close[i - 1]);
+      const currentTR = Math.max(hl, hpc, lpc);
 
-    // Subsequent values use the smoothing formula:
-    // ATR = ((Prior ATR * (length - 1)) + Current TR) / length
-    for (let i = length; i < trueRanges.length; i++) {
-      const currentTR = trueRanges[i];
-      const priorATR = atrResult[atrResult.length - 1];
-
-      const nextATR = (priorATR * (length - 1) + currentTR) / length;
-      atrResult.push(nextATR);
+      // Formula: ((Prior ATR * (length - 1)) + Current TR) / length
+      currentATR = (currentATR * (length - 1) + currentTR) / length;
+      atrResult.push(currentATR);
     }
 
     return atrResult;
   }
 
+  /**
+   * Average Directional Index (ADX) with Wilder's Smoothing
+   *
+   * @param high - Array of high prices
+   * @param low - Array of low prices
+   * @param close - Array of close prices
+   * @param length - The smoothing period (typically 14)
+   * @returns number[] - The ADX values (starting after the first valid period)
+   */
   public static ADX(
     high: number[],
     low: number[],
@@ -302,14 +309,11 @@ export class Indicator {
   ): number[] {
     const seriesLength = high.length;
 
-    // 1. Validate Input
     if (
       high.length !== low.length ||
       low.length !== close.length ||
       seriesLength < length * 2
     ) {
-      // We need at least 2 * period data points to generate the first valid ADX value
-      // (14 for TR/DM warm-up + 14 for ADX smoothing)
       throw new Error(
         'Inputs must have equal length and sufficient data (at least 2x period).',
       );
@@ -317,136 +321,207 @@ export class Indicator {
 
     const adx: number[] = new Array(seriesLength).fill(0);
 
-    // Arrays for True Range (TR) and Directional Movements (+DM, -DM)
-    // We initialize with 0 for index 0 to align with price arrays
-    const tr: number[] = new Array(seriesLength).fill(0);
-    const dmPlus: number[] = new Array(seriesLength).fill(0);
-    const dmMinus: number[] = new Array(seriesLength).fill(0);
+    // Initial Sums for RMA Calculation (indices 1 to length)
+    let sumTr = 0;
+    let sumDmPlus = 0;
+    let sumDmMinus = 0;
 
-    // 2. Calculate TR and Raw Directional Movements
-    for (let i = 1; i < seriesLength; i++) {
-      const currentHigh = high[i];
-      const currentLow = low[i];
-      const prevHigh = high[i - 1];
-      const prevLow = low[i - 1];
-      const prevClose = close[i - 1];
+    // Current Smoothed Values (RMA)
+    let smoothTr = 0;
+    let smoothDmPlus = 0;
+    let smoothDmMinus = 0;
 
-      // True Range
-      const hl = currentHigh - currentLow;
-      const hpc = Math.abs(currentHigh - prevClose);
-      const lpc = Math.abs(currentLow - prevClose);
-      tr[i] = Math.max(hl, hpc, lpc);
+    // Sum for ADX Calculation (indices length to 2*length - 1)
+    let sumDx = 0;
 
-      // Directional Movements
-      const upMove = currentHigh - prevHigh;
-      const downMove = prevLow - currentLow;
-
-      if (upMove > downMove && upMove > 0) {
-        dmPlus[i] = upMove;
-      } else {
-        dmPlus[i] = 0;
-      }
-
-      if (downMove > upMove && downMove > 0) {
-        dmMinus[i] = downMove;
-      } else {
-        dmMinus[i] = 0;
-      }
-    }
-
-    const calculateWildersRMA = (
-      values: number[],
-      period: number,
-    ): number[] => {
-      const rma: number[] = new Array(values.length).fill(0);
-
-      // 1. Calculate the initial SMA (Simple Moving Average)
-      // We sum values from index 1 to period (ignoring index 0 which is usually dummy/gap)
-      // Note: In our main function, real data starts at index 1.
-      // So the first "period" of data is indices 1 to 14.
-      let sum = 0;
-      for (let i = 1; i <= period; i++) {
-        sum += values[i];
-      }
-
-      rma[period] = sum / period;
-
-      // 2. Calculate subsequent values
-      for (let i = period + 1; i < values.length; i++) {
-        const prev = rma[i - 1];
-        const curr = values[i];
-
-        // Standard Wilder's formula: (Prior * (n-1) + Current) / n
-        rma[i] = (prev * (period - 1) + curr) / period;
-      }
-
-      return rma;
-    };
-
-    // 3. Smooth the TR, +DM, and -DM using Wilder's Running Moving Average (RMA)
-    // This makes smoothTr equivalent to ATR (Average True Range)
-    const smoothTr = calculateWildersRMA(tr, length);
-    const smoothDmPlus = calculateWildersRMA(dmPlus, length);
-    const smoothDmMinus = calculateWildersRMA(dmMinus, length);
-
-    // 4. Calculate DX (Directional Index)
-    const dx: number[] = new Array(seriesLength).fill(0);
-
-    for (let i = 0; i < seriesLength; i++) {
-      // Before length, smoothing is not fully established, but we can compute if data exists.
-      // However, usually we ignore data before index `length`.
-      const trVal = smoothTr[i];
-
-      // Avoid division by zero
-      if (trVal === 0) {
-        dx[i] = 0;
-        continue;
-      }
-
-      // Calculate +DI and -DI
-      const diPlus = (smoothDmPlus[i] / trVal) * 100;
-      const diMinus = (smoothDmMinus[i] / trVal) * 100;
-
-      const diSum = diPlus + diMinus;
-      const diDiff = Math.abs(diPlus - diMinus);
-
-      if (diSum === 0) {
-        dx[i] = 0;
-      } else {
-        dx[i] = (diDiff / diSum) * 100;
-      }
-    }
-
-    // 5. Calculate ADX (Smoothed DX)
-    // The ADX is simply the RMA (Wilder's Smoothing) of the DX values.
-
-    // Note: There is a specific bootstrap for the first ADX value.
-    // The classic method is: First ADX = Average of first 'length' DX values.
-    // Subsequent ADX = ((Prior ADX * (length - 1)) + Current DX) / length
-
-    // The first valid DX value is at index `length`.
-    // We need `length` count of DX values to start.
-    // So the first ADX is calculated at index `length + length - 1`.
-
+    // Index where the first valid ADX value is produced
     const firstAdxIdx = 2 * length - 1;
 
-    // Safety check for length
-    if (seriesLength <= firstAdxIdx) return adx;
+    for (let i = 0; i < seriesLength; i++) {
+      // --- 1. Calculate TR and Directional Movements ---
+      let tr = 0;
+      let dmPlus = 0;
+      let dmMinus = 0;
 
-    let firstAdxSum = 0;
-    for (let i = length; i < length + length; i++) {
-      firstAdxSum += dx[i];
-    }
+      if (i > 0) {
+        const currentHigh = high[i];
+        const currentLow = low[i];
+        const prevHigh = high[i - 1];
+        const prevLow = low[i - 1];
+        const prevClose = close[i - 1];
 
-    adx[firstAdxIdx] = firstAdxSum / length;
+        const hl = currentHigh - currentLow;
+        const hpc = Math.abs(currentHigh - prevClose);
+        const lpc = Math.abs(currentLow - prevClose);
+        tr = Math.max(hl, hpc, lpc);
 
-    // Calculate remaining ADX values using the smoothing formula
-    for (let i = firstAdxIdx + 1; i < seriesLength; i++) {
-      const prevAdx = adx[i - 1];
-      const currentDx = dx[i];
-      adx[i] = (prevAdx * (length - 1) + currentDx) / length;
+        const upMove = currentHigh - prevHigh;
+        const downMove = prevLow - currentLow;
+
+        if (upMove > downMove && upMove > 0) {
+          dmPlus = upMove;
+        }
+        if (downMove > upMove && downMove > 0) {
+          dmMinus = downMove;
+        }
+      }
+
+      // --- 2. Calculate Smoothed TR/DM (RMA) ---
+
+      // Phase A: Accumulation (Warm-up for RMA)
+      // We sum values from index 1 up to index `length`.
+      if (i <= length) {
+        if (i > 0) {
+          sumTr += tr;
+          sumDmPlus += dmPlus;
+          sumDmMinus += dmMinus;
+        }
+        // If we haven't reached the end of the first period, continue.
+        // We cannot calculate DX or ADX until we have the first smoothed values.
+        if (i < length) continue;
+      }
+
+      // Phase B: Initialize RMA at index `length`
+      if (i === length) {
+        smoothTr = sumTr / length;
+        smoothDmPlus = sumDmPlus / length;
+        smoothDmMinus = sumDmMinus / length;
+      }
+      // Phase C: Standard Wilder's Smoothing for i > length
+      else {
+        smoothTr = (smoothTr * (length - 1) + tr) / length;
+        smoothDmPlus = (smoothDmPlus * (length - 1) + dmPlus) / length;
+        smoothDmMinus = (smoothDmMinus * (length - 1) + dmMinus) / length;
+      }
+
+      // --- 3. Calculate DX ---
+      let dx = 0;
+      if (smoothTr !== 0) {
+        const diPlus = (smoothDmPlus / smoothTr) * 100;
+        const diMinus = (smoothDmMinus / smoothTr) * 100;
+        const diSum = diPlus + diMinus;
+        const diDiff = Math.abs(diPlus - diMinus);
+        if (diSum !== 0) {
+          dx = (diDiff / diSum) * 100;
+        }
+      }
+
+      // --- 4. Calculate ADX ---
+
+      // Phase D: Accumulation (Warm-up for ADX)
+      // We need `length` amount of DX values starting from index `length`.
+      if (i <= firstAdxIdx) {
+        sumDx += dx;
+        if (i < firstAdxIdx) continue;
+      }
+
+      // Phase E: Initialize ADX
+      if (i === firstAdxIdx) {
+        adx[i] = sumDx / length;
+      }
+      // Phase F: Standard ADX Smoothing
+      else {
+        adx[i] = (adx[i - 1] * (length - 1) + dx) / length;
+      }
     }
 
     return adx;
+  }
+
+  /**
+   * SuperTrend
+   *
+   * @param high
+   * @param low
+   * @param close
+   * @param factor
+   * @param length
+   * @returns number[] - The SuperTrend values
+   */
+  public static SuperTrend(
+    high: number[],
+    low: number[],
+    close: number[],
+    factor: number = 3,
+    length: number = 7,
+  ): number[] {
+    if (high.length !== low.length || low.length !== close.length) {
+      throw new Error('Inputs must have equal length.');
+    }
+
+    // Reuse the optimized ATR implementation
+    const atr = Indicator.ATR(high, low, close, length);
+
+    // ATR result starts from index `period - 1` relative to the input arrays
+    const result: number[] = [];
+    const offset = length - 1;
+
+    let prevFinalUpper = 0;
+    let prevFinalLower = 0;
+    // Trend Direction: 1 for Up, -1 for Down
+    let prevTrend = 1;
+
+    for (let i = 0; i < atr.length; i++) {
+      const dataIdx = i + offset;
+      const currentHigh = high[dataIdx];
+      const currentLow = low[dataIdx];
+      const currentClose = close[dataIdx];
+      const currentAtr = atr[i];
+
+      const mid = (currentHigh + currentLow) / 2;
+      const basicUpper = mid + factor * currentAtr;
+      const basicLower = mid - factor * currentAtr;
+
+      let finalUpper = basicUpper;
+      let finalLower = basicLower;
+
+      // Logic to stick the bands to the trend
+      if (i > 0) {
+        const prevClose = close[dataIdx - 1];
+
+        if (basicUpper < prevFinalUpper || prevClose > prevFinalUpper) {
+          finalUpper = basicUpper;
+        } else {
+          finalUpper = prevFinalUpper;
+        }
+
+        if (basicLower > prevFinalLower || prevClose < prevFinalLower) {
+          finalLower = basicLower;
+        } else {
+          finalLower = prevFinalLower;
+        }
+      }
+
+      // Determine Trend
+      let trend = prevTrend;
+      if (i > 0) {
+        if (prevTrend === 1) {
+          // If was Up and closed below Lower Band -> Trend Down
+          if (currentClose < finalLower) {
+            trend = -1;
+          }
+        } else {
+          // If was Down and closed above Upper Band -> Trend Up
+          if (currentClose > finalUpper) {
+            trend = 1;
+          }
+        }
+      } else {
+        // Initialization: assume trend based on close relative to bands
+        if (currentClose > finalUpper) trend = 1;
+        else if (currentClose < finalLower) trend = -1;
+      }
+
+      // Select the Supertrend value
+      const supertrend = trend === 1 ? finalLower : finalUpper;
+      result.push(supertrend);
+
+      // Update State
+      prevFinalUpper = finalUpper;
+      prevFinalLower = finalLower;
+      prevTrend = trend;
+    }
+
+    return result;
   }
 }
