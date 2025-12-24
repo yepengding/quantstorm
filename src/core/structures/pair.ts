@@ -72,6 +72,14 @@ const priceDecimalMap = new Map<string, number>([
   ['ETH/USDC', 2],
   ['ETH/USDC:USDC', 2],
   ['ETH/USD:ETH', 2],
+  ['BNB/USDT', 2],
+  ['BNB/USDT:USDT', 2],
+  ['BNB/USDC', 2],
+  ['BNB/USDC:USDC', 2],
+  ['SOL/USDT', 2],
+  ['SOL/USDT:USDT', 2],
+  ['SOL/USDC', 2],
+  ['SOL/USDC:USDC', 2],
 ]);
 
 const sizeDecimalMap = new Map<string, number>([
@@ -85,8 +93,12 @@ const sizeDecimalMap = new Map<string, number>([
   ['BTC/USDT:USDT', 3],
   ['ETH/USDT', 3],
   ['ETH/USDT:USDT', 3],
-  ['SOL/USDT', 0],
-  ['SOL/USDT:USDT', 0],
-  ['SOL/USDC', 0],
-  ['SOL/USDC:USDC', 0],
+  ['BNB/USDT', 2],
+  ['BNB/USDT:USDT', 2],
+  ['BNB/USDC', 2],
+  ['BNB/USDC:USDC', 2],
+  ['SOL/USDT', 2],
+  ['SOL/USDT:USDT', 2],
+  ['SOL/USDC', 2],
+  ['SOL/USDC:USDC', 2],
 ]);
