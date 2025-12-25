@@ -258,21 +258,8 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     pair: PerpetualPair,
   ): Promise<boolean> {
     let result = true;
-    for (let i = 0; i < Math.ceil(ids.length / 10); i++) {
-      const orders = await this.exchange
-        .cancelOrders(
-          ids.slice(i * 10, Math.min(ids.length, (i + 1) * 10)),
-          pair.toPerpetualSymbol(),
-          { trigger: true },
-        )
-        .catch((e) => {
-          this.logger.error(e);
-          return null;
-        });
-      result =
-        result &&
-        !!orders &&
-        !orders.some((order) => order.status != 'canceled');
+    for (let i = 0; i < ids.length; i++) {
+      result = result && (await this.cancelConditionalOrder(ids[i], pair));
     }
     return result;
   }

@@ -86,7 +86,7 @@ describe('BinancePerpBrokerService', () => {
     console.log(isCancelled);
   });
   it('should cancel a conditional order', async () => {
-    const isCancelled = await service.cancelOrder(
+    const isCancelled = await service.cancelConditionalOrder(
       '',
       new PerpetualPair('ETH', 'USDC'),
     );
@@ -95,6 +95,13 @@ describe('BinancePerpBrokerService', () => {
   it('should cancel multiple orders', async () => {
     const isCancelled = await service.cancelOrders(
       [],
+      new PerpetualPair('ETH', 'USDC'),
+    );
+    console.log(isCancelled);
+  });
+  it('should cancel multiple conditional orders', async () => {
+    const isCancelled = await service.cancelConditionalOrders(
+      [''],
       new PerpetualPair('ETH', 'USDC'),
     );
     console.log(isCancelled);
