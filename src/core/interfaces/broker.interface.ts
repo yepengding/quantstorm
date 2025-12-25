@@ -23,7 +23,11 @@ export interface Broker {
 
   cancelOrder(id: string, pair: Pair): Promise<boolean>;
 
+  cancelConditionalOrder(id: string, pair: Pair): Promise<boolean>;
+
   cancelOrders(ids: string[], pair: Pair): Promise<boolean>;
+
+  cancelConditionalOrders(ids: string[], pair: Pair): Promise<boolean>;
 
   getBalance(currency: Currency): Promise<number>;
 
@@ -34,6 +38,8 @@ export interface Broker {
   getBestAsk(pair: Pair): Promise<number>;
 
   getOpenOrders(pair: Pair): Promise<Order[]>;
+
+  getOpenConditionalOrders(pair: Pair): Promise<Order[]>;
 
   getOrder(id: string, pair: Pair, logRaw?: boolean): Promise<Order>;
 

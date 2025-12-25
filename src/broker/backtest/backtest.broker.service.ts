@@ -224,6 +224,20 @@ export class BacktestBrokerService implements BacktestBroker {
     return ret;
   }
 
+  public async cancelConditionalOrder(
+    id: string,
+    pair: Pair,
+  ): Promise<boolean> {
+    return await this.cancelOrder(id, pair);
+  }
+
+  public async cancelConditionalOrders(
+    ids: string[],
+    pair: Pair,
+  ): Promise<boolean> {
+    return await this.cancelOrders(ids, pair);
+  }
+
   async getBalance(currency: Currency): Promise<number> {
     let totalUnrealizedPnL = 0.0;
     for (const [symbol, position] of this.positions) {
@@ -267,6 +281,11 @@ export class BacktestBrokerService implements BacktestBroker {
 
   // TODO
   async getOpenOrders(pair: Pair): Promise<Order[]> {
+    return [];
+  }
+
+  // TODO
+  async getOpenConditionalOrders(pair: Pair): Promise<Order[]> {
     return [];
   }
 

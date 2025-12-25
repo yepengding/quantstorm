@@ -212,6 +212,27 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     return order.status == 'canceled';
   }
 
+  async cancelConditionalOrder(
+    id: string,
+    pair: PerpetualPair,
+  ): Promise<boolean> {
+    let order = await this.exchange
+      .cancelOrder(id, pair.toPerpetualSymbol(), { trigger: true })
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
+    if (!order) {
+      order = await this.exchange.fetchOrder(id, pair.toPerpetualSymbol(), {
+        trigger: true,
+      });
+      if (!order) {
+        return false;
+      }
+    }
+    return order.status == 'canceled';
+  }
+
   async cancelOrders(ids: string[], pair: PerpetualPair): Promise<boolean> {
     let result = true;
     for (let i = 0; i < Math.ceil(ids.length / 10); i++) {
@@ -219,6 +240,30 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
         .cancelOrders(
           ids.slice(i * 10, Math.min(ids.length, (i + 1) * 10)),
           pair.toPerpetualSymbol(),
+        )
+        .catch((e) => {
+          this.logger.error(e);
+          return null;
+        });
+      result =
+        result &&
+        !!orders &&
+        !orders.some((order) => order.status != 'canceled');
+    }
+    return result;
+  }
+
+  async cancelConditionalOrders(
+    ids: string[],
+    pair: PerpetualPair,
+  ): Promise<boolean> {
+    let result = true;
+    for (let i = 0; i < Math.ceil(ids.length / 10); i++) {
+      const orders = await this.exchange
+        .cancelOrders(
+          ids.slice(i * 10, Math.min(ids.length, (i + 1) * 10)),
+          pair.toPerpetualSymbol(),
+          { trigger: true },
         )
         .catch((e) => {
           this.logger.error(e);
@@ -354,10 +399,15 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
         this.logger.error(e);
         return [];
       });
+
+    return orders.map((o) => this.toOrder(o));
+  }
+
+  async getOpenConditionalOrders(pair: PerpetualPair): Promise<Order[]> {
     const conditionalOrders = await this.exchange
       .fetchOpenOrders(pair.toPerpetualSymbol(), null, null, { trigger: true })
       .catch(() => []);
-    return orders.concat(conditionalOrders).map((o) => this.toOrder(o));
+    return conditionalOrders.map((o) => this.toOrder(o));
   }
 
   async getOrders(pair: PerpetualPair): Promise<Order[]> {

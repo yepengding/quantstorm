@@ -179,6 +179,22 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
     return result;
   }
 
+  // TODO
+  async cancelConditionalOrder(
+    id: string,
+    pair: PerpetualPair,
+  ): Promise<boolean> {
+    return Promise.resolve(false);
+  }
+
+  // TODO
+  async cancelConditionalOrders(
+    ids: string[],
+    pair: PerpetualPair,
+  ): Promise<boolean> {
+    return Promise.resolve(false);
+  }
+
   async getBalance(currency: Currency): Promise<number> {
     const balances = await this.exchange
       .fetchBalance({ type: 'future' })
@@ -287,6 +303,17 @@ export class BybitPerpBrokerService implements BybitPerpBroker {
   async getOpenOrders(pair: PerpetualPair): Promise<Order[]> {
     const orders = await this.exchange
       .fetchOpenOrders(pair.toPerpetualSymbol())
+      .catch((e) => {
+        this.logger.error(e);
+        return [];
+      });
+    return orders.map((o) => this.toOrder(o));
+  }
+
+  // TODO To check
+  async getOpenConditionalOrders(pair: PerpetualPair): Promise<Order[]> {
+    const orders = await this.exchange
+      .fetchOpenOrders(pair.toPerpetualSymbol(), null, null, { trigger: true })
       .catch((e) => {
         this.logger.error(e);
         return [];

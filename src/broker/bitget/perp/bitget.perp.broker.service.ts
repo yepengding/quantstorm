@@ -196,6 +196,22 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
     return true;
   }
 
+  // TODO
+  async cancelConditionalOrder(
+    id: string,
+    pair: PerpetualPair,
+  ): Promise<boolean> {
+    return Promise.resolve(false);
+  }
+
+  // TODO
+  async cancelConditionalOrders(
+    ids: string[],
+    pair: PerpetualPair,
+  ): Promise<boolean> {
+    return Promise.resolve(false);
+  }
+
   async getBalance(currency: Currency): Promise<number> {
     const balances = await this.exchange
       .fetchBalance({ type: 'future' })
@@ -356,6 +372,12 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         this.logger.error(e);
         return [];
       });
+
+    return [...orders.map((o) => this.toOrder(o))];
+  }
+
+  // TODO To check
+  async getOpenConditionalOrders(pair: PerpetualPair): Promise<Order[]> {
     const openTriggerOrders = await this.exchange
       .privateMixGetV2MixOrderOrdersPlanPending({
         symbol: `${pair.base}${pair.quote}`,
@@ -373,9 +395,7 @@ export class BitgetPerpBrokerService implements BitgetPerpBroker {
         this.logger.error(e);
         return [];
       });
-
     return [
-      ...orders.map((o) => this.toOrder(o)),
       ...openTriggerOrders.map((o) => this.triggerToOrder(o, pair, true)),
     ];
   }
