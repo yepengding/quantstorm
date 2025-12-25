@@ -426,6 +426,10 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
         orderType = OrderType.LIMIT;
     }
 
+    if (!order.type && !!order.triggerPrice) {
+      orderType = OrderType.TRIGGER;
+    }
+
     let orderStatus: OrderStatus;
     switch (order.status) {
       case 'open': {
