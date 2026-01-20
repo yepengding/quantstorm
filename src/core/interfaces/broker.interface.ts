@@ -31,6 +31,31 @@ export interface Broker {
 }
 
 /**
+ * Spot Broker Interface
+ *
+ * @author Yepeng Ding
+ */
+export interface SpotBroker extends Broker {
+  placeMarketLong(pair: Pair, size: number): Promise<Order>;
+
+  placeMarketShort(pair: Pair, size: number): Promise<Order>;
+
+  placeLimitLong(pair: Pair, size: number, price: number): Promise<Order>;
+
+  placeLimitShort(pair: Pair, size: number, price: number): Promise<Order>;
+
+  placeGTXLong(pair: Pair, size: number, price: number): Promise<Order>;
+
+  placeGTXShort(pair: Pair, size: number, price: number): Promise<Order>;
+
+  placeStopMarketLong(pair: Pair, size: number, price: number): Promise<Order>;
+
+  placeStopMarketShort(pair: Pair, size: number, price: number): Promise<Order>;
+
+  getPosition(pair: Pair): Promise<Position | null>;
+}
+
+/**
  * Perpetual Broker Interface
  *
  * @author Yepeng Ding
