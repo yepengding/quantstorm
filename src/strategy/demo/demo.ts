@@ -35,7 +35,7 @@ export class Demo extends StrategyAbstract {
         );
       } else {
         // Set broker to backtest broker if no credential is given.
-        this.broker = this.backtestBroker;
+        this.broker = this.createBacktestPerpBroker();
       }
       this.config = {
         pair: new PerpetualPair(config.base, config.quote),

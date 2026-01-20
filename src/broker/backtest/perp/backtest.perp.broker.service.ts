@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { Currency, DEFAULT_KLINE_LIMIT, OrderStatus, OrderType, TradeSide, TradeType, } from '../../../core/constants';
+import {
+  Currency,
+  DEFAULT_KLINE_LIMIT,
+  OrderStatus,
+  OrderType,
+  TradeSide,
+  TradeType,
+} from '../../../core/constants';
 import { BacktestPerpBroker } from './backtest.perp.broker.interface';
 import { Position } from '../../../core/interfaces/broker.interface';
 import { Order, Trade } from '../../../core/interfaces/market.interface';

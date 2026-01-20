@@ -1,6 +1,13 @@
 import { Strategy } from './strategy.interface';
 import { Repository } from 'typeorm';
 import { StrategyState } from '../executor/executor.dao';
+import {
+  BacktestBroker,
+  BacktestConfig,
+} from '../broker/backtest/backtest.interface';
+import { Currency } from '../core/constants';
+import { Interval } from '../core/types';
+import { BacktestPerpBrokerService } from '../broker/backtest/perp/backtest.perp.broker.service';
 import { BacktestPerpBroker } from '../broker/backtest/perp/backtest.perp.broker.interface';
 
 /**
@@ -10,13 +17,17 @@ import { BacktestPerpBroker } from '../broker/backtest/perp/backtest.perp.broker
 export abstract class StrategyAbstract implements Strategy {
   readonly id: string;
   readonly name: string;
+  readonly backtestBrokers: BacktestBroker[];
   protected readonly stateRepository: Repository<StrategyState>;
-  private _backtestBroker: BacktestPerpBroker;
+  private _backtestConfig: BacktestConfig;
+  private _startTimestamp: number;
+  private _executionInterval: Interval;
 
   constructor(id: string, stateRepository: Repository<StrategyState>) {
     this.id = id;
     this.name = 'Abstract';
     this.stateRepository = stateRepository;
+    this.backtestBrokers = [];
   }
 
   abstract init(args: string): Promise<void>;
@@ -45,11 +56,32 @@ export abstract class StrategyAbstract implements Strategy {
     return !!state ? (JSON.parse(state.value) as T) : null;
   }
 
-  setBacktestBroker(backtestBroker: BacktestPerpBroker): void {
-    this._backtestBroker = backtestBroker;
+  setBacktestConfig(
+    config: BacktestConfig,
+    startTimestamp: number,
+    executionInterval: Interval,
+  ): void {
+    this._backtestConfig = config;
+    this._startTimestamp = startTimestamp;
+    this._executionInterval = executionInterval;
   }
 
-  get backtestBroker(): Readonly<BacktestPerpBroker> {
-    return this._backtestBroker;
+  createBacktestPerpBroker(): BacktestPerpBroker {
+    const backtestBroker = new BacktestPerpBrokerService(this._backtestConfig);
+    this.initializeBacktestBroker(backtestBroker);
+    return backtestBroker;
+  }
+
+  private initializeBacktestBroker(backtestBroker: BacktestBroker) {
+    // Initialize the balance
+    for (const currency of Object.keys(Currency)) {
+      backtestBroker.setBalance(currency as Currency, 1000);
+    }
+    // Initialize the backtest broker clock to the start timestamp
+    backtestBroker.initClockAndInterval(
+      this._startTimestamp,
+      this._executionInterval,
+    );
+    this.backtestBrokers.push(backtestBroker);
   }
 }

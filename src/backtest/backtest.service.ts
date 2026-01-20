@@ -1,12 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { StrategyAbstract } from '../strategy/strategy.abstract';
 import { Interval } from '../core/types';
-import { Currency } from '../core/constants';
 import { BacktestResult } from './structures/result';
-import { BacktestPerpBrokerService } from '../broker/backtest/perp/backtest.perp.broker.service';
-import { BacktestPerpBroker } from '../broker/backtest/perp/backtest.perp.broker.interface';
+
 import { ConfigService } from '@nestjs/config';
 import { BacktestConfig } from '../broker/backtest/backtest.interface';
+import { toTimestampInterval } from '../broker/backtest/backtest.utils';
 
 /**
  * Backtest Service
@@ -15,6 +14,9 @@ import { BacktestConfig } from '../broker/backtest/backtest.interface';
  */
 @Injectable()
 export class BacktestService {
+  private currentClock: number;
+  private clockInterval: number;
+
   constructor(private readonly configService: ConfigService) {}
 
   public async run(
@@ -23,40 +25,34 @@ export class BacktestService {
     startTimestamp: number,
     endTimestamp: number,
     executionInterval: Interval,
-  ): Promise<BacktestResult> {
-    strategy.setBacktestBroker(
-      new BacktestPerpBrokerService(
-        this.configService.get<BacktestConfig>('backtest'),
-      ),
-    );
-
-    // Initialize the balance
-    this.initBalance(strategy.backtestBroker);
-
-    // Initialize the clock to the start timestamp
-    strategy.backtestBroker.initClockAndInterval(
+  ): Promise<ReadonlyArray<BacktestResult>> {
+    // Set strategy backtest config
+    strategy.setBacktestConfig(
+      this.configService.get<BacktestConfig>('backtest'),
       startTimestamp,
       executionInterval,
     );
+
+    // Initialize backtest clock and interval
+    this.currentClock = startTimestamp;
+    this.clockInterval = toTimestampInterval(executionInterval);
 
     // Initialize strategy
     await strategy.init(strategyArgs);
 
     // Continue executing strategy until reaching the end time
-    while (strategy.backtestBroker.clock < endTimestamp) {
+    while (this.currentClock < endTimestamp) {
       // Execute the strategy
       await strategy.next();
 
       // Update clock
-      await strategy.backtestBroker.nextClock();
+      this.currentClock += this.clockInterval;
+      // Update clock for all backtest brokers
+      for (const backtestBroker of strategy.backtestBrokers) {
+        await backtestBroker.nextClock();
+      }
     }
 
-    return strategy.backtestBroker.backtestResult;
-  }
-
-  private initBalance(backtestBroker: BacktestPerpBroker) {
-    for (const currency of Object.keys(Currency)) {
-      backtestBroker.setBalance(currency as Currency, 1000);
-    }
+    return strategy.backtestBrokers.map((b) => b.backtestResult);
   }
 }
