@@ -3,8 +3,8 @@ import { BacktestFeederService } from './backtest.feeder.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BasePair } from '../../core/structures/pair';
 import configuration from '../../core/config';
-import { FeederConfig } from '../../broker/backtest/perp/backtest.perp.broker.interface';
 import { TimeOut } from '../../core/testing/utils';
+import { FeederConfig } from '../../broker/backtest/backtest.interface';
 
 describe('BacktestFeederService', () => {
   let envService: ConfigService;
@@ -31,13 +31,13 @@ describe('BacktestFeederService', () => {
     'should build Binance K-line data set',
     async () => {
       await service.buildBinanceKLineData(
-        new BasePair('ETH', 'USDT'),
+        new BasePair('BTC', 'USDT'),
         '1m',
-        '2024-05-01',
+        '2024-04-01',
         '2026-01-01',
       );
     },
-    TimeOut.ONE_MINUTE,
+    TimeOut.TEN_MINUTES,
   );
 
   it('should get Binance K-lines from local data', async () => {
