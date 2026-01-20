@@ -1,0 +1,152 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import configuration from '../../../core/config';
+import { Currency } from '../../../core/constants';
+import { BasePair } from '../../../core/structures/pair';
+import { Logger } from '@nestjs/common';
+import { BinanceConfig } from '../binance.interface';
+import { BinanceSpotBrokerService } from './binance.spot.broker.service';
+
+describe('BinanceSpotBrokerService', () => {
+  let envService: ConfigService;
+  let service: BinanceSpotBrokerService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      imports: [ConfigModule.forRoot({ load: [configuration] })],
+    }).compile();
+
+    envService = module.get<ConfigService>(ConfigService);
+    service = new BinanceSpotBrokerService(
+      envService.get<BinanceConfig>('binance'),
+      new Logger(),
+    );
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+  it('should place a limit (post-only) long order', async () => {
+    const order = await service.placeGTXLong(
+      new BasePair('ETH', 'USDC'),
+      0.01,
+      3000,
+    );
+    console.log(order);
+  });
+  it('should place a limit (post-only) short order', async () => {
+    const order = await service.placeGTXShort(
+      new BasePair('ETH', 'USDC'),
+      0.01,
+      3500,
+    );
+    console.log(order);
+  });
+  it('should place a limit long order', async () => {
+    const order = await service.placeLimitLong(
+      new BasePair('ETH', 'USDC'),
+      0.01,
+      3000,
+    );
+    console.log(order);
+  });
+  it('should place a limit short order', async () => {
+    const order = await service.placeLimitShort(
+      new BasePair('ETH', 'USDC'),
+      0.01,
+      3500,
+    );
+    console.log(order);
+  });
+  it('should place a stop market long order', async () => {
+    const order = await service.placeStopMarketLong(
+      new BasePair('ETH', 'USDC'),
+      0.01,
+      3500,
+    );
+    console.log(order);
+  });
+  it('should place a stop market short order', async () => {
+    const order = await service.placeStopMarketShort(
+      new BasePair('ETH', 'USDC'),
+      0.01,
+      3300,
+    );
+    console.log(order);
+  });
+  it('should get an order', async () => {
+    const order = await service.getOrder('', new BasePair('ETH', 'USDC'));
+    console.log(order);
+  });
+  it('should cancel an order', async () => {
+    const isCancelled = await service.cancelOrder(
+      '',
+      new BasePair('ETH', 'USDC'),
+    );
+    console.log(isCancelled);
+  });
+  it('should cancel a conditional order', async () => {
+    const isCancelled = await service.cancelConditionalOrder(
+      '',
+      new BasePair('ETH', 'USDC'),
+    );
+    console.log(isCancelled);
+  });
+  it('should cancel multiple orders', async () => {
+    const isCancelled = await service.cancelOrders(
+      [],
+      new BasePair('ETH', 'USDC'),
+    );
+    console.log(isCancelled);
+  });
+  it('should cancel multiple conditional orders', async () => {
+    const isCancelled = await service.cancelConditionalOrders(
+      [''],
+      new BasePair('ETH', 'USDC'),
+    );
+    console.log(isCancelled);
+  });
+  it('should get position', async () => {
+    const position = await service.getPosition(new BasePair('ETH', 'USDC'));
+    console.log(position);
+  });
+  it('should get best bid and ask', async () => {
+    const bestBid = await service.getBestBid(new BasePair('ETH', 'USDC'));
+    const bestAsk = await service.getBestAsk(new BasePair('ETH', 'USDC'));
+    console.log(bestBid, bestAsk);
+  });
+  it('should get balance', async () => {
+    const balance = await service.getBalance(Currency.USDC);
+    console.log(balance);
+  });
+  it('should get an order by id', async () => {
+    const order = await service.getOrder('', new BasePair('ETH', 'USDC'));
+    console.log(order);
+  });
+  it('should get orders', async () => {
+    const orders = await service.getOrders(new BasePair('ETH', 'USDC'));
+    console.log(orders);
+  });
+  it('should get open orders', async () => {
+    const orders = await service.getOpenOrders(new BasePair('ETH', 'USDC'));
+    console.log(orders);
+  });
+  it('should get open conditional orders', async () => {
+    const orders = await service.getOpenConditionalOrders(
+      new BasePair('ETH', 'USDC'),
+    );
+    console.log(orders);
+  });
+  it('should get market price', async () => {
+    const price = await service.getMarketPrice(new BasePair('ETH', 'USDC'));
+    console.log(price);
+  });
+  it('should get K-lines', async () => {
+    const kLines = await service.getKLines(
+      new BasePair('ETH', 'USDC'),
+      '30m',
+      100,
+    );
+    expect(kLines.length).toBe(100);
+  });
+});
