@@ -1,30 +1,24 @@
 import { Injectable } from '@nestjs/common';
-import {
-  Currency,
-  DEFAULT_KLINE_LIMIT,
-  OrderStatus,
-  OrderType,
-  TradeSide,
-  TradeType,
-} from '../../core/constants';
-import { BacktestBroker, BacktestConfig } from './backtest.broker.interface';
-import { Position } from '../../core/interfaces/broker.interface';
-import { Order, Trade } from '../../core/interfaces/market.interface';
-import { BacktestFeederService } from '../../backtest/feeder/backtest.feeder.service';
-import { Interval } from '../../core/types';
-import { toTimestampInterval } from './backtest.utils';
-import { KLines } from '../../core/structures/klines';
-import { History } from '../../backtest/structures/history';
-import { BasePair, Pair } from '../../core/structures/pair';
-import { BacktestResult } from '../../backtest/structures/result';
+import { Currency, DEFAULT_KLINE_LIMIT, OrderStatus, OrderType, TradeSide, TradeType, } from '../../../core/constants';
+import { BacktestPerpBroker } from './backtest.perp.broker.interface';
+import { Position } from '../../../core/interfaces/broker.interface';
+import { Order, Trade } from '../../../core/interfaces/market.interface';
+import { BacktestFeederService } from '../../../backtest/feeder/backtest.feeder.service';
+import { Interval } from '../../../core/types';
+import { toTimestampInterval } from '../backtest.utils';
+import { KLines } from '../../../core/structures/klines';
+import { History } from '../../../backtest/structures/history';
+import { BasePair, Pair } from '../../../core/structures/pair';
+import { BacktestResult } from '../../../backtest/structures/result';
+import { BacktestConfig } from '../backtest.interface';
 
 /**
- * Backtest Broker Service
+ * Backtest Perpetual Broker Service
  *
  * @author Yepeng Ding
  */
 @Injectable()
-export class BacktestBrokerService implements BacktestBroker {
+export class BacktestPerpBrokerService implements BacktestPerpBroker {
   private readonly tick: number;
   private readonly commission: {
     taker: number;

@@ -5,6 +5,37 @@ import { KLines } from '../structures/klines';
 import { Pair } from '../structures/pair';
 
 export interface Broker {
+  cancelOrder(id: string, pair: Pair): Promise<boolean>;
+
+  cancelConditionalOrder(id: string, pair: Pair): Promise<boolean>;
+
+  cancelOrders(ids: string[], pair: Pair): Promise<boolean>;
+
+  cancelConditionalOrders(ids: string[], pair: Pair): Promise<boolean>;
+
+  getBalance(currency: Currency): Promise<number>;
+
+  getMarketPrice(pair: Pair): Promise<number>;
+
+  getKLines(pair: Pair, interval: Interval, limit?: number): Promise<KLines>;
+
+  getBestBid(pair: Pair): Promise<number>;
+
+  getBestAsk(pair: Pair): Promise<number>;
+
+  getOpenOrders(pair: Pair): Promise<Order[]>;
+
+  getOpenConditionalOrders(pair: Pair): Promise<Order[]>;
+
+  getOrder(id: string, pair: Pair, logRaw?: boolean): Promise<Order>;
+}
+
+/**
+ * Perpetual Broker Interface
+ *
+ * @author Yepeng Ding
+ */
+export interface PerpBroker extends Broker {
   placeMarketLong(pair: Pair, size: number): Promise<Order>;
 
   placeMarketShort(pair: Pair, size: number): Promise<Order>;
@@ -21,31 +52,7 @@ export interface Broker {
 
   placeStopMarketShort(pair: Pair, size: number, price: number): Promise<Order>;
 
-  cancelOrder(id: string, pair: Pair): Promise<boolean>;
-
-  cancelConditionalOrder(id: string, pair: Pair): Promise<boolean>;
-
-  cancelOrders(ids: string[], pair: Pair): Promise<boolean>;
-
-  cancelConditionalOrders(ids: string[], pair: Pair): Promise<boolean>;
-
-  getBalance(currency: Currency): Promise<number>;
-
-  getMarketPrice(pair: Pair): Promise<number>;
-
-  getBestBid(pair: Pair): Promise<number>;
-
-  getBestAsk(pair: Pair): Promise<number>;
-
-  getOpenOrders(pair: Pair): Promise<Order[]>;
-
-  getOpenConditionalOrders(pair: Pair): Promise<Order[]>;
-
-  getOrder(id: string, pair: Pair, logRaw?: boolean): Promise<Order>;
-
   getPosition(pair: Pair): Promise<Position | null>;
-
-  getKLines(pair: Pair, interval: Interval, limit?: number): Promise<KLines>;
 }
 
 export interface Position {

@@ -23,7 +23,7 @@ import { StrategyState } from '../executor/executor.dao';
 import { Repository } from 'typeorm';
 import { BacktestFeederService } from './feeder/backtest.feeder.service';
 import { ConfigService } from '@nestjs/config';
-import { FeederConfig } from '../broker/backtest/backtest.broker.interface';
+import { FeederConfig } from '../broker/backtest/backtest.interface';
 
 /**
  * Backtest Controller

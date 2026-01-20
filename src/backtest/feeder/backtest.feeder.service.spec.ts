@@ -3,7 +3,7 @@ import { BacktestFeederService } from './backtest.feeder.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { BasePair } from '../../core/structures/pair';
 import configuration from '../../core/config';
-import { FeederConfig } from '../../broker/backtest/backtest.broker.interface';
+import { FeederConfig } from '../../broker/backtest/perp/backtest.perp.broker.interface';
 import { TimeOut } from '../../core/testing/utils';
 
 describe('BacktestFeederService', () => {
@@ -33,8 +33,8 @@ describe('BacktestFeederService', () => {
       await service.buildBinanceKLineData(
         new BasePair('ETH', 'USDT'),
         '1m',
-        '2024-11-20',
-        '2024-12-23',
+        '2024-05-01',
+        '2026-01-01',
       );
     },
     TimeOut.ONE_MINUTE,

@@ -1,7 +1,7 @@
 import * as process from 'node:process';
 import { BinanceConfig } from '../broker/binance/binance.interface';
 import { BitgetConfig } from '../broker/bitget/bitget.interface';
-import { BacktestConfig } from '../broker/backtest/backtest.broker.interface';
+import { BacktestConfig } from '../broker/backtest/backtest.interface';
 
 export default () => ({
   backtest: {

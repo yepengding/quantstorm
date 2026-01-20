@@ -1,6 +1,6 @@
 import { Operator } from './operator';
 import { StateManager } from './state_manager';
-import { Broker } from '../../../core/interfaces/broker.interface';
+import { PerpBroker } from '../../../core/interfaces/broker.interface';
 import { Logger } from '@nestjs/common';
 import { BarState, GridConfig } from './types';
 import { OrderStatus, TradeSide } from '../../../core/constants';
@@ -16,11 +16,11 @@ export class Grid {
 
   private readonly state: StateManager;
   private readonly operator: Operator;
-  private readonly broker: Broker;
+  private readonly broker: PerpBroker;
 
   private readonly logger: Logger;
 
-  constructor(config: GridConfig, broker: Broker, logger: Logger) {
+  constructor(config: GridConfig, broker: PerpBroker, logger: Logger) {
     this.config = config;
     this.state = new StateManager(config);
     this.operator = new Operator(broker, this.state);
@@ -182,7 +182,7 @@ export class Grid {
     this.state.setTerminated();
   }
 
-  static create(config: GridConfig, broker: Broker, logger: Logger): Grid {
+  static create(config: GridConfig, broker: PerpBroker, logger: Logger): Grid {
     return new Grid(config, broker, logger);
   }
 }

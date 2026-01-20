@@ -3,7 +3,7 @@ import { Interval } from '../../core/types';
 import { Indicator } from '../../indicator/indicator';
 import { PerpetualPair } from '../../core/structures/pair';
 import { Logger } from '@nestjs/common';
-import { Broker } from '../../core/interfaces/broker.interface';
+import { PerpBroker } from '../../core/interfaces/broker.interface';
 import { BinancePerpBrokerService } from '../../broker/binance/perp/binance.perp.broker.service';
 import { BinanceConfig } from '../../broker/binance/binance.interface';
 
@@ -15,7 +15,7 @@ export class Demo extends StrategyAbstract {
   public readonly name: string = Demo.name;
   private readonly logger = new Logger(this.id);
 
-  private broker: Broker;
+  private broker: PerpBroker;
 
   // Strategy configuration initialized by parsing arguments of `init`
   private config: {

@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { Broker } from '../../../core/interfaces/broker.interface';
+import { PerpBroker } from '../../../core/interfaces/broker.interface';
 import { StateManager } from './state_manager';
 import { BarState } from './types';
 import { OrderStatus, TradeSide } from '../../../core/constants';
@@ -12,10 +12,10 @@ import { OrderStatus, TradeSide } from '../../../core/constants';
 export class Operator {
   private readonly logger = new Logger(Operator.name);
 
-  private readonly broker: Broker;
+  private readonly broker: PerpBroker;
   private readonly state: StateManager;
 
-  constructor(broker: Broker, state: StateManager) {
+  constructor(broker: PerpBroker, state: StateManager) {
     this.broker = broker;
     this.state = state;
   }

@@ -3,12 +3,10 @@ import { StrategyAbstract } from '../strategy/strategy.abstract';
 import { Interval } from '../core/types';
 import { Currency } from '../core/constants';
 import { BacktestResult } from './structures/result';
-import { BacktestBrokerService } from '../broker/backtest/backtest.broker.service';
-import {
-  BacktestBroker,
-  BacktestConfig,
-} from '../broker/backtest/backtest.broker.interface';
+import { BacktestPerpBrokerService } from '../broker/backtest/perp/backtest.perp.broker.service';
+import { BacktestPerpBroker } from '../broker/backtest/perp/backtest.perp.broker.interface';
 import { ConfigService } from '@nestjs/config';
+import { BacktestConfig } from '../broker/backtest/backtest.interface';
 
 /**
  * Backtest Service
@@ -27,7 +25,7 @@ export class BacktestService {
     executionInterval: Interval,
   ): Promise<BacktestResult> {
     strategy.setBacktestBroker(
-      new BacktestBrokerService(
+      new BacktestPerpBrokerService(
         this.configService.get<BacktestConfig>('backtest'),
       ),
     );
@@ -56,7 +54,7 @@ export class BacktestService {
     return strategy.backtestBroker.backtestResult;
   }
 
-  private initBalance(backtestBroker: BacktestBroker) {
+  private initBalance(backtestBroker: BacktestPerpBroker) {
     for (const currency of Object.keys(Currency)) {
       backtestBroker.setBalance(currency as Currency, 1000);
     }
