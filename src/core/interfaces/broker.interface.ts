@@ -1,8 +1,8 @@
 import { Order } from './market.interface';
 import { Interval } from '../types';
-import { Currency, TradeSide } from '../constants';
+import { TradeSide } from '../constants';
 import { KLines } from '../structures/klines';
-import { Pair } from '../structures/pair';
+import { Currency, Pair } from '../structures/pair';
 
 export interface Broker {
   cancelOrder(id: string, pair: Pair): Promise<boolean>;

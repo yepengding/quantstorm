@@ -1,18 +1,4 @@
 import { Interval } from '../core/types';
-import { Pair } from '../core/structures/pair';
-
-export async function getMarketPrice(pair: Pair): Promise<number> {
-  const kLines = await this.feeder.getBinanceKLines(
-    pair,
-    this.interval,
-    this.clock,
-    1,
-  );
-  if (kLines.length == 0) {
-    throw new Error('Failed to get the market price.');
-  }
-  return kLines[0].close;
-}
 
 /**
  * Get UNIX timestamp difference of the given time interval

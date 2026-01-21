@@ -5,12 +5,12 @@ import {
   BacktestBroker,
   BacktestConfig,
 } from '../broker/backtest/backtest.interface';
-import { Currency } from '../core/constants';
 import { Interval } from '../core/types';
 import { BacktestPerpBrokerService } from '../broker/backtest/perp/backtest.perp.broker.service';
 import { BacktestPerpBroker } from '../broker/backtest/perp/backtest.perp.broker.interface';
 import { BacktestSpotBrokerService } from '../broker/backtest/spot/backtest.spot.broker.service';
 import { BacktestSpotBroker } from '../broker/backtest/spot/backtest.spot.broker.interface';
+import { Currency } from '../core/structures/pair';
 
 /**
  * Abstract Strategy

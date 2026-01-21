@@ -1,15 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { PerpetualPair } from '../../../core/structures/pair';
+import { Currency, PerpetualPair } from '../../../core/structures/pair';
 import { Interval } from '../../../core/types';
 import { KLines } from '../../../core/structures/klines';
 import { bitget, Order as CCXTOrder } from 'ccxt';
 import { Order } from '../../../core/interfaces/market.interface';
-import {
-  Currency,
-  OrderStatus,
-  OrderType,
-  TradeSide,
-} from '../../../core/constants';
+import { OrderStatus, OrderType, TradeSide } from '../../../core/constants';
 import { Position } from '../../../core/interfaces/broker.interface';
 import { BitgetPerpBroker } from './bitget.perp.broker.interface';
 import { BitgetConfig } from '../bitget.interface';

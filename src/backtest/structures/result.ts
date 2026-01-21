@@ -1,4 +1,3 @@
-import { Currency } from '../../core/constants';
 import {
   BalanceRecord,
   BalanceRecords,
@@ -6,7 +5,7 @@ import {
   TradeRecord,
   TradeRecords,
 } from './history';
-import { BasePair } from '../../core/structures/pair';
+import { BasePair, Currency } from '../../core/structures/pair';
 
 /**
  * Backtesting Result Structure

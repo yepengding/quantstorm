@@ -1,6 +1,6 @@
 import { BacktestResult } from '../../backtest/structures/result';
 import { Interval } from '../../core/types';
-import { Currency } from '../../core/constants';
+import { Currency } from '../../core/structures/pair';
 
 export interface BacktestBroker {
   /**

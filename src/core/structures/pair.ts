@@ -1,5 +1,3 @@
-import { Currency } from '../constants';
-
 export interface Pair {
   readonly base: Currency;
   readonly quote: Currency;
@@ -66,6 +64,18 @@ export class PerpetualPair extends BasePair {
   }
 }
 
+export enum Currency {
+  USD = 'USD',
+  BTC = 'BTC',
+  ETH = 'ETH',
+  XRP = 'XRP',
+  BNB = 'BNB',
+  SOL = 'SOL',
+  PAXG = 'PAXG',
+  USDT = 'USDT',
+  USDC = 'USDC',
+}
+
 const priceDecimalMap = new Map<string, number>([
   ['BTC/USDC', 1],
   ['BTC/USDC:USDC', 1],
@@ -80,16 +90,18 @@ const priceDecimalMap = new Map<string, number>([
   ['SOL/USDT:USDT', 2],
   ['SOL/USDC', 2],
   ['SOL/USDC:USDC', 2],
+  ['PAXG/USDT', 2],
+  ['PAXG/USDT:USDT', 2],
 ]);
 
 const sizeDecimalMap = new Map<string, number>([
-  ['BTC/USDC', 3],
+  ['BTC/USDC', 5],
   ['BTC/USDC:USDC', 3],
   ['BTC/USD:BTC', 0],
   ['ETH/USDC', 3],
   ['ETH/USDC:USDC', 3],
   ['ETH/USD:ETH', 0],
-  ['BTC/USDT', 3],
+  ['BTC/USDT', 5],
   ['BTC/USDT:USDT', 3],
   ['ETH/USDT', 3],
   ['ETH/USDT:USDT', 3],
@@ -101,4 +113,6 @@ const sizeDecimalMap = new Map<string, number>([
   ['SOL/USDT:USDT', 2],
   ['SOL/USDC', 2],
   ['SOL/USDC:USDC', 2],
+  ['PAXG/USDT', 4],
+  ['PAXG/USDT:USDT', 3],
 ]);

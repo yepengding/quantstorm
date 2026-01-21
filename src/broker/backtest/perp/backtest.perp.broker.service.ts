@@ -1,12 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  Currency,
-  DEFAULT_KLINE_LIMIT,
-  OrderStatus,
-  OrderType,
-  TradeSide,
-  TradeType,
-} from '../../../core/constants';
+import { DEFAULT_KLINE_LIMIT, OrderStatus, OrderType, TradeSide, TradeType, } from '../../../core/constants';
 import { BacktestPerpBroker } from './backtest.perp.broker.interface';
 import { Position } from '../../../core/interfaces/broker.interface';
 import { Order, Trade } from '../../../core/interfaces/market.interface';
@@ -15,7 +8,7 @@ import { Interval } from '../../../core/types';
 import { toTimestampInterval } from '../../../backtest/backtest.utils';
 import { KLines } from '../../../core/structures/klines';
 import { History } from '../../../backtest/structures/history';
-import { BasePair, Pair } from '../../../core/structures/pair';
+import { BasePair, Currency, Pair } from '../../../core/structures/pair';
 import { BacktestResult } from '../../../backtest/structures/result';
 import { BacktestConfig } from '../backtest.interface';
 

@@ -22,14 +22,3 @@ export enum TradeType {
   MAKER = 0,
   TAKER = 1,
 }
-
-export enum Currency {
-  USD = 'USD',
-  BTC = 'BTC',
-  ETH = 'ETH',
-  XRP = 'XRP',
-  BNB = 'BNB',
-  SOL = 'SOL',
-  USDT = 'USDT',
-  USDC = 'USDC',
-}

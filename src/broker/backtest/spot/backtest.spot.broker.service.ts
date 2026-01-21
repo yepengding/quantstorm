@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import {
-  Currency,
   DEFAULT_KLINE_LIMIT,
   OrderStatus,
   OrderType,
@@ -13,7 +12,7 @@ import { Interval } from '../../../core/types';
 import { toTimestampInterval } from '../../../backtest/backtest.utils';
 import { KLines } from '../../../core/structures/klines';
 import { History } from '../../../backtest/structures/history';
-import { BasePair, Pair } from '../../../core/structures/pair';
+import { BasePair, Currency, Pair } from '../../../core/structures/pair';
 import { BacktestResult } from '../../../backtest/structures/result';
 import { BacktestConfig } from '../backtest.interface';
 import { BacktestSpotBroker } from './backtest.spot.broker.interface';
