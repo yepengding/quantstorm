@@ -2,8 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BinancePerpBrokerService } from './binance.perp.broker.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from '../../../core/config';
-import { Currency } from '../../../core/constants';
-import { PerpetualPair } from '../../../core/structures/pair';
+import { Currency, PerpetualPair } from '../../../core/structures/pair';
 import { Logger } from '@nestjs/common';
 import { BinanceConfig } from '../binance.interface';
 

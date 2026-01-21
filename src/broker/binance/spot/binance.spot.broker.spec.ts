@@ -1,8 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import configuration from '../../../core/config';
-import { Currency } from '../../../core/constants';
-import { BasePair } from '../../../core/structures/pair';
+import { BasePair, Currency } from '../../../core/structures/pair';
 import { Logger } from '@nestjs/common';
 import { BinanceConfig } from '../binance.interface';
 import { BinanceSpotBrokerService } from './binance.spot.broker.service';
@@ -26,48 +25,48 @@ describe('BinanceSpotBrokerService', () => {
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
-  it('should place a limit (post-only) long order', async () => {
-    const order = await service.placeGTXLong(
+  it('should place a limit (post-only) buy order', async () => {
+    const order = await service.placeGTXBuy(
       new BasePair('ETH', 'USDC'),
       0.01,
       3000,
     );
     console.log(order);
   });
-  it('should place a limit (post-only) short order', async () => {
-    const order = await service.placeGTXShort(
+  it('should place a limit (post-only) sell order', async () => {
+    const order = await service.placeGTXSell(
       new BasePair('ETH', 'USDC'),
       0.01,
       3500,
     );
     console.log(order);
   });
-  it('should place a limit long order', async () => {
-    const order = await service.placeLimitLong(
+  it('should place a limit buy order', async () => {
+    const order = await service.placeLimitBuy(
       new BasePair('ETH', 'USDC'),
       0.01,
       3000,
     );
     console.log(order);
   });
-  it('should place a limit short order', async () => {
-    const order = await service.placeLimitShort(
+  it('should place a limit sell order', async () => {
+    const order = await service.placeLimitSell(
       new BasePair('ETH', 'USDC'),
       0.01,
       3500,
     );
     console.log(order);
   });
-  it('should place a stop market long order', async () => {
-    const order = await service.placeStopMarketLong(
+  it('should place a stop market buy order', async () => {
+    const order = await service.placeStopMarketBuy(
       new BasePair('ETH', 'USDC'),
       0.01,
       3500,
     );
     console.log(order);
   });
-  it('should place a stop market short order', async () => {
-    const order = await service.placeStopMarketShort(
+  it('should place a stop market sell order', async () => {
+    const order = await service.placeStopMarketSell(
       new BasePair('ETH', 'USDC'),
       0.01,
       3300,
@@ -105,10 +104,6 @@ describe('BinanceSpotBrokerService', () => {
       new BasePair('ETH', 'USDC'),
     );
     console.log(isCancelled);
-  });
-  it('should get position', async () => {
-    const position = await service.getPosition(new BasePair('ETH', 'USDC'));
-    console.log(position);
   });
   it('should get best bid and ask', async () => {
     const bestBid = await service.getBestBid(new BasePair('ETH', 'USDC'));

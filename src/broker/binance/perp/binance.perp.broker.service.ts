@@ -4,7 +4,7 @@ import { Interval } from '../../../core/types';
 import { KLines } from '../../../core/structures/klines';
 import { binance, Order as CCXTOrder } from 'ccxt';
 import { Order } from '../../../core/interfaces/market.interface';
-import { OrderStatus, OrderType, TradeSide, } from '../../../core/constants';
+import { OrderStatus, OrderType, TradeSide } from '../../../core/constants';
 import { Position } from '../../../core/interfaces/broker.interface';
 import { BinanceConfig } from '../binance.interface';
 import { BinancePerpBroker } from './binance.perp.broker.interface';

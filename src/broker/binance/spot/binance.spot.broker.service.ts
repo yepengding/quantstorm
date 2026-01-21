@@ -1,12 +1,12 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { BasePair, Currency } from "../../../core/structures/pair";
-import { Interval } from "../../../core/types";
-import { KLines } from "../../../core/structures/klines";
-import { binance, Order as CCXTOrder } from "ccxt";
-import { Order } from "../../../core/interfaces/market.interface";
-import { OrderStatus, OrderType, TradeSide } from "../../../core/constants";
-import { BinanceConfig } from "../binance.interface";
-import { BinanceSpotBroker } from "./binance.spot.broker.interface";
+import { Injectable, Logger } from '@nestjs/common';
+import { BasePair, Currency } from '../../../core/structures/pair';
+import { Interval } from '../../../core/types';
+import { KLines } from '../../../core/structures/klines';
+import { binance, Order as CCXTOrder } from 'ccxt';
+import { Order } from '../../../core/interfaces/market.interface';
+import { OrderStatus, OrderType, TradeSide } from '../../../core/constants';
+import { BinanceConfig } from '../binance.interface';
+import { BinanceSpotBroker } from './binance.spot.broker.interface';
 
 /**
  * Binance Spot Broker Service
