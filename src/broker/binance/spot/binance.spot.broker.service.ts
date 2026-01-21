@@ -24,7 +24,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     this.logger = logger;
   }
 
-  async placeMarketBuy(pair: BasePair, size: number): Promise<Order> {
+  async placeMarketBuy(pair: BasePair, size: number): Promise<Order | null> {
     const order = await this.exchange
       .createMarketBuyOrder(pair.toSymbol(), size)
       .catch((e) => {
@@ -34,7 +34,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     return !!order ? this.toOrder(order) : null;
   }
 
-  async placeMarketSell(pair: BasePair, size: number): Promise<Order> {
+  async placeMarketSell(pair: BasePair, size: number): Promise<Order | null> {
     const order = await this.exchange
       .createMarketSellOrder(pair.toSymbol(), size)
       .catch((e) => {
@@ -48,7 +48,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     pair: BasePair,
     size: number,
     price: number,
-  ): Promise<Order> {
+  ): Promise<Order | null> {
     const order = await this.exchange
       .createLimitBuyOrder(pair.toSymbol(), size, price)
       .catch((e) => {
@@ -62,7 +62,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     pair: BasePair,
     size: number,
     price: number,
-  ): Promise<Order> {
+  ): Promise<Order | null> {
     const order = await this.exchange
       .createLimitSellOrder(pair.toSymbol(), size, price)
       .catch((e) => {
@@ -76,7 +76,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     pair: BasePair,
     size: number,
     price: number,
-  ): Promise<Order> {
+  ): Promise<Order | null> {
     const order = await this.exchange
       .createLimitBuyOrder(pair.toSymbol(), size, price, {
         timeInForce: 'PO',
@@ -92,7 +92,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     pair: BasePair,
     size: number,
     price: number,
-  ): Promise<Order> {
+  ): Promise<Order | null> {
     const order = await this.exchange
       .createLimitSellOrder(pair.toSymbol(), size, price, {
         timeInForce: 'PO',
@@ -108,7 +108,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     pair: BasePair,
     size: number,
     price: number,
-  ): Promise<Order> {
+  ): Promise<Order | null> {
     const marketPrice = await this.getMarketPrice(pair);
     let order;
     if (price > marketPrice) {
@@ -144,7 +144,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     pair: BasePair,
     size: number,
     price: number,
-  ): Promise<Order> {
+  ): Promise<Order | null> {
     const marketPrice = await this.getMarketPrice(pair);
     let order;
     if (price > marketPrice) {
@@ -241,7 +241,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     return result;
   }
 
-  async getBalance(currency: Currency): Promise<number> {
+  async getBalance(currency: Currency): Promise<number | null> {
     const balances = await this.exchange.fetchBalance().catch((e) => {
       this.logger.error(e);
       return null;
@@ -274,7 +274,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     );
   }
 
-  async getMarketPrice(pair: BasePair): Promise<number> {
+  async getMarketPrice(pair: BasePair): Promise<number | null> {
     const ticker = await this.exchange
       .fetchTicker(pair.toSymbol())
       .catch((e) => {
@@ -284,7 +284,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     return !!ticker ? ticker.last : null;
   }
 
-  async getBestBid(pair: BasePair): Promise<number> {
+  async getBestBid(pair: BasePair): Promise<number | null> {
     const symbol = pair.toSymbol();
     const ba = await this.exchange.fetchBidsAsks([symbol]).catch((e) => {
       this.logger.error(e);
@@ -293,7 +293,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     return !!ba ? ba[symbol].bid : null;
   }
 
-  async getBestAsk(pair: BasePair): Promise<number> {
+  async getBestAsk(pair: BasePair): Promise<number | null> {
     const symbol = pair.toSymbol();
     const ba = await this.exchange.fetchBidsAsks([symbol]).catch((e) => {
       this.logger.error(e);
@@ -306,7 +306,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     id: string,
     pair: BasePair,
     logRaw: boolean = false,
-  ): Promise<Order> {
+  ): Promise<Order | null> {
     const order = await this.exchange
       .fetchOrder(id, pair.toSymbol())
       .catch((e) => {

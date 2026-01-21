@@ -25,7 +25,10 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     this.logger = logger;
   }
 
-  async placeMarketLong(pair: PerpetualPair, size: number): Promise<Order> {
+  async placeMarketLong(
+    pair: PerpetualPair,
+    size: number,
+  ): Promise<Order | null> {
     const order = await this.exchange
       .createMarketBuyOrder(pair.toPerpetualSymbol(), size)
       .catch((e) => {
@@ -35,7 +38,10 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     return !!order ? this.toOrder(order) : null;
   }
 
-  async placeMarketShort(pair: PerpetualPair, size: number): Promise<Order> {
+  async placeMarketShort(
+    pair: PerpetualPair,
+    size: number,
+  ): Promise<Order | null> {
     const order = await this.exchange
       .createMarketSellOrder(pair.toPerpetualSymbol(), size)
       .catch((e) => {
@@ -49,7 +55,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     pair: PerpetualPair,
     size: number,
     price: number,
-  ): Promise<Order> {
+  ): Promise<Order | null> {
     const order = await this.exchange
       .createLimitBuyOrder(pair.toPerpetualSymbol(), size, price)
       .catch((e) => {
@@ -63,7 +69,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     pair: PerpetualPair,
     size: number,
     price: number,
-  ): Promise<Order> {
+  ): Promise<Order | null> {
     const order = await this.exchange
       .createLimitSellOrder(pair.toPerpetualSymbol(), size, price)
       .catch((e) => {
@@ -77,7 +83,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     pair: PerpetualPair,
     size: number,
     price: number,
-  ): Promise<Order> {
+  ): Promise<Order | null> {
     const order = await this.exchange
       .createLimitBuyOrder(pair.toPerpetualSymbol(), size, price, {
         timeInForce: 'PO',
@@ -93,7 +99,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     pair: PerpetualPair,
     size: number,
     price: number,
-  ): Promise<Order> {
+  ): Promise<Order | null> {
     const order = await this.exchange
       .createLimitSellOrder(pair.toPerpetualSymbol(), size, price, {
         timeInForce: 'PO',
@@ -109,7 +115,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     pair: PerpetualPair,
     size: number,
     price: number,
-  ): Promise<Order> {
+  ): Promise<Order | null> {
     const marketPrice = await this.getMarketPrice(pair);
     let order;
     if (price > marketPrice) {
@@ -152,7 +158,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     pair: PerpetualPair,
     size: number,
     price: number,
-  ): Promise<Order> {
+  ): Promise<Order | null> {
     const marketPrice = await this.getMarketPrice(pair);
     let order;
     if (price > marketPrice) {
@@ -259,7 +265,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     return result;
   }
 
-  async getBalance(currency: Currency): Promise<number> {
+  async getBalance(currency: Currency): Promise<number | null> {
     const balances = await this.exchange
       .fetchBalance({ type: 'future' })
       .catch((e) => {
@@ -294,7 +300,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     );
   }
 
-  async getMarketPrice(pair: PerpetualPair): Promise<number> {
+  async getMarketPrice(pair: PerpetualPair): Promise<number | null> {
     const ticker = await this.exchange
       .fetchTicker(pair.toPerpetualSymbol())
       .catch((e) => {
@@ -304,7 +310,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     return !!ticker ? ticker.last : null;
   }
 
-  async getBestBid(pair: PerpetualPair): Promise<number> {
+  async getBestBid(pair: PerpetualPair): Promise<number | null> {
     const symbol = pair.toPerpetualSymbol();
     const ba = await this.exchange.fetchBidsAsks([symbol]).catch((e) => {
       this.logger.error(e);
@@ -313,7 +319,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     return !!ba ? ba[symbol].bid : null;
   }
 
-  async getBestAsk(pair: PerpetualPair): Promise<number> {
+  async getBestAsk(pair: PerpetualPair): Promise<number | null> {
     const symbol = pair.toPerpetualSymbol();
     const ba = await this.exchange.fetchBidsAsks([symbol]).catch((e) => {
       this.logger.error(e);
@@ -326,7 +332,7 @@ export class BinancePerpBrokerService implements BinancePerpBroker {
     id: string,
     pair: PerpetualPair,
     logRaw: boolean = false,
-  ): Promise<Order> {
+  ): Promise<Order | null> {
     const order = await this.exchange
       .fetchOrder(id, pair.toPerpetualSymbol())
       .catch((e) => {
