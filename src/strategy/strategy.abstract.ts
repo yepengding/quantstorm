@@ -9,6 +9,8 @@ import { Currency } from '../core/constants';
 import { Interval } from '../core/types';
 import { BacktestPerpBrokerService } from '../broker/backtest/perp/backtest.perp.broker.service';
 import { BacktestPerpBroker } from '../broker/backtest/perp/backtest.perp.broker.interface';
+import { BacktestSpotBrokerService } from '../broker/backtest/spot/backtest.spot.broker.service';
+import { BacktestSpotBroker } from '../broker/backtest/spot/backtest.spot.broker.interface';
 
 /**
  * Abstract Strategy
@@ -66,13 +68,21 @@ export abstract class StrategyAbstract implements Strategy {
     this._executionInterval = executionInterval;
   }
 
-  createBacktestPerpBroker(): BacktestPerpBroker {
-    const backtestBroker = new BacktestPerpBrokerService(this._backtestConfig);
-    this.initializeBacktestBroker(backtestBroker);
-    return backtestBroker;
+  protected createBacktestSpotBroker(): BacktestSpotBroker {
+    return this.initializeBacktestBroker(
+      new BacktestSpotBrokerService(this._backtestConfig),
+    ) as BacktestSpotBroker;
   }
 
-  private initializeBacktestBroker(backtestBroker: BacktestBroker) {
+  protected createBacktestPerpBroker(): BacktestPerpBroker {
+    return this.initializeBacktestBroker(
+      new BacktestPerpBrokerService(this._backtestConfig),
+    ) as BacktestPerpBroker;
+  }
+
+  private initializeBacktestBroker(
+    backtestBroker: BacktestBroker,
+  ): BacktestBroker {
     // Initialize the balance
     for (const currency of Object.keys(Currency)) {
       backtestBroker.setBalance(currency as Currency, 1000);
@@ -83,5 +93,6 @@ export abstract class StrategyAbstract implements Strategy {
       this._executionInterval,
     );
     this.backtestBrokers.push(backtestBroker);
+    return backtestBroker;
   }
 }

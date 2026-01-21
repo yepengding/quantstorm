@@ -10,7 +10,6 @@ import {
   OrderType,
   TradeSide,
 } from '../../../core/constants';
-import { Position } from '../../../core/interfaces/broker.interface';
 import { BinanceConfig } from '../binance.interface';
 import { BinanceSpotBroker } from './binance.spot.broker.interface';
 
@@ -30,7 +29,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     this.logger = logger;
   }
 
-  async placeMarketLong(pair: BasePair, size: number): Promise<Order> {
+  async placeMarketBuy(pair: BasePair, size: number): Promise<Order> {
     const order = await this.exchange
       .createMarketBuyOrder(pair.toSymbol(), size)
       .catch((e) => {
@@ -40,7 +39,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     return !!order ? this.toOrder(order) : null;
   }
 
-  async placeMarketShort(pair: BasePair, size: number): Promise<Order> {
+  async placeMarketSell(pair: BasePair, size: number): Promise<Order> {
     const order = await this.exchange
       .createMarketSellOrder(pair.toSymbol(), size)
       .catch((e) => {
@@ -50,7 +49,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     return !!order ? this.toOrder(order) : null;
   }
 
-  async placeLimitLong(
+  async placeLimitBuy(
     pair: BasePair,
     size: number,
     price: number,
@@ -64,7 +63,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     return !!order ? this.toOrder(order) : null;
   }
 
-  async placeLimitShort(
+  async placeLimitSell(
     pair: BasePair,
     size: number,
     price: number,
@@ -78,7 +77,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     return !!order ? this.toOrder(order) : null;
   }
 
-  async placeGTXLong(
+  async placeGTXBuy(
     pair: BasePair,
     size: number,
     price: number,
@@ -94,7 +93,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     return !!order ? this.toOrder(order) : null;
   }
 
-  async placeGTXShort(
+  async placeGTXSell(
     pair: BasePair,
     size: number,
     price: number,
@@ -110,7 +109,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     return !!order ? this.toOrder(order) : null;
   }
 
-  async placeStopMarketLong(
+  async placeStopMarketBuy(
     pair: BasePair,
     size: number,
     price: number,
@@ -146,7 +145,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     return !!order ? this.toOrder(order) : null;
   }
 
-  async placeStopMarketShort(
+  async placeStopMarketSell(
     pair: BasePair,
     size: number,
     price: number,
@@ -334,25 +333,6 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
       this.logger.debug(!!order ? JSON.stringify(order) : 'Order not found');
     }
     return null;
-  }
-
-  async getPosition(pair: BasePair): Promise<Position | null> {
-    const positions = await this.exchange
-      .fetchPositions([pair.toSymbol()])
-      .catch((e) => {
-        this.logger.error(e);
-        return null;
-      });
-
-    return !!positions && positions.length > 0
-      ? {
-          entryPrice: positions[0].entryPrice,
-          size: positions[0].contracts,
-          side: positions[0].side == 'long' ? TradeSide.LONG : TradeSide.SHORT,
-          unrealizedPnL: positions[0].unrealizedPnl,
-          liquidationPrice: positions[0].liquidationPrice,
-        }
-      : null;
   }
 
   async getOpenOrders(pair: BasePair): Promise<Order[]> {

@@ -5,7 +5,7 @@ import { BacktestResult } from './structures/result';
 
 import { ConfigService } from '@nestjs/config';
 import { BacktestConfig } from '../broker/backtest/backtest.interface';
-import { toTimestampInterval } from '../broker/backtest/backtest.utils';
+import { toTimestampInterval } from './backtest.utils';
 
 /**
  * Backtest Service

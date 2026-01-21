@@ -9,7 +9,7 @@ import { HttpService } from '@nestjs/axios';
 import * as moment from 'moment/moment';
 import { EOL } from 'node:os';
 import * as AdmZip from 'adm-zip';
-import { toTimestampInterval } from '../../broker/backtest/backtest.utils';
+import { toTimestampInterval } from '../backtest.utils';
 import { FeederConfig } from '../../broker/backtest/backtest.interface';
 
 /**

@@ -12,7 +12,7 @@ import { Position } from '../../../core/interfaces/broker.interface';
 import { Order, Trade } from '../../../core/interfaces/market.interface';
 import { BacktestFeederService } from '../../../backtest/feeder/backtest.feeder.service';
 import { Interval } from '../../../core/types';
-import { toTimestampInterval } from '../backtest.utils';
+import { toTimestampInterval } from '../../../backtest/backtest.utils';
 import { KLines } from '../../../core/structures/klines';
 import { History } from '../../../backtest/structures/history';
 import { BasePair, Pair } from '../../../core/structures/pair';
