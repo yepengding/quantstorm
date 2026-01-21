@@ -53,8 +53,10 @@ export class BacktestFeederService {
     if (
       !data ||
       data.length == 0 ||
-      data.at(0).timestamp > clockTimestamp ||
-      data.at(-1).timestamp < clockTimestamp
+      !(
+        data.at(0).timestamp < startTimestamp &&
+        data.at(-1).timestamp > clockTimestamp
+      )
     ) {
       await this.loadKLinesFromBinanceCSV(pair, interval, startTimestamp);
       data = this.dataCache.get(this.getBinanceCSVName(pair, interval));
