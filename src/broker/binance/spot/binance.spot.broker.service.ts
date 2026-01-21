@@ -241,6 +241,23 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     return result;
   }
 
+  async subscribeRWUSD(amount: number): Promise<void> {
+    await this.exchange.request('rwusd/subscribe', 'sapi', 'POST', {
+      asset: 'USDT',
+      amount: amount,
+    });
+  }
+
+  async redeemRWUSD(
+    amount: number,
+    type: 'FAST' | 'STANDARD' = 'STANDARD',
+  ): Promise<void> {
+    await this.exchange.request('rwusd/redeem', 'sapi', 'POST', {
+      amount: amount,
+      type: type,
+    });
+  }
+
   async getBalance(currency: Currency): Promise<number | null> {
     const balances = await this.exchange.fetchBalance().catch((e) => {
       this.logger.error(e);

@@ -105,6 +105,12 @@ describe('BinanceSpotBrokerService', () => {
     );
     console.log(isCancelled);
   });
+  it('should subscribe RWUSD', () => {
+    service.subscribeRWUSD(10);
+  });
+  it('should redeem RWUSD', () => {
+    service.redeemRWUSD(10, 'FAST');
+  });
   it('should get best bid and ask', async () => {
     const bestBid = await service.getBestBid(new BasePair('ETH', 'USDC'));
     const bestAsk = await service.getBestAsk(new BasePair('ETH', 'USDC'));

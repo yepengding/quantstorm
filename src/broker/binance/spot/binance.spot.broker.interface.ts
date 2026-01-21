@@ -9,4 +9,6 @@ import { SpotBroker } from '../../../core/interfaces/broker.interface';
  */
 export interface BinanceSpotBroker extends SpotBroker {
   getOrders(pair: BasePair): Promise<Order[]>;
+  subscribeRWUSD(amount: number): Promise<void>;
+  redeemRWUSD(amount: number, type?: 'FAST' | 'STANDARD'): Promise<void>;
 }
