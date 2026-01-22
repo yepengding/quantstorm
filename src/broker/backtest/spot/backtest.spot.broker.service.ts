@@ -235,6 +235,14 @@ export class BacktestSpotBrokerService implements BacktestSpotBroker {
     return this.balances.get(currency);
   }
 
+  async getBalances(currencies: Currency[]): Promise<Map<Currency, number>> {
+    const balances = new Map<Currency, number>();
+    for (const currency of currencies) {
+      balances.set(currency, await this.getBalance(currency));
+    }
+    return balances;
+  }
+
   async getMarketPrice(pair: Pair): Promise<number> {
     const kLines = await this.feeder.getBinanceKLines(
       pair,
