@@ -105,11 +105,14 @@ describe('BinanceSpotBrokerService', () => {
     );
     console.log(isCancelled);
   });
-  it('should subscribe RWUSD', () => {
-    service.subscribeRWUSD(10);
+  it('should redeem earn flexible', async () => {
+    await service.redeemEarnFlexible(Currency.USDC, 10);
   });
-  it('should redeem RWUSD', () => {
-    service.redeemRWUSD(10, 'FAST');
+  it('should subscribe RWUSD', async () => {
+    await service.subscribeRWUSD(10);
+  });
+  it('should redeem RWUSD', async () => {
+    await service.redeemRWUSD(10, 'FAST');
   });
   it('should get best bid and ask', async () => {
     const bestBid = await service.getBestBid(new BasePair('ETH', 'USDC'));
@@ -155,7 +158,7 @@ describe('BinanceSpotBrokerService', () => {
     expect(kLines.length).toBe(100);
   });
   it('should get simple earn flexible balance', async () => {
-    const balance = await service.getSimpleEarnFlexibleBalance([
+    const balance = await service.getEarnFlexibleBalance([
       Currency.BTC,
       Currency.ETH,
     ]);

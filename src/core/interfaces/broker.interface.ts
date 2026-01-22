@@ -63,6 +63,8 @@ export interface SpotBroker extends Broker {
     size: number,
     price: number,
   ): Promise<Order | null>;
+
+  getBalances(currencies: Currency[]): Promise<Map<Currency, number>>;
 }
 
 /**

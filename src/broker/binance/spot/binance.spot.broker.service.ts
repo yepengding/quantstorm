@@ -19,9 +19,12 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
 
   private readonly exchange: binance;
 
+  private earnFlexibleProductIds: Map<Currency, string>;
+
   constructor(config: BinanceConfig, logger: Logger) {
-    this.exchange = new binance(config);
     this.logger = logger;
+    this.exchange = new binance(config);
+    this.earnFlexibleProductIds = new Map<Currency, string>();
   }
 
   async placeMarketBuy(pair: BasePair, size: number): Promise<Order | null> {
@@ -241,6 +244,28 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     return result;
   }
 
+  async redeemEarnFlexible(currency: Currency, amount?: number) {
+    if (!this.earnFlexibleProductIds.has(currency)) {
+      // Check earn flexible balance (also update cache)
+      const balance = await this.getEarnFlexibleBalance([currency]);
+      if (balance.get(currency) === undefined) {
+        this.logger.warn(
+          `Failed to redeem earn flexible ${currency} because the balance is not found.`,
+        );
+        return;
+      }
+    }
+    await this.exchange
+      .sapiPostSimpleEarnFlexibleRedeem({
+        productId: this.earnFlexibleProductIds.get(currency),
+        redeemAll: !amount,
+        amount: amount,
+      })
+      .catch((e) => {
+        this.logger.error(e);
+      });
+  }
+
   async subscribeRWUSD(amount: number): Promise<void> {
     await this.exchange.request('rwusd/subscribe', 'sapi', 'POST', {
       asset: 'USDT',
@@ -451,7 +476,7 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     };
   }
 
-  async getSimpleEarnFlexibleBalance(
+  async getEarnFlexibleBalance(
     currencies: Currency[],
   ): Promise<Map<Currency, number>> {
     const PAGE_SIZE = 100;
@@ -490,7 +515,8 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
             continue;
           }
 
-          // Store result and mark as found
+          // Update product id map for caching
+          this.earnFlexibleProductIds.set(row.asset, row.productId);
           balances.set(row.asset, parseFloat(row.totalAmount));
           pendingAssets.delete(row.asset);
         }
