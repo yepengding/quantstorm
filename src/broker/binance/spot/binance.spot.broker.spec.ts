@@ -150,4 +150,8 @@ describe('BinanceSpotBrokerService', () => {
     );
     expect(kLines.length).toBe(100);
   });
+  it('should get simple earn flexible balance', async () => {
+    const balance = await service.getSimpleEarnFlexibleBalance(Currency.BTC);
+    console.log(balance);
+  });
 });

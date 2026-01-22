@@ -436,4 +436,55 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
       status: orderStatus,
     };
   }
+
+  async getSimpleEarnFlexibleBalance(
+    currency: Currency,
+  ): Promise<number | null> {
+    const PAGE_SIZE = 100;
+    const assetName = currency.toString();
+
+    let currentPage = 1;
+    let hasMorePages = true;
+
+    while (hasMorePages) {
+      // Fetch data safely
+      const response = await this.exchange
+        .sapiGetSimpleEarnFlexiblePosition({
+          current: currentPage,
+          size: PAGE_SIZE,
+        })
+        .catch((e) => {
+          this.logger.error(e);
+          return null;
+        });
+
+      // Validate response structure
+      if (!response?.rows || !response.total) {
+        return null;
+      }
+
+      // Find the asset in the current page
+      const matches = response.rows.filter((p) => p.asset === assetName);
+      if (matches.length === 1) {
+        return matches[0].totalAmount;
+      }
+
+      if (matches.length > 1) {
+        this.logger.warn(
+          `Found multiple simple earn flexible positions for ${assetName}: ${JSON.stringify(matches)}`,
+        );
+        return null;
+      }
+
+      const totalPages = Math.ceil(response.total / PAGE_SIZE);
+
+      if (currentPage < totalPages) {
+        currentPage++;
+      } else {
+        hasMorePages = false;
+      }
+    }
+
+    return null;
+  }
 }
