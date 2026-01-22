@@ -258,6 +258,20 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     });
   }
 
+  async getBalances(currencies: Currency[]): Promise<Map<Currency, number>> {
+    const rawBalances = await this.exchange.fetchBalance().catch((e) => {
+      this.logger.error(e);
+      return new Map();
+    });
+    const balances = new Map<Currency, number>();
+    currencies.forEach((currency) => {
+      if (rawBalances.hasOwnProperty(currency.toString())) {
+        balances.set(currency, rawBalances[currency.toString()].total);
+      }
+    });
+    return balances;
+  }
+
   async getBalance(currency: Currency): Promise<number | null> {
     const balances = await this.exchange.fetchBalance().catch((e) => {
       this.logger.error(e);
@@ -438,42 +452,48 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
   }
 
   async getSimpleEarnFlexibleBalance(
-    currency: Currency,
-  ): Promise<number | null> {
+    currencies: Currency[],
+  ): Promise<Map<Currency, number>> {
     const PAGE_SIZE = 100;
-    const assetName = currency.toString();
+
+    const pendingAssets = new Set(currencies.map((c) => c.toString()));
+
+    const balances: Map<Currency, number> = new Map();
 
     let currentPage = 1;
     let hasMorePages = true;
 
-    while (hasMorePages) {
-      // Fetch data safely
+    while (hasMorePages && pendingAssets.size > 0) {
       const response = await this.exchange
         .sapiGetSimpleEarnFlexiblePosition({
           current: currentPage,
           size: PAGE_SIZE,
         })
         .catch((e) => {
-          this.logger.error(e);
+          this.logger.error(
+            `Failed to fetch Earn positions page ${currentPage}:`,
+            e,
+          );
           return null;
         });
 
-      // Validate response structure
       if (!response?.rows || !response.total) {
-        return null;
+        break;
       }
 
-      // Find the asset in the current page
-      const matches = response.rows.filter((p) => p.asset === assetName);
-      if (matches.length === 1) {
-        return matches[0].totalAmount;
-      }
+      for (const row of response.rows) {
+        if (pendingAssets.has(row.asset)) {
+          if (balances.get(row.asset) !== undefined) {
+            this.logger.warn(
+              `Found multiple simple earn flexible positions for ${row.asset}. Keeping the first found value.`,
+            );
+            continue;
+          }
 
-      if (matches.length > 1) {
-        this.logger.warn(
-          `Found multiple simple earn flexible positions for ${assetName}: ${JSON.stringify(matches)}`,
-        );
-        return null;
+          // Store result and mark as found
+          balances.set(row.asset, parseFloat(row.totalAmount));
+          pendingAssets.delete(row.asset);
+        }
       }
 
       const totalPages = Math.ceil(response.total / PAGE_SIZE);
@@ -485,6 +505,6 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
       }
     }
 
-    return null;
+    return balances;
   }
 }

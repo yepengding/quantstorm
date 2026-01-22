@@ -8,8 +8,11 @@ import { SpotBroker } from '../../../core/interfaces/broker.interface';
  * @author Yepeng Ding
  */
 export interface BinanceSpotBroker extends SpotBroker {
+  getBalances(currencies: Currency[]): Promise<Map<Currency, number>>;
   getOrders(pair: BasePair): Promise<Order[]>;
-  getSimpleEarnFlexibleBalance(currency: Currency): Promise<number | null>;
+  getSimpleEarnFlexibleBalance(
+    currencies: Currency[],
+  ): Promise<Map<Currency, number>>;
   subscribeRWUSD(amount: number): Promise<void>;
   redeemRWUSD(amount: number, type?: 'FAST' | 'STANDARD'): Promise<void>;
 }

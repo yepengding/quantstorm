@@ -120,6 +120,10 @@ describe('BinanceSpotBrokerService', () => {
     const balance = await service.getBalance(Currency.USDC);
     console.log(balance);
   });
+  it('should get balances', async () => {
+    const balances = await service.getBalances([Currency.BTC, Currency.USDC]);
+    console.log(balances);
+  });
   it('should get an order by id', async () => {
     const order = await service.getOrder('', new BasePair('ETH', 'USDC'));
     console.log(order);
@@ -151,7 +155,10 @@ describe('BinanceSpotBrokerService', () => {
     expect(kLines.length).toBe(100);
   });
   it('should get simple earn flexible balance', async () => {
-    const balance = await service.getSimpleEarnFlexibleBalance(Currency.BTC);
+    const balance = await service.getSimpleEarnFlexibleBalance([
+      Currency.BTC,
+      Currency.ETH,
+    ]);
     console.log(balance);
   });
 });
