@@ -1,10 +1,11 @@
-import { Operator } from './operator';
-import { StateManager } from './state_manager';
+import { Operator } from './module/operator';
+import { StateManager } from './module/state_manager';
 import { PerpBroker } from '../../../core/interfaces/broker.interface';
 import { Logger } from '@nestjs/common';
-import { BarState, GridConfig } from './types';
+import { getBroker, GridConfig, GridConfigArg } from './config';
 import { OrderStatus, TradeSide } from '../../../core/constants';
 import { Order } from '../../../core/interfaces/market.interface';
+import { LevelState } from './model/state';
 
 /**
  * Grid Core Logic
@@ -16,7 +17,7 @@ export class Grid {
 
   private readonly state: StateManager;
   private readonly operator: Operator;
-  private readonly broker: PerpBroker;
+  private broker: PerpBroker;
 
   private readonly logger: Logger;
 
@@ -28,100 +29,80 @@ export class Grid {
     this.logger = logger;
   }
 
-  public async init() {
-    if (!!this.config.triggerPrice) {
-      if (!this.state.isTriggered) {
-        const marketPrice = await this.broker.getMarketPrice(this.config.pair);
-        if (
-          marketPrice > this.state.triggerPriceRange[0] &&
-          marketPrice < this.state.triggerPriceRange[1]
-        ) {
-          await this.operator.openBarsNearMarketPrice();
-          this.state.setTriggered();
-          this.logger.log(
-            `Initialized grid [${this.config.lower}, ${this.config.upper}]`,
-          );
-        }
-      }
-    } else {
-      await this.operator.openBarsNearMarketPrice();
-      this.state.setTriggered();
-      this.logger.log(
-        `Initialized grid [${this.config.lower}, ${this.config.upper}]`,
-      );
-    }
+  public async init(): Promise<void> {
+    await this.operator.triggerGrid();
   }
 
-  public async next() {
+  public async next(): Promise<void> {
     if (this.state.isTerminated) {
       this.logger.log('Terminated');
       return;
     }
     if (!this.state.isTriggered) {
-      await this.init();
+      await this.operator.triggerGrid();
       return;
     }
     await this.checkStopOrders();
-    await this.checkOpeningLongBars();
-    await this.checkOpeningShortBars();
-    await this.operator.openBarsNearMarketPrice();
+    await this.checkOpeningLongLevels();
+    await this.checkOpeningShortLevels();
+    await this.operator.openLevelsNearMarketPrice();
   }
 
-  private async checkOpeningLongBars() {
-    const openingBars = this.state.openingLongBars;
-    for (const bar of openingBars) {
+  private async checkOpeningLongLevels() {
+    const openingLevels = this.state.openingLongLevels;
+    for (const level of openingLevels) {
       const order = await this.broker.getOrder(
-        bar.long.orderId,
+        level.long.orderId,
         this.config.pair,
       );
       if (!!order) {
         if (order.status == OrderStatus.FILLED) {
           this.state.updatePositionByOrder(order);
-          this.state.setBarOpened(bar.index, TradeSide.LONG);
-          const barToClose: BarState = this.state.getShortBarToCloseAt(
-            bar.index,
+          this.state.setLevelOpened(level.index, TradeSide.LONG);
+          const levelToClose: LevelState = this.state.getShortLevelToCloseAt(
+            level.index,
           );
-          if (!!barToClose) {
-            this.state.setBarClosed(barToClose.index, TradeSide.SHORT);
-            this.state.setBarClosed(bar.index, TradeSide.LONG);
+          if (!!levelToClose) {
+            this.state.setLevelClosed(levelToClose.index, TradeSide.SHORT);
+            this.state.setLevelClosed(level.index, TradeSide.LONG);
           }
           await this.operator.updateStopUpperOrder();
           await this.operator.updateStopLowerOrder();
-          this.logger.verbose(`Long order at ${bar.index} is filled.`);
+          this.logger.verbose(`Long order at ${level.index} is filled.`);
         }
       } else {
         this.logger.error(
-          `Cannot find the long order (${bar.long.orderId}) at (${bar.index})`,
+          `Cannot find the long order (${level.long.orderId}) at (${level.index})`,
         );
       }
     }
   }
 
-  private async checkOpeningShortBars() {
-    const openingBars = this.state.openingShortBars;
-    for (const bar of openingBars) {
+  private async checkOpeningShortLevels() {
+    const openingLevels = this.state.openingShortLevels;
+    for (const level of openingLevels) {
       const order = await this.broker.getOrder(
-        bar.short.orderId,
+        level.short.orderId,
         this.config.pair,
       );
       if (!!order) {
         if (order.status == OrderStatus.FILLED) {
           this.state.updatePositionByOrder(order);
-          this.state.setBarOpened(bar.index, TradeSide.SHORT);
-          const barToClose: BarState = this.state.getLongBarToCloseAt(
-            bar.index,
+          this.state.setLevelOpened(level.index, TradeSide.SHORT);
+          const levelToClose: LevelState = this.state.getLongLevelToCloseAt(
+            level.index,
           );
-          if (!!barToClose) {
-            this.state.setBarClosed(barToClose.index, TradeSide.LONG);
-            this.state.setBarClosed(bar.index, TradeSide.SHORT);
+          if (!!levelToClose) {
+            this.state.setLevelClosed(levelToClose.index, TradeSide.LONG);
+            this.state.setLevelClosed(level.index, TradeSide.SHORT);
           }
           await this.operator.updateStopUpperOrder();
           await this.operator.updateStopLowerOrder();
-          this.logger.verbose(`Short order at ${bar.index} is filled.`);
+          this.logger.verbose(`Short order at ${level.index} is filled.`);
         }
       } else {
         this.logger.error(
-          `Cannot find the short order (${bar.short.orderId}) at (${bar.index})`,
+          `Cannot find the short order (${level.short.orderId}) at (${level.index})`,
         );
       }
     }
@@ -176,7 +157,7 @@ export class Grid {
    *
    */
   public async terminate() {
-    await this.operator.cancelAllBarOrders();
+    await this.operator.cancelAllLevelOrders();
     await this.operator.cancelStopOrders();
     await this.operator.closePosition();
     this.state.setTerminated();

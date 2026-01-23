@@ -1,15 +1,21 @@
 import { PerpetualPair } from '../../../core/structures/pair';
+import { Logger } from '@nestjs/common';
+import { PerpBroker } from '../../../core/interfaces/broker.interface';
+import { BinanceConfig } from '../../../broker/binance/binance.interface';
+import { BinancePerpBrokerService } from '../../../broker/binance/perp/binance.perp.broker.service';
 
 export type GridConfigArg = {
+  exchange?: string;
+  binance?: BinanceConfig;
   base: string;
   quote: string;
   lower: number;
   upper: number;
   // Number of grids
   number: number;
-  // Size per bar
+  // Size per level
   size: number;
-  // Max number of trials to place bar order
+  // Max number of trials to place level order
   maxTrial?: number;
   // Start grid if the market price is near triggerPrice
   triggerPrice?: number;
@@ -24,9 +30,9 @@ export type GridConfig = {
   upper: number;
   // Number of grids
   number: number;
-  // Size per bar
+  // Size per level
   size: number;
-  // Max number of trials to place bar order
+  // Max number of trials to place level order
   maxTrial: number;
   // Start grid if the market price is near triggerPrice
   triggerPrice?: number;
@@ -35,42 +41,17 @@ export type GridConfig = {
   stopLowerPrice?: number;
 };
 
-export type GridState = {
-  interval: number;
-  bars: Map<number, BarState>;
-  isTriggered: boolean;
-  triggerRange: [number, number];
-  stopOrders: {
-    lower: string;
-    upper: string;
-  };
-  // Positive => Long | Negative => Short
-  position: number;
-  isTerminated: boolean;
-};
-
-/**
- * Bar Type.
- * The minimal element of a grid.
- */
-export type BarState = {
-  index: number;
-  price: number;
-  long: {
-    orderId: string | null;
-    status: BarStatus;
-  };
-  short: {
-    orderId: string | null;
-    status: BarStatus;
-  };
-};
-
-export enum BarStatus {
-  // Bar contains an open order
-  OPENING,
-  // Bar order is filled and cannot close any opened bar
-  OPENED,
-  // Bar order is filled and closes another bar
-  CLOSED,
+export function getBroker(
+  config: GridConfigArg,
+  logger: Logger,
+): PerpBroker | null {
+  if (!!config.exchange) {
+    switch (config.exchange) {
+      case 'binance': {
+        return new BinancePerpBrokerService(config.binance, logger);
+      }
+    }
+  } else {
+    return null;
+  }
 }

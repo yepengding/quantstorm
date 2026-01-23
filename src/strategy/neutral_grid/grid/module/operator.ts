@@ -1,8 +1,8 @@
 import { Logger } from '@nestjs/common';
-import { PerpBroker } from '../../../core/interfaces/broker.interface';
+import { PerpBroker } from '../../../../core/interfaces/broker.interface';
 import { StateManager } from './state_manager';
-import { BarState } from './types';
-import { OrderStatus, TradeSide } from '../../../core/constants';
+import { OrderStatus, TradeSide } from '../../../../core/constants';
+import { LevelState } from '../model/state';
 
 /**
  * Grid Operator
@@ -20,65 +20,64 @@ export class Operator {
     this.state = state;
   }
 
-  async openBarsNearMarketPrice() {
-    const marketPrice = await this.broker.getMarketPrice(this.state.pair);
-    const bar = this.state.getNearestBar(marketPrice);
-    const barBelow = this.state.getBarBelow(bar);
-    const barAbove = this.state.getBarAbove(bar);
-
-    if (
-      !!barBelow &&
-      (this.state.isClosedAt(barBelow.index) ||
-        (this.state.isOpenedShortAt(bar.index) &&
-          this.state.isClosedLongAt(barBelow.index)))
-    ) {
-      await this.placeLongOrderAt(barBelow);
-    }
-    if (
-      !!barAbove &&
-      (this.state.isClosedAt(barAbove.index) ||
-        (this.state.isOpenedLongAt(bar.index) &&
-          this.state.isClosedShortAt(barAbove.index)))
-    ) {
-      await this.placeShortOrderAt(barAbove);
-    }
-  }
-
-  async placeLongOrderAt(bar: BarState): Promise<BarState> {
-    let order = null;
-    for (let i = 0; i < this.state.maxTrial; i++) {
-      order = await this.broker
-        .placeGTXLong(this.state.pair, this.state.size, bar.price)
-        .then((order) => {
-          if (!!order) {
-            this.state.setBarOpening(bar.index, order.id, TradeSide.LONG);
-          } else {
-            this.logger.error(`Failed to place long order at bar ${bar.index}`);
-          }
-          return order;
-        });
-      if (
-        !!order &&
-        (await this.broker.getOrder(order.id, this.state.pair)).status !=
-          OrderStatus.CANCELLED
-      ) {
-        break;
+  /**
+   * Trigger a grid
+   * @returns
+   */
+  async triggerGrid() {
+    if (!!this.state.triggerPrice) {
+      if (!this.state.isTriggered) {
+        const marketPrice = await this.broker.getMarketPrice(this.state.pair);
+        if (
+          marketPrice > this.state.triggerPrice - this.state.interval &&
+          marketPrice < this.state.triggerPrice + this.state.interval
+        ) {
+          await this.openLevelsNearMarketPrice();
+          this.state.setTriggered();
+        }
       }
+    } else {
+      await this.openLevelsNearMarketPrice();
+      this.state.setTriggered();
     }
-    return !!order ? this.state.getBarAt(bar.index) : bar;
+    this.logger.log(`Triggered grid: ${this.state.gridDescription}`);
   }
 
-  async placeShortOrderAt(bar: BarState): Promise<BarState> {
+  async openLevelsNearMarketPrice() {
+    const marketPrice = await this.broker.getMarketPrice(this.state.pair);
+    const level = this.state.getNearestLevel(marketPrice);
+    const levelBelow = this.state.getLevelBelow(level);
+    const levelAbove = this.state.getLevelAbove(level);
+
+    if (
+      !!levelBelow &&
+      (this.state.isClosedAt(levelBelow.index) ||
+        (this.state.isOpenedShortAt(level.index) &&
+          this.state.isClosedLongAt(levelBelow.index)))
+    ) {
+      await this.placeLongOrderAt(levelBelow);
+    }
+    if (
+      !!levelAbove &&
+      (this.state.isClosedAt(levelAbove.index) ||
+        (this.state.isOpenedLongAt(level.index) &&
+          this.state.isClosedShortAt(levelAbove.index)))
+    ) {
+      await this.placeShortOrderAt(levelAbove);
+    }
+  }
+
+  async placeLongOrderAt(level: LevelState): Promise<LevelState> {
     let order = null;
     for (let i = 0; i < this.state.maxTrial; i++) {
       order = await this.broker
-        .placeGTXShort(this.state.pair, this.state.size, bar.price)
+        .placeGTXLong(this.state.pair, this.state.size, level.price)
         .then((order) => {
           if (!!order) {
-            this.state.setBarOpening(bar.index, order.id, TradeSide.SHORT);
+            this.state.setLevelOpening(level.index, order.id, TradeSide.LONG);
           } else {
             this.logger.error(
-              `Failed to place short order at bar ${bar.index}`,
+              `Failed to place long order at level ${level.index}`,
             );
           }
           return order;
@@ -91,7 +90,33 @@ export class Operator {
         break;
       }
     }
-    return !!order ? this.state.getBarAt(bar.index) : bar;
+    return !!order ? this.state.getLevelAt(level.index) : level;
+  }
+
+  async placeShortOrderAt(level: LevelState): Promise<LevelState> {
+    let order = null;
+    for (let i = 0; i < this.state.maxTrial; i++) {
+      order = await this.broker
+        .placeGTXShort(this.state.pair, this.state.size, level.price)
+        .then((order) => {
+          if (!!order) {
+            this.state.setLevelOpening(level.index, order.id, TradeSide.SHORT);
+          } else {
+            this.logger.error(
+              `Failed to place short order at level ${level.index}`,
+            );
+          }
+          return order;
+        });
+      if (
+        !!order &&
+        (await this.broker.getOrder(order.id, this.state.pair)).status !=
+          OrderStatus.CANCELLED
+      ) {
+        break;
+      }
+    }
+    return !!order ? this.state.getLevelAt(level.index) : level;
   }
 
   /**
@@ -202,7 +227,7 @@ export class Operator {
     return !!order;
   }
 
-  async cancelAllBarOrders() {
+  async cancelAllLevelOrders() {
     await this.broker.cancelOrders(this.state.openingOrderIds, this.state.pair);
   }
 

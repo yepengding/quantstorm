@@ -1,11 +1,11 @@
 import { StrategyAbstract } from '../strategy.abstract';
 import { Logger } from '@nestjs/common';
 import { PerpetualPair } from '../../core/structures/pair';
-import { GridConfig, GridConfigArg } from './grid/types';
+import { getBroker, GridConfig, GridConfigArg } from './grid/config';
 import { Grid } from './grid/grid';
 
 /**
- * Neutral Grid Strategy for backtesting only
+ * Arithmetic Neutral Grid Strategy
  *
  * @author Yepeng Ding
  */
@@ -31,10 +31,11 @@ export class NeutralGrid extends StrategyAbstract {
       stopUpperPrice: config.stopUpperPrice,
     };
     this.logger.log(`Config: ${JSON.stringify(this.config)}`);
+    const broker = getBroker(config, this.logger);
 
     this.grid = Grid.create(
       this.config,
-      this.createBacktestPerpBroker(),
+      !!broker ? broker : this.createBacktestPerpBroker(),
       this.logger,
     );
     await this.grid.init();
