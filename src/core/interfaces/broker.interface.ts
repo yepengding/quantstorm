@@ -7,8 +7,6 @@ import { Currency, OptionPair, Pair } from '../structures/pair';
 export interface Broker {
   cancelOrder(id: string, pair: Pair): Promise<boolean>;
 
-  cancelOrders(ids: string[], pair: Pair): Promise<boolean>;
-
   getBalance(currency: Currency): Promise<number | null>;
 
   getMarketPrice(pair: Pair): Promise<number | null>;
@@ -58,6 +56,8 @@ export interface SpotBroker extends Broker {
     price: number,
   ): Promise<Order | null>;
 
+  cancelOrders(ids: string[], pair: Pair): Promise<boolean>;
+
   cancelConditionalOrder(id: string, pair: Pair): Promise<boolean>;
 
   cancelConditionalOrders(ids: string[], pair: Pair): Promise<boolean>;
@@ -105,6 +105,8 @@ export interface PerpBroker extends Broker {
     price: number,
   ): Promise<Order | null>;
 
+  cancelOrders(ids: string[], pair: Pair): Promise<boolean>;
+
   cancelConditionalOrder(id: string, pair: Pair): Promise<boolean>;
 
   cancelConditionalOrders(ids: string[], pair: Pair): Promise<boolean>;
@@ -120,8 +122,23 @@ export interface PerpBroker extends Broker {
  * @author Yepeng Ding
  */
 export interface OptionBroker extends Broker {
+  placeLimitBuy(
+    pair: OptionPair,
+    size: number,
+    price: number,
+  ): Promise<Order | null>;
+
+  placeLimitSell(
+    pair: OptionPair,
+    size: number,
+    price: number,
+  ): Promise<Order | null>;
+
   getGreeks(pair: OptionPair): Promise<Greeks | null>;
+
   getAllGreeks(): Promise<Greeks[]>;
+
+  getExercisePrice(pair: OptionPair): Promise<number[]>;
 }
 
 export interface Position {

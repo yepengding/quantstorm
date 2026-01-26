@@ -1,11 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { binance, Greeks as CCXTGreeks } from 'ccxt';
+import { binance, Greeks as CCXTGreeks, Order as CCXTOrder } from 'ccxt';
 import { BinanceConfig } from '../binance.interface';
 import { BinanceOptionBroker } from './binance.option.broker.interface';
-import { Greeks, Order } from 'src/core/interfaces/market.interface';
-import { Currency, OptionPair, Pair } from 'src/core/structures/pair';
-import { Interval } from 'src/core/types';
 import { KLines } from '../../../core/structures/klines';
+import { OrderStatus, OrderType, TradeSide } from '../../../core/constants';
+import { Currency, OptionPair } from '../../../core/structures/pair';
+import { Greeks, Order } from '../../../core/interfaces/market.interface';
+import { Interval } from '../../../core/types';
 
 /**
  * Binance Option Broker Service
@@ -26,6 +27,51 @@ export class BinanceOptionBrokerService implements BinanceOptionBroker {
     });
     this.logger = logger;
   }
+
+  async placeLimitBuy(
+    pair: OptionPair,
+    size: number,
+    price: number,
+  ): Promise<Order | null> {
+    const order = await this.exchange
+      .createLimitBuyOrder(pair.toOptionSymbol(), size, price)
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
+    return !!order ? this.toOrder(order) : null;
+  }
+
+  async placeLimitSell(
+    pair: OptionPair,
+    size: number,
+    price: number,
+  ): Promise<Order | null> {
+    const order = await this.exchange
+      .createLimitSellOrder(pair.toOptionSymbol(), size, price)
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
+    return !!order ? this.toOrder(order) : null;
+  }
+
+  async cancelOrder(id: string, pair: OptionPair): Promise<boolean> {
+    let order = await this.exchange
+      .cancelOrder(id, pair.toOptionSymbol())
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
+    if (!order) {
+      order = await this.exchange.fetchOrder(id, pair.toSymbol());
+      if (!order) {
+        return false;
+      }
+    }
+    return order.status == 'canceled';
+  }
+
   async getGreeks(pair: OptionPair): Promise<Greeks | null> {
     const greeks = await this.exchange
       .fetchGreeks(pair.toOptionSymbol())
@@ -33,7 +79,6 @@ export class BinanceOptionBrokerService implements BinanceOptionBroker {
         this.logger.error(e);
         return null;
       });
-    console.log(greeks);
     return !!greeks ? this.toGreeks(greeks) : null;
   }
 
@@ -45,14 +90,26 @@ export class BinanceOptionBrokerService implements BinanceOptionBroker {
     return !!allGreeks ? Object.values(allGreeks).map(this.toGreeks) : [];
   }
 
-  cancelOrder(id: string, pair: Pair): Promise<boolean> {
-    throw new Error('Method not implemented.');
+  async getExercisePrice(pair: OptionPair): Promise<number[]> {
+    const exerciseHistory = await this.exchange
+      .fetchMySettlementHistory(pair.toOptionSymbol())
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
+    return !!exerciseHistory ? exerciseHistory.map((e) => e.price) : [];
   }
-  cancelOrders(ids: string[], pair: Pair): Promise<boolean> {
-    throw new Error('Method not implemented.');
-  }
+
   async getBalance(currency: Currency): Promise<number | null> {
-    return null;
+    const account = await this.exchange
+      .eapiPrivateGetMarginAccount()
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
+    const asset = account?.asset.find((a) => a.asset == currency);
+
+    return !!asset ? asset.available : null;
   }
   async getMarketPrice(pair: OptionPair): Promise<number | null> {
     const greeks = await this.getGreeks(pair);
@@ -100,11 +157,43 @@ export class BinanceOptionBrokerService implements BinanceOptionBroker {
       });
     return !!orderBook ? orderBook.asks[0][0] : null;
   }
-  getOpenOrders(pair: Pair): Promise<Order[]> {
-    throw new Error('Method not implemented.');
+
+  async getOpenOrders(pair: OptionPair): Promise<Order[]> {
+    const orders = await this.exchange
+      .fetchOpenOrders(pair.toOptionSymbol())
+      .catch((e) => {
+        this.logger.error(e);
+        return [];
+      });
+
+    return orders.map((o) => this.toOrder(o));
   }
-  getOrder(id: string, pair: Pair, logRaw?: boolean): Promise<Order | null> {
-    throw new Error('Method not implemented.');
+  async getOrder(
+    id: string,
+    pair: OptionPair,
+    logRaw?: boolean,
+  ): Promise<Order | null> {
+    const order = await this.exchange
+      .fetchOrder(id, pair.toOptionSymbol())
+      .catch((e) => {
+        this.logger.error(e);
+        return null;
+      });
+    if (!!order) {
+      return this.toOrder(order);
+    }
+
+    if (logRaw && !order) {
+      this.logger.debug(!!order ? JSON.stringify(order) : 'Order not found');
+    }
+    return null;
+  }
+
+  async getOrders(pair: OptionPair): Promise<Order[]> {
+    const orders = await this.exchange
+      .fetchOrders(pair.toOptionSymbol())
+      .catch(() => []);
+    return orders.map(this.toOrder);
   }
 
   private toGreeks(greeks: CCXTGreeks): Greeks {
@@ -116,5 +205,59 @@ export class BinanceOptionBrokerService implements BinanceOptionBroker {
       theta: greeks.theta,
       vega: greeks.vega,
     } as Greeks;
+  }
+
+  private toOrder(order: CCXTOrder): Order {
+    let orderType: OrderType;
+    switch (order.type) {
+      case 'limit': {
+        orderType = OrderType.LIMIT;
+        break;
+      }
+      case 'market': {
+        orderType = OrderType.MARKET;
+        break;
+      }
+      default:
+        orderType = OrderType.LIMIT;
+    }
+
+    let orderStatus: OrderStatus;
+    switch (order.status) {
+      case 'open': {
+        orderStatus = OrderStatus.OPEN;
+        break;
+      }
+      case 'closed': {
+        // CCXT defines "An order can be closed (filled) with multiple opposing trades"
+        orderStatus = OrderStatus.FILLED;
+        break;
+      }
+      default: {
+        if (order.filled > 0) {
+          orderStatus = OrderStatus.FILLED;
+          this.logger.warn(
+            `Unknown filled order (${order.id}) status ${order.status}`,
+          );
+        }
+        orderStatus = OrderStatus.CANCELLED;
+        if (order.status != 'canceled' && order.status != 'expired') {
+          this.logger.warn(
+            `Unknown status (${order.status}) of order (${order.id})`,
+          );
+        }
+      }
+    }
+    return {
+      id: order.id,
+      type: orderType,
+      symbol: order.symbol,
+      price: order.price,
+      size: order.amount,
+      filledSize: order.filled,
+      side: order.side == 'buy' ? TradeSide.LONG : TradeSide.SHORT,
+      timestamp: order.timestamp,
+      status: orderStatus,
+    };
   }
 }
