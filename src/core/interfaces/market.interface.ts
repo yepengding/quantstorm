@@ -32,3 +32,12 @@ export interface Trade {
   pnl: number;
   fee: number;
 }
+
+export interface Greeks {
+  symbol: string;
+  price: number;
+  delta: number;
+  gamma: number;
+  theta: number;
+  vega: number;
+}

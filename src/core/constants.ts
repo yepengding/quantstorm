@@ -22,3 +22,8 @@ export enum TradeType {
   MAKER = 0,
   TAKER = 1,
 }
+
+export enum OptionSide {
+  CALL = 'C',
+  PUT = 'P',
+}

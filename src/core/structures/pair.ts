@@ -1,3 +1,5 @@
+import { OptionSide } from '../constants';
+
 export interface Pair {
   readonly base: Currency;
   readonly quote: Currency;
@@ -61,6 +63,42 @@ export class PerpetualPair extends BasePair {
 
   public toPerpetualSymbol(): string {
     return `${this.base}/${this.quote}:${this.isInverse ? this.base : this.quote}`;
+  }
+}
+
+export class OptionPair extends BasePair {
+  public readonly date: string;
+  public readonly strike: number;
+  public readonly side: OptionSide;
+
+  constructor(
+    base: string,
+    quote: string,
+    date: string,
+    strike: number,
+    side: OptionSide,
+  ) {
+    super(base, quote);
+    this.date = date;
+    this.strike = strike;
+    this.side = side;
+  }
+
+  public static fromSymbol(symbol: string): OptionPair {
+    const [pair, name] = symbol.split(':');
+    const [base, quote] = pair.split('/');
+    const [, date, strike, side] = name.split('-');
+    return new OptionPair(
+      base as Currency,
+      quote as Currency,
+      date,
+      Number(strike),
+      side === 'C' ? OptionSide.CALL : OptionSide.PUT,
+    );
+  }
+
+  public toOptionSymbol(): string {
+    return `${this.base}/${this.quote}:${this.quote}-${this.date}-${this.strike}-${this.side}`;
   }
 }
 
