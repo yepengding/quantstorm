@@ -168,7 +168,9 @@ export class BinanceOptionBrokerService implements BinanceOptionBroker {
         this.logger.error(e);
         return null;
       });
-    return !!orderBook ? orderBook.bids[0][0] : null;
+    return !!orderBook && orderBook.bids.length > 0
+      ? orderBook.bids[0][0]
+      : null;
   }
   async getBestAsk(pair: OptionPair): Promise<number | null> {
     const orderBook = await this.exchange
@@ -177,7 +179,9 @@ export class BinanceOptionBrokerService implements BinanceOptionBroker {
         this.logger.error(e);
         return null;
       });
-    return !!orderBook ? orderBook.asks[0][0] : null;
+    return !!orderBook && orderBook.asks.length > 0
+      ? orderBook.asks[0][0]
+      : null;
   }
 
   async getOpenOrders(pair: OptionPair): Promise<Order[]> {
