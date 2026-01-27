@@ -1,6 +1,6 @@
 import { Greeks, Order } from './market.interface';
 import { Interval } from '../types';
-import { TradeSide } from '../constants';
+import { OptionSide, TradeSide } from '../constants';
 import { KLines } from '../structures/klines';
 import { Currency, OptionPair, Pair } from '../structures/pair';
 
@@ -137,6 +137,12 @@ export interface OptionBroker extends Broker {
   getGreeks(pair: OptionPair): Promise<Greeks | null>;
 
   getAllGreeks(): Promise<Greeks[]>;
+
+  getPairGreeks(
+    base: Currency,
+    quote: Currency,
+    side?: OptionSide,
+  ): Promise<Greeks[]>;
 
   getExercisePrice(pair: OptionPair): Promise<number[]>;
 }

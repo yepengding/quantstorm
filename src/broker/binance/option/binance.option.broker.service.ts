@@ -3,7 +3,12 @@ import { binance, Greeks as CCXTGreeks, Order as CCXTOrder } from 'ccxt';
 import { BinanceConfig } from '../binance.interface';
 import { BinanceOptionBroker } from './binance.option.broker.interface';
 import { KLines } from '../../../core/structures/klines';
-import { OrderStatus, OrderType, TradeSide } from '../../../core/constants';
+import {
+  OptionSide,
+  OrderStatus,
+  OrderType,
+  TradeSide,
+} from '../../../core/constants';
 import { Currency, OptionPair } from '../../../core/structures/pair';
 import { Greeks, Order } from '../../../core/interfaces/market.interface';
 import { Interval } from '../../../core/types';
@@ -88,6 +93,23 @@ export class BinanceOptionBrokerService implements BinanceOptionBroker {
       return null;
     });
     return !!allGreeks ? Object.values(allGreeks).map(this.toGreeks) : [];
+  }
+
+  async getPairGreeks(
+    base: Currency,
+    quote: Currency,
+    side?: OptionSide,
+  ): Promise<Greeks[]> {
+    const allGreeks = await this.getAllGreeks();
+    return !!side
+      ? allGreeks.filter(
+          (g) =>
+            g.symbol.startsWith(`${base}/${quote}:${quote}`) &&
+            g.symbol.endsWith(side),
+        )
+      : allGreeks.filter((g) =>
+          g.symbol.startsWith(`${base}/${quote}:${quote}`),
+        );
   }
 
   async getExercisePrice(pair: OptionPair): Promise<number[]> {

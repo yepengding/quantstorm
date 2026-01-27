@@ -5,6 +5,7 @@ import { Logger } from '@nestjs/common';
 import { BinanceConfig } from '../binance.interface';
 import { BinanceOptionBrokerService } from './binance.option.broker.service';
 import { Currency, OptionPair } from '../../../core/structures/pair';
+import { OptionSide } from '../../../core/constants';
 
 describe('BinanceOptionBrokerService', () => {
   let envService: ConfigService;
@@ -52,11 +53,26 @@ describe('BinanceOptionBrokerService', () => {
     const allGreeks = await service.getAllGreeks();
     console.log(allGreeks);
   });
-  it('should get a greeks', async () => {
+  it('should get greeks', async () => {
     const greeks = await service.getGreeks(
       OptionPair.fromSymbol('BTC/USDT:USDT-260327-100000-C'),
     );
     console.log(greeks);
+  });
+  it('should get pair greeks', async () => {
+    const greeks = await service.getPairGreeks(Currency.BTC, Currency.USDT);
+    console.log(greeks);
+    const greeksCall = await service.getPairGreeks(
+      Currency.BTC,
+      Currency.USDT,
+      OptionSide.CALL,
+    );
+    expect(
+      greeks.filter(
+        (g) => OptionPair.fromSymbol(g.symbol).side === OptionSide.CALL,
+      ).length,
+    ).toBe(greeksCall.length);
+    console.log(greeksCall);
   });
   it('should get user exercise price', async () => {
     const exercisePrice = await service.getExercisePrice(
