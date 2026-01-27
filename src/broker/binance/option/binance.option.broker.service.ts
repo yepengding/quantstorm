@@ -69,7 +69,7 @@ export class BinanceOptionBrokerService implements BinanceOptionBroker {
         return null;
       });
     if (!order) {
-      order = await this.exchange.fetchOrder(id, pair.toSymbol());
+      order = await this.exchange.fetchOrder(id, pair.toOptionSymbol());
       if (!order) {
         return false;
       }
