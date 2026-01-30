@@ -115,8 +115,10 @@ export enum Currency {
 }
 
 const priceDecimalMap = new Map<string, number>([
-  ['BTC/USDC', 1],
-  ['BTC/USDC:USDC', 1],
+  ['BTC/USDT', 2],
+  ['BTC/USDC', 2],
+  ['BTC/USDC:USDC', 2],
+  ['ETH/USDT', 2],
   ['ETH/USDC', 2],
   ['ETH/USDC:USDC', 2],
   ['ETH/USD:ETH', 2],
