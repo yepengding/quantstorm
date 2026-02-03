@@ -255,15 +255,31 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
         return;
       }
     }
-    await this.exchange
-      .sapiPostSimpleEarnFlexibleRedeem({
-        productId: this.earnFlexibleProductIds.get(currency),
-        redeemAll: !amount,
-        amount: amount,
-      })
-      .catch((e) => {
-        this.logger.error(e);
-      });
+    if (amount !== null && amount !== undefined && amount > 0) {
+      const adjustedAmount = this.roundToSignificantFigures(amount, 2);
+      await this.exchange
+        .sapiPostSimpleEarnFlexibleRedeem({
+          productId: this.earnFlexibleProductIds.get(currency),
+          redeemAll: false,
+          amount: adjustedAmount,
+        })
+        .catch((e) => {
+          this.logger.error(
+            `Failed to redeem ${adjustedAmount} earn flexible ${currency}`,
+          );
+          this.logger.error(e);
+        });
+    } else {
+      await this.exchange
+        .sapiPostSimpleEarnFlexibleRedeem({
+          productId: this.earnFlexibleProductIds.get(currency),
+          redeemAll: true,
+        })
+        .catch((e) => {
+          this.logger.error(`Failed to redeem all earn flexible ${currency}`);
+          this.logger.error(e);
+        });
+    }
   }
 
   async subscribeRWUSD(amount: number): Promise<void> {
@@ -532,5 +548,15 @@ export class BinanceSpotBrokerService implements BinanceSpotBroker {
     }
 
     return balances;
+  }
+
+  private roundToSignificantFigures(
+    num: number,
+    significantFigures: number,
+  ): number {
+    if (num === 0) return 0;
+    const magnitude = Math.floor(Math.log10(Math.abs(num)));
+    const scale = Math.pow(10, significantFigures - magnitude - 1);
+    return Math.round(num * scale) / scale;
   }
 }
