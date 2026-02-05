@@ -100,6 +100,34 @@ export class OptionPair extends BasePair {
   public toOptionSymbol(): string {
     return `${this.base}/${this.quote}:${this.quote}-${this.date}-${this.strike}-${this.side}`;
   }
+
+  /**
+   * Expiry timestamp in seconds
+   */
+  public expiryTimestamp(): number {
+    const date = this.date;
+
+    const yy = Number(date.slice(0, 2));
+    const mm = Number(date.slice(2, 4));
+    const dd = Number(date.slice(4, 6));
+
+    const fullYear = 2000 + yy;
+
+    // Date.UTC month is 0-based, hour = 8
+    const ms = Date.UTC(fullYear, mm - 1, dd, 8, 0, 0, 0);
+
+    // return seconds
+    return Math.floor(ms / 1000);
+  }
+
+  /**
+   * True if the current time is earlier than the expiry time, with the given seconds offset.
+   *
+   * @param seconds
+   */
+  public isNowEarlierThanExpiry(seconds: number = 0): boolean {
+    return Math.floor(Date.now() / 1000) <= this.expiryTimestamp() - seconds;
+  }
 }
 
 export enum Currency {
