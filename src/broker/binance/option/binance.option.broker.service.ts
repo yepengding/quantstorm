@@ -230,6 +230,8 @@ export class BinanceOptionBrokerService implements BinanceOptionBroker {
       gamma: greeks.gamma,
       theta: greeks.theta,
       vega: greeks.vega,
+      bidIV: greeks.bidImpliedVolatility,
+      askIV: greeks.askImpliedVolatility,
     } as Greeks;
   }
 
