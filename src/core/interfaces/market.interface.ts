@@ -40,4 +40,6 @@ export interface Greeks {
   gamma: number;
   theta: number;
   vega: number;
+  bidIV: number;
+  askIV: number;
 }

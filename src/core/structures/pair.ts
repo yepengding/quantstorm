@@ -121,6 +121,28 @@ export class OptionPair extends BasePair {
   }
 
   /**
+   * Compute time to expiry in seconds
+   * @param currentTimeSec Current time in seconds
+   * @returns Time to expiry in seconds
+   */
+  public timeToExpiryInSeconds(
+    currentTimeSec: number = Math.floor(Date.now() / 1000),
+  ): number {
+    return this.expiryTimestamp() - currentTimeSec;
+  }
+
+  /**
+   * Compute time to expiry in years
+   * @param currentTimeSec Current time in seconds
+   * @returns Time to expiry in years
+   */
+  public timeToExpiryInYears(
+    currentTimeSec: number = Math.floor(Date.now() / 1000),
+  ): number {
+    return this.timeToExpiryInSeconds(currentTimeSec) / 31_536_000;
+  }
+
+  /**
    * True if the current time is earlier than the expiry time, with the given seconds offset.
    *
    * @param seconds

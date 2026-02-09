@@ -1,9 +1,50 @@
+import { Greeks } from '../core/interfaces/market.interface';
+import { OptionPair } from '../core/structures/pair';
+import { OptionSide } from '../core/constants';
+
 /**
  * Option Tool
  *
  * @author Yepeng Ding
  */
 export class OptionTool {
+  static calculatePriceByGreeks(
+    spotPrice: number,
+    greeks: Greeks,
+  ): Record<'bid' | 'ask', number> {
+    const pair = OptionPair.fromSymbol(greeks.symbol);
+    const timeToExpiryInYears = pair.timeToExpiryInYears();
+    return pair.side === OptionSide.CALL
+      ? {
+          bid: this.calculateCallPrice(
+            spotPrice,
+            pair.strike,
+            timeToExpiryInYears,
+            greeks.bidIV,
+          ),
+          ask: this.calculateCallPrice(
+            spotPrice,
+            pair.strike,
+            timeToExpiryInYears,
+            greeks.askIV,
+          ),
+        }
+      : {
+          bid: this.calculatePutPrice(
+            spotPrice,
+            pair.strike,
+            timeToExpiryInYears,
+            greeks.bidIV,
+          ),
+          ask: this.calculatePutPrice(
+            spotPrice,
+            pair.strike,
+            timeToExpiryInYears,
+            greeks.askIV,
+          ),
+        };
+  }
+
   /**
    * Calculates the Black-Scholes Price for a CALL Option
    *
